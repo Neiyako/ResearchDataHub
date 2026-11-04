@@ -242,7 +242,7 @@ ERA5 2t，2024-01-01..03 逐时，30–45°N/100–125°E，NetCDF。
 
 | 条件 | 结果 | 关键证据 |
 |---|---|---|
-| 纯 CDS API | 新请求 45 min 窗口内未就绪（下界 ≥2 700 s）；空闲期小样本 59.2 s | `benchmarks/m6/results.json`；产物 xarray 校验 |
+| 纯 CDS API | 3 天请求 45 min 未就绪（拥塞期，下界 ≥2 700 s）；**降量到 2°×2°×1 时次后 30.2 s 完成**（25 116 B，含生成 28.71 s + 下载 1.49 s） | `benchmarks/m6/results.json`；产物 xarray 校验 |
 | 纯 NCAR GDEX | 端到端 113.6 s，下载 1 134 576 716 B，10.5 MB/s | 目录声明与 HEAD 一致；SHA-256 `e619fc57…9b04` |
 | 混合制（双源对冲） | 先就绪 112.55 s（winner=NCAR）；CDS 侧未就绪 | `results.json` `runs[mode=mixed].validation` |
 
@@ -258,7 +258,7 @@ ERA5 2t，2024-01-01..03 逐时，30–45°N/100–125°E，NetCDF。
 | # | 遗留 | 影响 | 建议 |
 |---|---|---|---|
 | 1 | 真实 ERA5 产物下载 NOT RUN | 核心场景未端到端验证 | M6 第一优先：CDS 小样本（1 变量 × 1 天 × 全球）或 RDA 单文件，限制 < 1 GB |
-| 2 | CDS 执行断点：`HttpTransportAdapter` 只处理 https 路由，CDS 资产 route=`cds_api` | CDS 任务会以 "no transport" 失败 | M6 实现 `CdsApiTransport`（submit→poll→download），或让 CDS 结果资产以 https 路由交付 |
+| 2 | ~~CDS 执行断点~~ **已实现（2026-11-04）**：新增传输适配器 `CdsApiTransport`（`access_route=cds_api`，复用 `HttpTransportAdapter` 的流式/`.part`/续传/校验/重试语义，只覆写路由判别与 `transport_id`；`build_transports()` 已装配）。剩余：调度器内真实 CDS 端到端 **NOT RUN**（需凭证 + 实际排队）；临时签名 URL 过期不自动 re-resolve（401/403 → 不可重试 FAILED，需重新 plan 换新 URL） | 原 "no transport" 失败已消除；真实链路仍未端到端验证 | 有 CDS 凭证时跑一次 `rdh plan create` + `rdh task run` 做真实端到端；若产品上需要过期自动续签，再在调度层加 re-resolve |
 | 3 | S3 端到端 NOT RUN、multipart 未实现 | 大文件 S3 下载只有单流 | M6 用真实 S3/MinIO 跑集成；需要时补 multipart（复用同一 `.part` 自证语义） |
 | 4 | `unmatched_variables` 依赖源声明变量覆盖（现标注 `assumed_from_discovery`） | 变量级覆盖率不精确 | 契约增加 `SourceAsset.variables`，由 adapter 真实填充 |
 | 5 | FileRecord/报告/状态非严格单事务（三次写） | 中间窗口靠 reconcile 修复 | 给 `ManifestRepository` 加复合写方法（`save_completion`） |

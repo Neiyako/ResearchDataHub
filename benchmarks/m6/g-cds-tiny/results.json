@@ -1,0 +1,99 @@
+{
+  "schema": "rdh-m6-bench/1",
+  "generated_at": "2026-11-04T12:47:55.886069+00:00",
+  "environment": "macOS-27.0.1-arm64-arm-64bit-Mach-O / Python 3.13.13 / arm64",
+  "workload": {
+    "cds_request": {
+      "product_type": "reanalysis",
+      "variable": [
+        "2m_temperature"
+      ],
+      "year": "2024",
+      "month": "01",
+      "day": [
+        "05"
+      ],
+      "time": [
+        "00:00"
+      ],
+      "area": [
+        42.0,
+        105.0,
+        40.0,
+        107.0
+      ],
+      "data_format": "netcdf",
+      "download_format": "unarchived"
+    },
+    "mixed_cds_request": {
+      "product_type": "reanalysis",
+      "variable": [
+        "2m_temperature"
+      ],
+      "year": "2024",
+      "month": "01",
+      "day": [
+        "15"
+      ],
+      "time": [
+        "00:00"
+      ],
+      "area": [
+        42.0,
+        105.0,
+        40.0,
+        107.0
+      ],
+      "data_format": "netcdf",
+      "download_format": "unarchived"
+    },
+    "ncar": {
+      "var_code": "128_167_2t",
+      "year": 2024,
+      "month": 1,
+      "byte_cap": null
+    }
+  },
+  "runs": [
+    {
+      "mode": "cds",
+      "workload": {
+        "collection": "reanalysis-era5-single-levels",
+        "product_type": "reanalysis",
+        "variable": [
+          "2m_temperature"
+        ],
+        "year": "2024",
+        "month": "01",
+        "day": [
+          "05"
+        ],
+        "time": [
+          "00:00"
+        ],
+        "area": [
+          42.0,
+          105.0,
+          40.0,
+          107.0
+        ],
+        "data_format": "netcdf",
+        "download_format": "unarchived"
+      },
+      "ok": false,
+      "wall_seconds": 5.651916500006337,
+      "bytes_total": 0,
+      "phases": {
+        "client_init": 1.501638332993025,
+        "submit": 1.6171347920026165
+      },
+      "artifacts": [],
+      "validation": {},
+      "notes": [],
+      "error": "SSLError: HTTPSConnectionPool(host='cds.climate.copernicus.eu', port=443): Max retries exceeded with url: /api/retrieve/v1/jobs/6b8250cf-6840-47e5-bed1-8adee3fd8b61?log=True&request=True (Caused by SSLError(SSLEOFError(8, '[SSL: UNEXPECTED_EOF_WHILE_READING] EOF occurred in violation of protocol (_ssl.c:1032)')))"
+    }
+  ],
+  "extra": {
+    "cds": {}
+  }
+}

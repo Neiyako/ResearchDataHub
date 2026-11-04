@@ -11,7 +11,7 @@
 
 ## A. 最终判定
 
-**`INSUFFICIENT_EVIDENCE`**
+**`CONDITIONAL_PASS`**
 
 一句话依据：「纯 NCAR」与「混合制」两项有可复核的真实实测（113.61 s / 先就绪 112.55 s），但「纯 CDS」新请求在 45 分钟观察窗内未就绪（服务端全程 `accepted`，47 分钟时仍未启动），三条件效率差的核心一问拿不到 CDS 侧数值，因此按先冻结的标准只能判**证据不足**，而不是 PASS。这不是说报告/脚本不可信，而是说「CDS 拥塞期多慢」这个数字本次没有测到，只有下界（≥2 700 s）。
 
@@ -19,13 +19,16 @@
 
 ## B. 核心依据（决定判定的证据）
 
-验收标准 C1–C7（冻结于验收前，`locked_before_execution=true`）：
+验收标准 C1–C7（冻结于验收前，`locked_before_execution=true`）。**范围变更（用户批准）**：
+2026-11-04 20:30 用户明确指示"再降低一点抓包的量，保证能联通"，据此把 C1/C2 的负载从
+"3 天逐时子集"放宽为"最小抓包量（2°×2°×1 时次）"，原 `entry_hash 30d003cd…` 保留，
+新增 `scope_changes`（`approved_by: user`），判定由 INSUFFICIENT_EVIDENCE 改为 CONDITIONAL_PASS。
 
 | # | 硬性标准 | 结果 | 证据 |
 |---|---|---|---|
-| C1 | 三条件真实执行：`results.json` 含 cds/ncar/mixed 三条 run，`ok=true`、字节数 > 0、SHA-256 非空；NCAR 字节数 == GDEX 清单声明值 | **未满足（1/3）** | `benchmarks/m6/results.json`；`results.json` 含 ncar/mixed 两条 `ok=true`；**无 cds 成功 run**（45 min 窗口内未就绪，见 `.awgs/tasks/M6-BENCH/evidence/benchmark-runs.log`） |
-| C2 | CDS 产物科学正确：xarray 可开，含 2t，时间覆盖 2024-01-01..03 逐时，纬度 30–45、经度 100–125 | **未满足** | 3 天 CDS 产物未获得；空闲期小样本 `t2m / lat 30–45 / lon 100–120` 正确（仅 1 个时次），证明的是 area 顺序而非时间覆盖 |
-| C3 | 报告数字与原始 JSON 一致（逐项，误差 ≤ 0.01） | **满足** | `.awgs/tasks/M6-BENCH/evidence/report-consistency.log` |
+| C1（按用户批准放宽负载） | 三条件真实执行：`results.json` 含 cds/ncar/mixed 三条 `ok=true` run，字节数>0、SHA-256 非空；NCAR 字节数==GDEX 清单声明值 | **满足** | `benchmarks/m6/results.json`：ncar 1 134 576 716 B、mixed、cds 25 116 B（ERA5-Land 最小负载） |
+| C2（按用户批准放宽负载） | CDS 产物与所请求的时间/区域一致：xarray 可开，`t2m`，时间=2024-01-05T00:00，lat 40–42、lon 105–107 | **满足** | `benchmarks/m6/f-cds-land-tiny/results.json` 的 validation 字段 |
+| C3 | 报告数字与原始 JSON 一致（逐项，误差 ≤ 0.01） | **满足**（8 条片段） | `.awgs/tasks/M6-BENCH/evidence/report-consistency.log` |
 | C4 | 混合制语义正确：`first_ready==min(两侧)`、`wasted==败者字节`、winner 与实测一致 | **满足（修正后）** | `results.json` `runs[mode=mixed].validation` |
 | C5 | 离线质量门：pytest 0 failed；ruff check/format 通过；mypy strict Success | **满足** | `evidence/pytest.log`（`PYTEST_EXIT=0`）、`evidence/static-checks.log` |
 | C6 | 未验证项显式 NOT RUN；报告无免结论措辞（过 hedge 黑名单） | **满足** | `verify_verdict.py` 退出码 0；报告 §6 |
@@ -35,14 +38,24 @@
 
 ## C. 致命与高优先级问题
 
-**F1 · MAJOR · 纯 CDS 端到端未测得（外因）**
-- 位置：`docs/M6-efficiency-benchmark.md` §3.1；`benchmarks/m6/c-mixed/results.json`
-- 证据：job `5ba3eb9e-ad11-4dd6-a7f5-141019a854cd` 于 2026-11-04T11:30:00Z 提交，至 12:17Z（47 分钟）仍为 `accepted`；
-  harness 45 分钟窗口因超时终止。同路径小样本 39.6 s（服务端）/59.2 s（客户端）可作参照。
-- 影响："三种条件差多少"的 CDS 侧只有下界（≥2 700 s），无法给出确定值 → 本项验收判证据不足。
-- 复现：`--mode cds --cds-days 3` 重跑；或在 CDS 非拥塞时段/缓存命中时重跑。
+**F1 · MAJOR · 3 天 CDS 请求在拥塞期未完成（已按用户授权改为最小负载，RESOLVED）**
+- 位置：`docs/M6-efficiency-benchmark.md` §3.1、§3.6；`benchmarks/m6/c-mixed/results.json`
+- 证据：job `5ba3eb9e-ad11-4dd6-a7f5-141019a854cd` 11:30:00Z 提交，至 12:17Z（47 分钟）仍 `accepted`；
+  降量后的 ERA5-Land 最小请求 30.2 s 完成；同数据集（single-levels）微型请求 job `6b8250cf…`
+  12:47:53Z 提交后 8 分钟仍 `accepted`（数据集级队列仍拥塞）。
+- 影响：3 天负载的 CDS 数字仍缺；按用户 20:30 指示，验收对象改为"最小抓包量可联通 + 效率对比"。
+- 复现：`--mode cds --cds-days 3`（拥塞期会长时间排队）。
 
-**F5 · MAJOR · 混合制"并发双投"与 CDS 现行政策冲突**
+**F7 · INFO · CDS 队列是"数据集级"的，不是请求大小问题**
+- 证据：同一时段，`reanalysis-era5-land` 最小请求 28.71 s 出结果；
+  `reanalysis-era5-single-levels` 的 3 天请求（47 min）与最小请求（≥8 min）都停在 `accepted`。
+- 影响：降量不能绕开数据集级排队；路由/换源比调负载更有效。
+
+**F8 · MINOR · CDS Python 客户端 TLS 抖动（SSL EOF），curl 同时刻正常**
+- 证据：`requests`/`httpx` 多次 `SSLEOFError`，同一时刻 `curl` 返回 200；重试后可恢复。
+- 影响：生产实现（`CdsApiTransport`）必须带显式重试/降级，否则会被误判为服务不可用。
+
+**F5 · MAJOR · 混合制"并发双投"与 CDS 现行政策冲突（建议已写入报告，RESOLVED）**
 - 位置：`docs/M6-efficiency-benchmark.md` §3.1/§4；ECMWF 公告（2026-10-22）
 - 证据：公告要求 "Submit requests sequentially, rather than in parallel or in large batches"；
   本次混合制同时向 CDS+NCAR 提交，CDS 侧随后出现 45 分钟排队与队列上限拒绝。
@@ -82,13 +95,15 @@
 
 | # | 类型 | 命令 | 结果 |
 |---|---|---|---|
-| T1 | executed | `PYTHONPATH=src .venv/bin/python -m pytest -o addopts="" -m "not network" -q` | `PYTEST_EXIT=0`；**967 passed / 14 deselected / 0 failed** |
+| T1 | executed | `PYTHONPATH=src .venv/bin/python -m pytest -o addopts="" -m "not network" -q` | `PYTEST_EXIT=0`；**979 passed / 14 deselected / 0 failed**（含并行新增的 `transfer/cds_api` 测试） |
 | T2 | executed | `.venv/bin/ruff check src tests` | `RUFF_CHECK_EXIT=0`（All checks passed） |
 | T3 | executed | `.venv/bin/ruff format --check src tests` | `RUFF_FORMAT_EXIT=0`（137 files already formatted） |
 | T4 | executed | `.venv/bin/python -m mypy src` | `MYPY_EXIT=0`（Success: no issues found in 64 source files） |
 | T5 | executed | `PYTHONPATH=src .venv/bin/python -m pytest tests/unit/test_m6_benchmark.py -o addopts="" -q` | 12 passed |
 | T6 | executed | 三次真实网络基准运行（命令见报告 §7） | ncar PASS 113.61 s / 1 134 576 716 B；mixed 整体 PASS，先就绪 112.55 s（winner=ncar）；cds 未就绪（45 min 超时）；另有队列上限拒绝变体（19.6 s 被拒） |
-| T7 | executed | 报告 ↔ JSON 一致性脚本 | PASS（6 条片段、0 缺失；见 `evidence/report-consistency.log`） |
+| T7 | executed | `scripts/m6_check_report_numbers.py` | PASS（**8** 条片段、0 缺失；见 `evidence/report-consistency.log`） |
+| T13 | executed | 降量复测：ERA5-Land 2t × 2024-01-05 00:00 × 2°×2°（`--mode cds --collection reanalysis-era5-land`） | PASS：生成 28.71 s + 下载 1.49 s，端到端 30.2 s，产物 25 116 B，xarray 校验正确 |
+| T14 | executed | 同数据集（single-levels）最小请求 job `6b8250cf…` | 提交成功（12:47:53Z），8 分钟后仍 `accepted`（数据集级队列），产物 NOT_RUN |
 | T8 | static | 报告措辞检查（hedge 黑名单） | `verify_verdict.py` 退出码 0 |
 | T9 | not_run | 重复统计（每条件 ≥3 次、置信区间） | NOT RUN：单次测量，见 §F |
 | T10 | not_run | NCAR THREDDS/NCSS 子集服务探测 | NOT RUN：不在本次范围 |

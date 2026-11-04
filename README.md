@@ -7,11 +7,11 @@
 （含安全断点续传）、CDS/NCAR 数据源适配、计划与调度（租约 + 心跳 + 崩溃恢复）、
 完整性校验与 staging→raw 原子提交、交付清单与报告均已实现并有测试；真实 ERA5 产物
 （CDS 小样本子集 + NCAR 月度全域文件 1.13 GB）已于 2026-11-04 实际下载并校验，
-CDS 3 天请求因服务端保护性限流未完成（如实记录），效率对比见
+CDS 3 天请求因服务端保护性限流未完成，降量到最小后实测 30.2 s 联通（如实记录），效率对比见
 [`docs/M6-efficiency-benchmark.md`](docs/M6-efficiency-benchmark.md)。
 
 本文件如实区分「已验证」「未验证」「未实现」三类状态（见 §2 与 §7）。
-最近一次工程验收：**967 passed / 14 deselected（network）/ 0 failed**，
+最近一次工程验收：**979 passed / 14 deselected（network）/ 0 failed**，
 `ruff` 与 `mypy --strict` 全绿；真实外网链路已执行：NCAR GDEX 目录发现 → HTTPS 下载 →
 SHA-256 → raw 提交 → 交付清单，以及 M6 的 CDS 子集 / NCAR 1.13 GB 月度文件真实下载
 （2026-11-04，见 [`docs/M6-efficiency-benchmark.md`](docs/M6-efficiency-benchmark.md)）。
@@ -67,7 +67,8 @@ ResearchDataHub 要解决的是一类长期存在的问题：科研数据采集�
 传输与数据源（Python API，已被 CLI/调度器集成）：
 
 - `transfer`：httpx 流式下载（`.part` 原子提交、三重自证断点续传、取消、进度）、
-  boto3 S3（流式、ClientError 分类、**ETag 不作为 MD5**）、统一重试策略、有界并发。
+  boto3 S3（流式、ClientError 分类、**ETag 不作为 MD5**）、CDS 结果签名 URL 下载
+  （`cds_api` 路由，复用 HTTP 实现）、统一重试策略、有界并发。
 - `sources`：CDS（真实 retrieve/v1 schema、参数翻译、服务端异步生命周期建模）、
   NCAR（GDEX/RDA JSON 目录 API、真实响应解析）、Source Registry（工厂注册，无按源 if/else）。
 
@@ -75,8 +76,8 @@ ResearchDataHub 要解决的是一类长期存在的问题：科研数据采集�
 
 | 项 | 状态 |
 |---|---|
-| **真实 ERA5 数据下载**（CDS 或 RDA 的 ERA5 产物） | ✅ **部分实测（2026-11-04）**：NCAR GDEX 月度全域文件（1.13 GB，SHA-256 校验）与 CDS 小样本子集（1 天 × 1 时次，34 KB，xarray 校验）真实下载；**CDS 3 天请求因服务端限流 45 min 未就绪**（如实标记）。效率对比见 [`docs/M6-efficiency-benchmark.md`](docs/M6-efficiency-benchmark.md) |
-| CDS 端到端执行（submit → poll → 下载结果文件） | **脚本层已实测**（M6 基准：排队→生成→下载，含队列上限拒绝的真实错误）；但 **RDH 传输层仍无 `cds_api` transport**，CDS 任务在调度器内会以 "no transport" 失败（M6 遗留） |
+| **真实 ERA5 数据下载**（CDS 或 RDA 的 ERA5 产物） | ✅ **部分实测（2026-11-04）**：NCAR GDEX 月度全域文件（1.13 GB，SHA-256 校验）与 CDS 小样本子集（1 天 × 1 时次，34 KB，xarray 校验）真实下载；**CDS 3 天请求因服务端限流 45 min 未就绪；降量到 2°×2°×1 时次后实测 30.2 s 联通**。效率对比见 [`docs/M6-efficiency-benchmark.md`](docs/M6-efficiency-benchmark.md) |
+| CDS 端到端执行（submit → poll → 下载结果文件） | **传输层已实现（2026-11-04）**：新增 `CdsApiTransport`（`access_route=cds_api`，复用 HTTP 流式/`.part`/续传/重试语义，本地真实 HTTP socket 单测覆盖）；**调度器内真实 CDS 端到端仍 NOT RUN**（需 CDS 凭证 + 实际排队，未造假）。脚本层此前已实测（M6 基准：排队→生成→下载，含队列上限拒绝的真实错误） |
 | S3 端到端下载 | **NOT RUN**（无 MinIO/S3 环境）；无 mock 冒充，代码覆盖 URI/ETag 规则/错误分类 |
 | S3 multipart 并行下载 | 未实现（单条 `get_object` 顺序流式，`s3.part_size_mb` 仅作块上限） |
 | NetCDF 科学语义校验（变量/时间覆盖的正确性） | 只校验结构与声明一致性，**不做科学结论** |

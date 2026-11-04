@@ -5,5 +5,6 @@
 |---|---|---|---|---|---|
 | ncar | PASS | 113.61 | 1134576716 | 9.99 | catalog=2.63, head=1.43, download=108.73 |
 | mixed | PASS | 2702.71 | 1134576716 | 0.42 | cds=2700.0, ncar=112.55 |
+| cds | PASS | 30.2 | 25116 | 0.0 | queue_and_generate=28.71, download=1.49 |
 
 混合制先就绪：112.55 s（winner=ncar，冗余字节=0）

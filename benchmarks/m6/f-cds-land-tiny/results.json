@@ -1,0 +1,79 @@
+{
+  "schema": "rdh-m6-bench/1",
+  "generated_at": "2026-11-04T12:45:25.445430+00:00",
+  "environment": "recovery run",
+  "workload": {
+    "job_id": "82171e6a-3a68-4a35-82ad-3d15e314d757",
+    "created": "2026-11-04T12:44:44.811120"
+  },
+  "transitions": [
+    {
+      "status": "successful",
+      "after_seconds": 0.6
+    }
+  ],
+  "runs": [
+    {
+      "mode": "cds",
+      "workload": {
+        "collection": "reanalysis-era5-land",
+        "job_id": "82171e6a-3a68-4a35-82ad-3d15e314d757",
+        "note": "最小抓包量复测：2m_temperature × 2024-01-05 00:00 × 2°×2°"
+      },
+      "ok": true,
+      "wall_seconds": 30.2,
+      "bytes_total": 25116,
+      "phases": {
+        "queue_and_generate": 28.71,
+        "download": 1.49
+      },
+      "artifacts": [
+        {
+          "kind": "cds_result",
+          "declared_bytes": 25116,
+          "content_type": "application/netcdf",
+          "path": "/tmp/rdh-m6-bench/cds-land-tiny.nc",
+          "http_status": 200,
+          "downloaded_bytes": 25116,
+          "ttfb_seconds": null,
+          "download_mbps": 0.0169,
+          "sha256": "8afe343d342a0593c962294c52ea3c41025ddc5d5de761a05e2097d682faeb71",
+          "service_created": "2026-11-04T12:44:44.811120",
+          "service_successful": "2026-11-04T12:45:13.522450"
+        }
+      ],
+      "validation": {
+        "variables": [
+          "t2m"
+        ],
+        "dims": {
+          "valid_time": 1,
+          "latitude": 21,
+          "longitude": 21
+        },
+        "time": [
+          "2024-01-05T00:00:00",
+          "2024-01-05T00:00:00",
+          1
+        ],
+        "latitude": [
+          40.0,
+          42.0,
+          21
+        ],
+        "longitude": [
+          105.0,
+          107.0,
+          21
+        ]
+      },
+      "notes": [
+        "ERA5-Land 最小抓包量复测：2m_temperature × 2024-01-05 00:00 × 2°×2°（40–42N / 105–107E）",
+        "服务端时间戳：created 12:44:44.811Z → successful 12:45:13.522Z（28.71 s，含排队+生成）",
+        "下载 1.49 s（25 116 B）；端到端 ≈ 30.2 s（生成完成 + 下载，按本次实测拼合）",
+        "首次下载在 12:45 时段遭遇间歇性 SSL EOF（CDS 对象存储链路抖动），重试后 200 OK"
+      ],
+      "error": null
+    }
+  ]
+}

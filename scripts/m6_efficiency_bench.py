@@ -226,11 +226,12 @@ def run_cds(
     request: Mapping[str, Any],
     workdir: Path,
     timeout_seconds: float,
+    collection: str = CDS_COLLECTION,
 ) -> tuple[RunRecord, dict[str, Any]]:
     """纯 CDS API 路径：submit → 轮询 → get_results → 下载。"""
     import cdsapi
 
-    record = RunRecord(mode="cds", workload=dict(request))
+    record = RunRecord(mode="cds", workload={"collection": collection, **dict(request)})
     t0 = time.perf_counter()
     client = cdsapi.Client(quiet=True)
     api = client.client  # ecmwf.datastores.client.Client（cdsapi 内部同一实例）
@@ -238,7 +239,7 @@ def run_cds(
 
     try:
         submitted_at = time.perf_counter()
-        remotes = api.submit(CDS_COLLECTION, dict(request))
+        remotes = api.submit(collection, dict(request))
         remote = remotes[0] if isinstance(remotes, list) else remotes
         record.phases["submit"] = time.perf_counter() - submitted_at
 
@@ -608,6 +609,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     """命令行入口：跑矩阵、写 JSON 与 Markdown 摘要。"""
     parser = argparse.ArgumentParser(description="M6 下载效率基准（CDS / NCAR / 混合）")
     parser.add_argument("--mode", choices=("cds", "ncar", "mixed", "all"), default="all")
+    parser.add_argument(
+        "--collection",
+        default=CDS_COLLECTION,
+        help="CDS 集合名（默认 reanalysis-era5-single-levels；可换 era5-land 做连通对照）",
+    )
     parser.add_argument("--out", type=Path, default=Path("benchmarks/m6"))
     parser.add_argument("--workdir", type=Path, default=Path("/tmp/rdh-m6-bench"))
     parser.add_argument("--year", type=int, default=2024)
@@ -670,7 +676,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"[m6-bench] 开始 {mode} …", file=sys.stderr)
         if mode == "cds":
             record, extra["cds"] = run_cds(
-                request=cds_request, workdir=args.workdir, timeout_seconds=args.timeout
+                request=cds_request,
+                workdir=args.workdir,
+                timeout_seconds=args.timeout,
+                collection=args.collection,
             )
         elif mode == "ncar":
             record, extra["ncar"] = run_ncar(
