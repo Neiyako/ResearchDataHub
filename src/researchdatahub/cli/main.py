@@ -29,6 +29,7 @@ from researchdatahub.cli._console import render_error
 from researchdatahub.cli._stubs import register_stub_commands
 from researchdatahub.cli.config_cmd import register_config_commands
 from researchdatahub.cli.db_cmd import register_db_commands
+from researchdatahub.cli.report_cmd import register_report_commands
 from researchdatahub.cli.source_cmd import register_source_commands
 from researchdatahub.cli.version_cmd import register_version_command
 from researchdatahub.core.errors import RdhError
@@ -36,7 +37,7 @@ from researchdatahub.core.errors import RdhError
 __all__ = ["app", "main", "register_commands"]
 
 _HELP_EPILOG = (
-    "可用：version / config validate / source list / db init|status|migrate。\n"
+    "可用：version / config validate / source list / db / report。\n"
     "M2–M5 落地中：plan / fetch / status 仍为显式拒绝（退出码 2），不会假装成功。"
 )
 
@@ -60,6 +61,7 @@ def register_commands(target: typer.Typer) -> None:
     register_config_commands(target)
     register_source_commands(target)
     register_db_commands(target)
+    register_report_commands(target)
     register_stub_commands(target)
 
 
