@@ -1,0 +1,63 @@
+# ResearchDataHub 采集需求：真实 clwc/ciwc 小样本（重放/恢复通道的审计载体）
+#
+# 用途：当 CDS 服务端生成阶段长时间排队（保护性限流）时，用「已存在的真实产物 URL」
+# 走 RDH 的传输 → 完整性校验 → staging→raw 原子提交 → 交付清单链路，验证三端联通。
+# 计划扩展里会写 replay.external_assets=true，交付清单可审计：这不是一次新的远端 submit。
+#
+# 数据本体：2024-01-01 00 UTC，clwc+ciwc，500/400/300 hPa，25–40°N / 70–105°E。
+schema_version: "1.0"
+request_id: era5-clwc-ciwc-tp-replay-2024-01-01
+dataset_id: era5-pressure-levels
+
+metadata:
+  product: ERA5
+  product_type: reanalysis
+  variables:
+    - name: clwc
+      units: kg kg**-1
+      long_name: Specific cloud liquid water content
+      standard_name: mass_fraction_of_cloud_liquid_water_in_air
+    - name: ciwc
+      units: kg kg**-1
+      long_name: Specific cloud ice water content
+      standard_name: mass_fraction_of_cloud_ice_in_air
+  temporal_coverage:
+    start: 2024-01-01T00:00:00Z
+    end: 2024-01-01T01:00:00Z
+  spatial_extent:
+    west: 70.0
+    east: 105.0
+    south: 25.0
+    north: 40.0
+    grid_degrees: 0.25
+  vertical_levels:
+    kind: pressure
+    levels: [500.0, 400.0, 300.0]
+    units: hPa
+  grid:
+    resolution_degrees: 0.25
+    projection: regular_latlon
+    regridded: false
+    source_grid: era5-native-0.25
+  time_definition: utc_hourly
+  data_version: era5-t2m-era5-release-1.0
+  post_processing: []
+  regridded: false
+  units_normalized: false
+  extensions:
+    era5.product_family: reanalysis-era5-pressure-levels
+
+# 重放资产的 source_id 用 ncar（走 https 传输），与数据真实来源说明一致
+preferred_sources: [ncar]
+max_sources: 1
+
+checks:
+  - size_match
+  - checksum_match
+  - netcdf_openable
+
+preserve_original: true
+priority: normal
+
+extensions:
+  replay.note: CDS 队列阻塞期间，用 2026-11-03 已真实下载的 clwc/ciwc 产物走 RDH 传输/校验/交付链路
