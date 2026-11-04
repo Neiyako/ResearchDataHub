@@ -17,25 +17,34 @@ tests/
 │   ├── era5_request.json        DatasetRequest 样例
 │   ├── source_metadata.json     SourceMetadata 样例
 │   └── invalid/                 故意非法的输入样例
-├── unit/                        单元测试（123 个）
-│   ├── test_models.py           24
-│   ├── test_state_machine.py    24
-│   ├── test_contracts.py        21
-│   ├── test_config.py           15
-│   ├── test_cli.py              12
-│   ├── test_serialization.py    11
-│   ├── test_invalid_input.py    10
-│   └── test_state_machine_illegal.py  6
-└── integration/                 集成测试（13 个，真实子进程）
-    ├── test_cli_install.py      8
-    └── test_config_defaults_drift.py  5
-```
+├── unit/                        M1–M5 单元测试（约 900 个）
+│   ├── test_models.py / test_state_machine*.py / test_contracts.py    M0 契约与状态机
+│   ├── test_lease_recovery.py   15   租约/心跳双时间线
+│   ├── test_config.py / test_serialization.py / test_invalid_input.py
+│   ├── test_cli*.py             48   CLI 命令面（db/request/plan/task/file/report）
+│   ├── test_manifest/           82   SQLite schema/迁移/CRUD/并发领取/租约/交付
+│   ├── test_transfer/          104   真实 HTTP 服务器（Range/超时/中断/限速/错误码）
+│   ├── test_sources/            82   CDS/NCAR/Registry/解耦（+11 network）
+│   ├── test_planner/            39   YAML→请求、源匹配、拆分、去重
+│   ├── test_scheduler/          24   领取/并发/失败分类/心跳/恢复/控制
+│   ├── test_storage/            98   原子提交/EXDEV/覆盖保护/路径安全/恢复
+│   ├── test_integrity/          58   六层检查/ETag 防护/NetCDF/check_path
+│   └── test_reporting/          37   交付清单/报告
+└── integration/
+    ├── test_cli_install.py       8   真实子进程
+    ├── test_config_defaults_drift.py  5
+    ├── test_e2e_pipeline.py      5   端到端 + 4 个故障注入
+    └── test_{sources_,transfer_}*_network.py  network 标记（默认不跑）
 
 | 层 | 速度 | 依赖 | 目的 |
 |---|---|---|---|
-| unit | 毫秒级 | 无网络、无外部服务 | 契约、状态机、配置解析、CLI 逻辑 |
-| integration | 秒级 | 真实 `python -m` 子进程 | 安装后的命令可用性、配置与文档一致性 |
-| network | 分钟级 | 外网 + 凭证 | 真实数据源连通性（**默认不跑**） |
+| unit | 毫秒–秒级 | 无外网；本地 HTTP 服务器（真实 socket，非 mock） | 契约、状态机、配置、SQLite、传输、校验、规划、调度 |
+| integration | 秒级 | 真实 `python -m` 子进程 / 临时 SQLite / tmp 存储 | 安装后命令可用性、端到端链路、故障注入 |
+| network | 分钟级 | 外网 + 凭证 | 真实数据源连通性（**默认不跑**，`-m network` 显式触发） |
+
+**默认套件离线可重复**：`pyproject.toml` 的 `addopts` 含 `-m 'not network'`。
+理由：把外网抖动算进 CI 红/绿会让"测试通过"失去意义（本次开发中就出现过一次
+network 用例偶发失败，默认套件仍保持稳定）。
 
 ---
 
@@ -141,7 +150,14 @@ CDSAPI_KEY="..." PYTHONPATH=src .venv/bin/python -m pytest -m network
 PYTHONPATH=src .venv/bin/python -m pytest
 ```
 
-实测输出：**360 passed**，约 1.4–2 秒。
+实测输出（M1–M5 完成后）：
+
+```text
+955 passed, 14 deselected, 1 warning        # 默认套件（离线）
+10 passed, 4 skipped                        # -m network（真实 CDS/NCAR；S3/CDS凭证 NOT RUN）
+```
+
+默认套件约 69 秒（含 104 项真实 HTTP 传输测试与 NetCDF 检查）。
 
 > 为什么需要 `PYTHONPATH=src`：本仓库用 `src/` 布局，测试通过 `pyproject.toml` 的
 > `pythonpath = ["src"]` 找到包。直接 `pytest` 若已执行过 editable 安装也能工作，
@@ -164,7 +180,10 @@ PYTHONPATH=src .venv/bin/python -m pytest --cov=researchdatahub.core --cov-repor
 ```bash
 PYTHONPATH=src .venv/bin/python -m pytest tests/unit
 PYTHONPATH=src .venv/bin/python -m pytest tests/integration
+PYTHONPATH=src .venv/bin/python -m pytest -o addopts="" -q -m network   # 真实外网（需凭证）
 ```
+
+> 加 `-o addopts=""` 才能看到 summary 行：`pyproject.toml` 的 `-q` 会把统计压掉。
 
 ### 5.4 静态检查
 
@@ -183,10 +202,11 @@ PYTHONPATH=src .venv/bin/python -m pytest tests/integration
 
 ## 6. 覆盖率目标与现状
 
-| 范围 | 目标 | 实测（本文写作时） |
+| 范围 | 目标 | 实测（M1–M5 完成后） |
 |---|---|---|
-| `researchdatahub.core` | **≥ 85%** | **95%** |
-| 整体 `researchdatahub` | **≥ 70%** | **90%** |
+| `researchdatahub.core` | **≥ 85%** | **≥ 95%** |
+| 整体 `researchdatahub` | **≥ 70%** | **85%**（8819 statements / 1137 miss / 2416 branches） |
+| 关键执行层 | 尽量高 | manifest 98%、storage 84%、integrity 88%、reporting 96%、planner 88% |
 
 覆盖率配置在 `pyproject.toml`：
 
@@ -200,14 +220,15 @@ exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:",
                  "raise NotImplementedError", "\\.\\.\\."]
 ```
 
-**为什么 core 的目标更高（85%）**：core 是全部模块的依赖，它的缺陷会扩散到所有地方；
-执行层（sources/transfer/…）在 M0 尚无实现，强制覆盖率没有意义。
+**为什么 core 的目标更高（85%）**：core 是全部模块的依赖，它的缺陷会扩散到所有地方。
+执行层同样有覆盖率要求，但**以行为为准**：像 `transfer/base.py` 中不可达的防御分支、
+`reporting` 的渲染分支，覆盖率数字不等于质量。
 
 **为什么用分支覆盖**：状态机的价值恰恰在"哪些分支不走"——例如
 `RUNNING → COMPLETED` 必须不可达。只看行覆盖会漏掉这类断言。
 
 **覆盖率是下限，不是目标**。为了刷高覆盖率去写"调一下不报错"的测试是反模式，
-见 §8。当前 90% 是**没有被刻意追求**的结果：测试是围绕行为写的。
+见 §8。当前 85% 是**没有被刻意追求**的结果：测试是围绕行为与事故场景写的。
 
 ---
 
@@ -339,18 +360,24 @@ jobs:
 
 ---
 
-## 11. 已知的测试盲区（M0）
+## 11. 已知的测试盲区（M1–M5 后）
 
 如实列出当前**没有测到**的东西，避免产生虚假信心：
 
 | 盲区 | 原因 | 何时补 |
 |---|---|---|
-| 真实下载与断点续传 | M0 无传输实现 | M1 |
-| SQLite 并发写入 / `database is locked` | M0 无 manifest 实现 | M1 |
-| 崩溃恢复的端到端流程 | 依赖 manifest + scheduler | M1 |
-| 大文件（>10 GB）的内存占用 | 需要真实数据与机器时间 | M1 |
+| 真实 ERA5 产物下载与校验 | 需 CDS 许可 / RDA 数据集权限 | M6（第一优先） |
+| CDS 有凭证的 submit→poll→download 全链路 | 无 CDSAPI_KEY | M6 |
+| S3 端到端（真实桶/MinIO） | 无 S3 环境；测试 3 项 skip，**未用 mock 冒充** | M6 |
+| S3 multipart 并行下载 | 功能未实现 | 视需求 |
+| 大文件（1–10 GB）RSS 与吞吐 | 需要真实数据与机器时间 | M6 |
+| 长时间稳定性（数小时连续采集） | 未做 | M6 |
+| 多进程同时写同一个库 | 明确不支持（单写者语义） | 不计划 |
 | Windows 平台 | 不在支持范围 | 不计划 |
-| 多进程同时写同一个库 | 明确不支持 | 视需求 |
+| NetCDF 科学语义正确性 | 超出系统职责（只校验结构与声明一致） | 不做 |
+
+**关于"偶发失败"的经验**：network 用例曾出现一次失败（外网 502），随后重跑通过。
+这正是把 network 从默认套件中排除的原因——默认套件的红/绿必须只反映代码。
 
 ---
 

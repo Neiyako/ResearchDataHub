@@ -10,11 +10,15 @@
 
 ## 1. 里程碑概览
 
-| 里程碑 | 主题 | 状态 |
-|---|---|---|
-| **M0** | 工程骨架、数据契约、状态机、模块边界、配置子系统、CLI 骨架 | ✅ 已完成 |
-| **M1** | 首个端到端可用链路：SQLite Manifest、S3/HTTPS 传输、NCAR 发现、完整性检查、`plan`/`fetch`/`status` | ⬜ 未开始 |
-| **M2** | CDS 异步源、多源降级、报告生成、并发调度优化 | ⬜ 未开始 |
+| 里程碑 | 主题 | 状态 | 证据 |
+|---|---|---|---|
+| **M0** | 工程骨架、数据契约、状态机、模块边界、配置子系统、CLI 骨架 | ✅ 已完成 | commit `3f149a3`；§2 |
+| **M1** | SQLite Manifest：schema/迁移/Repository/租约/CLI `db` | ✅ 已完成 | commit `dc533ab`；82 项测试 |
+| **M2** | 传输引擎：HTTP/S3、安全续传、重试、有界并发 | ✅ 已完成（S3 集成 NOT RUN） | commit `4fdb191`、`88e8761`；104 项测试 |
+| **M3** | 数据源适配：CDS + NCAR + Registry + 元数据标准化 | ✅ 已完成（CDS 有凭证链路 NOT RUN） | commit `dfa02be`；82 项 + 11 network |
+| **M4** | 计划与调度：YAML 需求、计划生成、原子调度、心跳恢复 | ✅ 已完成 | commit `e5e1365`；63 项 + 5 e2e |
+| **M5** | 完整性与存储：校验链、staging→raw 原子提交、交付清单/报告 | ✅ 已完成 | commit `dc533ab`、`ec32590`；193 项 |
+| **M6** | 真实 ERA5 小规模端到端、性能与长期稳定性验证 | ⬜ 未开始 | 建议见 §4 |
 
 ---
 
@@ -113,133 +117,137 @@ PYTHONPATH=src .venv/bin/python -m pytest --cov=researchdatahub --cov-report=ter
 
 ---
 
-## 3. M1 任务清单
+## 3. M1–M5 完成情况与证据
 
-M1 目标：**一条真实可用的端到端链路**——用户能用 `rdh fetch` 真的把一份 NCAR 的 ERA5 数据
-下载下来、校验通过、并得到一个可移植的交付清单。
+> 与 M0 时代的"任务清单"不同，本节只写**已经做完并有实测证据**的事。
+> 每条证据都能用命令复现；未验证项单独列在 §4。
 
-> 工时按 1 名熟悉本仓库的开发者估算，单位为"人日"。含自测，不含评审与发布。
+### 3.1 M1 SQLite Manifest（`manifest/`）
 
-### M1-1 SQLite Manifest 实现（估 3 人日）
-
-**做什么**：实现 `ManifestRepository`，表结构、迁移、单写者队列、WAL。
-
-**验收标准**：
-- [ ] `initialize()` 幂等：连续调用两次不报错，表结构不重复创建
-- [ ] 每 worker 独立连接；并发 4 线程写 100 个任务，**零** `database is locked`
-- [ ] `save_task(expected_state=...)` 冲突时抛 `ManifestError`
-- [ ] `save_task` + `append_event` 在同一事务：注入故障后二者要么都生效要么都不生效
-- [ ] `list_tasks(state=FAILED)` 惰性迭代，1 万个任务时内存增量 < 10 MB
-- [ ] `build_delivery_manifest` 在存在非 `PASSED` 报告时抛 `ManifestError`
-- [ ] 迁移测试：v1 schema 的库能被 `initialize()` 升级，数据不丢
-
-### M1-2 传输层：S3 + HTTPS（估 4 人日）
-
-**做什么**：`S3Transport`、`HttpsTransport`，含断点续传、重试、原子落盘。
-
-**验收标准**：
-- [ ] 原子落盘：下载中途 kill 进程，目标路径**不出现**半成品文件（只有 `.part`）
-- [ ] 断点续传：中断后重启，从已有字节继续，最终校验和正确
-- [ ] 429/5xx/超时 → `RetryableTransportError`；404/403 → `PermanentTransportError`
-- [ ] `supports()` 只依据 `access_route` 与 URI scheme
-- [ ] **反向验证**：`grep -rniE "ncar|cds|pangeo" src/researchdatahub/transfer/` 无输出
-- [ ] 离线测试全部通过（用 `LocalCopyTransport` 或本地 `http.server`）
-
-### M1-3 数据源发现：NCAR（估 4 人日）
-
-**做什么**：`NcarRdaSource`，实现目录查询与 `SourceAsset` 生成。
-
-**验收标准**：
-- [ ] `discover_assets(request)` 能把 `DatasetRequest` 映射为文件列表，带 `origin_uri`/`size_bytes`
-- [ ] 远端元数据不可解析时抛 `MetadataError`，不返回半成品资产
-- [ ] 变量无法匹配时记入 `unmatched_variables`，不静默丢弃
-- [ ] `health_check()` 不下载数据，超时返回 `False` 而非抛异常
-- [ ] 并发调用 `discover_assets` 无竞争（4 线程 × 20 次）
-
-### M1-4 完整性校验（估 3 人日）
-
-**做什么**：`DefaultIntegrityChecker`，实现 7 种检查中的前 5 种。
-
-**验收标准**：
-- [ ] `size_match`、`checksum_match`、`format_sniff` 全覆盖
-- [ ] `netcdf_openable`、`variable_present` 在装 `[sci]` 时生效，未装时返回 `UNKNOWN`（**不是 PASSED**）
-- [ ] 校验失败返回 `FAILED` 报告（不抛异常）；文件缺失才抛 `IntegrityError`
-- [ ] `PASSED` 报告不含 `failures`；`FAILED` 报告至少一条 `failures`
-- [ ] 构造一个 2 GB 截断文件，`size_match` 必失败
-
-### M1-5 存储后端（估 2 人日）
-
-**做什么**：`LocalStorageBackend`，四区（tmp/data/quarantine/archive）+ 原子移动。
-
-**验收标准**：
-- [ ] `publish_original` 原子，跨设备时要么成功要么抛 `StorageError`（不留半成品）
-- [ ] 原始区文件权限为只读
-- [ ] `quarantine` **保留字节**（不删除），文件名带原因摘要
-- [ ] `free_bytes()` 反映真实卷容量，低于 `free_space_floor_gb` 时调度器能感知
-
-### M1-6 计划器与调度器（估 5 人日）
-
-**做什么**：`DefaultPlanner`、`ThreadPoolScheduler`。
-
-**验收标准**：
-- [ ] 计划生成的任务初始状态为 `PLANNED`，`plan_id` 全部一致
-- [ ] 按 `Priority.rank` 出队；同优先级 FIFO
-- [ ] `per_source_limit` 生效：单源并发不超过配置值
-- [ ] 状态推进全经 `transition()`；`grep` 无 `task.state = ` 直接赋值
-- [ ] 重试：`attempt < max_attempts` 进 `RETRY_WAIT`，退避时间符合 `backoff_seconds * 2^(n-1)` 且不超 `backoff_max_seconds`
-- [ ] 崩溃恢复：kill 进程后重启，过期任务被 `recover_stale()` 重排
-
-### M1-7 CLI：`plan` / `fetch` / `status`（估 3 人日）
-
-**做什么**：三个命令的真实实现，替换 `_stubs.py`。
-
-**验收标准**：
-- [ ] `rdh plan --request examples/era5-request.yaml` 输出计划摘要（任务数、总字节估算、未满足变量），退出码 0
-- [ ] `rdh fetch --request ...` 执行并落库，进度可见，失败任务列出原因
-- [ ] `rdh status --request-id ...` 从 SQLite 读状态，不扫描目录
-- [ ] 三命令在无配置/无密钥时给出可操作的中文错误，退出码 1
-- [ ] 删除 `NotImplementedFeatureError` 的对应注册（保持"未实现即拒绝"的语义不被削弱）
-
-### M1-8 交付清单与最小报告（估 2 人日）
-
-**验收标准**：
-- [ ] `build_delivery_manifest` 产出的清单 `complete=True` 时全部报告为 `PASSED`
-- [ ] `total_bytes` 与文件之和一致
-- [ ] 输出一份 Markdown 报告：请求、源、文件清单、校验结果、失败原因
-- [ ] 清单可被 `DeliveryManifest.model_validate()` 无损反序列化
-
-### M1 汇总
-
-| 任务 | 工时 |
+| 能力 | 证据 |
 |---|---|
-| M1-1 SQLite Manifest | 3 |
-| M1-2 S3 + HTTPS 传输 | 4 |
-| M1-3 NCAR 发现 | 4 |
-| M1-4 完整性校验 | 3 |
-| M1-5 存储后端 | 2 |
-| M1-6 计划器与调度器 | 5 |
-| M1-7 CLI 三命令 | 3 |
-| M1-8 交付清单与报告 | 2 |
-| **合计** | **26 人日** |
+| 10 张表（sources/datasets/requests/assets/tasks/files/transfer_logs/integrity_reports/plans/plan_tasks）+ schema_version | `manifest/schema.py`；`test_manifest_schema.py` |
+| 版本化迁移 v1→v2，幂等、失败回滚、数据不丢 | `test_migrate_v1_database_upgrades_and_keeps_rows` |
+| WAL + `foreign_keys=ON` + `busy_timeout` 每连接强制 | `test_initialize_sets_wal_foreign_keys_and_busy_timeout` |
+| 每线程独立连接（跨线程使用真实报错） | `test_connection_cannot_be_used_from_another_thread` |
+| 原子领取：双线程 100 轮无重复 | `test_concurrent_claim_never_assigns_same_task_twice` |
+| 4 线程写 100 任务零 `database is locked` | `test_four_threads_write_one_hundred_tasks_without_lock_errors` |
+| 租约过期三分支（续租/接管/失败） | `test_manifest_leases.py`（6 项） |
+| 状态+事件同事务（TRIGGER 注入故障后同时回滚） | `test_save_task_and_event_is_atomic_under_injected_failure` |
+| 1 万任务惰性迭代峰值内存 0.05 MB | `test_list_tasks_is_lazy_and_memory_bounded` |
+| CLI `db init/status/migrate`（幂等、建存储目录、缺库报错） | `tests/unit/test_cli_db.py`（13 项） |
 
-依赖顺序：M1-1 → M1-5 → M1-2 →（M1-3 ∥ M1-4）→ M1-6 → M1-7 → M1-8。
+### 3.2 M2 传输引擎（`transfer/`）
 
----
+| 能力 | 证据 |
+|---|---|
+| httpx 流式下载 + `.part` 原子替换 | `test_destination_only_appears_after_atomic_replace` |
+| 断点续传三重自证（Range/206/Content-Range + ETag 或 Last-Modified + 大小） | `test_resume*.py`（33 项） |
+| 资源变化（同 URL 但 ETag/大小变）→ 拒绝续传、整下 | `test_etag_change_forces_full_redownload` 等 3 项 |
+| 状态码分类：401/403/404/410 permanent；408/425/429/5xx retryable | `test_*_is_permanent_*`、`test_429_honours_retry_after_header` |
+| 重试次数与 `retries_used` 真实计数 | `test_500_is_retried_then_succeeds` 等 |
+| 取消保留可续传的 `.part` | `test_cancel_mid_stream_keeps_resumable_partial` |
+| 有界并发（服务端观测 max_concurrent==2） | `test_bounded_concurrency_never_exceeds_max_workers` |
+| 总超时可选（`null`=不限制），读超时始终兜底 | `test_large_stream_not_aborted_by_total_deadline`、`test_read_timeout_still_active_without_total_timeout` |
+| S3：ETag 不当 MD5、ClientError 分类、流式取对象 | `test_s3.py`（20 项，无网络） |
+| S3 端到端 | **NOT RUN**（无 MinIO/S3，未用 mock 冒充） |
 
-## 4. M2 展望
+### 3.3 M3 数据源适配（`sources/`）
 
-以下为方向性规划，**未做详细分解**，不应作为承诺。
+| 能力 | 证据 |
+|---|---|
+| CDS 真实 retrieve/v1 schema（实测 2026-11-04：inputs 字段、variable enum、pressure_level enum） | `tests/integration/test_sources_cds_network.py`（network） |
+| 请求翻译（变量/层/日期/area/format），units 不猜 | `test_cds_translation.py` |
+| 服务端异步生命周期独立建模（submit → poll → results） | `CdsRequestLifecycle` + `test_cds_adapter.py` |
+| 认证缺失 → 明确 unavailable，不泄密 | `test_cds_adapter.py`（密钥不出现在日志/异常/capabilities） |
+| NCAR/GDEX 真实目录 API（1731 数据集、分组、webfiles） | `test_sources_ncar_network.py` + 真实 fixtures 快照 |
+| 未验证能力在 `capabilities()` 显式列出 | `ncar.py::capabilities`、`cds.py::capabilities` |
+| Source/Transport 解耦（AST 断言 + 无源字面量） | `test_decoupling.py` |
+| Registry 工厂（无按源 if/else） | `test_registry.py` |
 
-| 方向 | 内容 | 前置条件 |
-|---|---|---|
-| CDS 异步源 | `CdsApiSource` + 请求排队轮询 + 临时 URL 过期重试 | M1 完成；`[cds]` extras |
-| 多源降级 | 一个源失败时自动切到另一个源的等价资产（依赖 `scientific_identity()` 判等） | M1 的 NCAR 与 CDS 均可用 |
-| 科学内容校验 | `time_coverage`、`metadata_consistent`，需要 `[sci]` | M1-4 落地 |
-| 报告增强 | HTML / 机器可读（JSON Schema）报告 | M1-8 |
-| 缓存与去重 | 基于 `scientific_identity()` + 校验和避免重复下载 | M1-1 |
-| 归档与清理 | 归档区策略、保留期、审计日志 | M1-5 |
+### 3.4 M4 计划与调度（`planner/`、`scheduler/`）
 
----
+| 能力 | 证据 |
+|---|---|
+| §6.2 分段 YAML + 扁平格式兼容；`文件:行` 定位 | `test_request.py`（16 项） |
+| 日期区间闭开语义（`end=2011-12-31` → 次日 00:00Z） | `test_end_date_is_expanded_to_next_midnight_utc` |
+| units 缺失 → `unknown` + 警告，不猜测 | `test_string_variable_units_are_not_guessed` |
+| 源匹配顺序、`max_sources`、部分覆盖补源 | `test_plan.py` |
+| 拆分 file/year/month/request + `max_tasks_per_plan` | `test_generated_source_splits_by_year_and_keeps_request_lifecycle` 等 |
+| 去重、`unmatched_variables`、`allow_partial=false` | 3 项 |
+| 计划确定性（plan_id/task_id 可复现） | `test_plan_id_and_task_ids_are_deterministic_and_serializable` |
+| 调度：原子领取、默认并发 2、失败分类、退避 | `test_scheduler/`（24 项） |
+| 心跳续约；租约丢失立即停机且不再写状态 | `test_heartbeat_renews_lease_during_long_transfer`、`test_lease_loss_stops_worker_without_writing_state` |
+| 崩溃恢复：`release_expired`（续租 vs 接管）、重启后续跑 | `test_scheduler_recovery.py` |
+| 崩溃窗口对账：文件已提交/DB 未更新、孤儿文件、坏 checksum | `test_committed_file_without_db_record_is_reconciled` 等 4 项 |
+| 暂停/恢复/取消/重试（状态机强制） | `test_control.py`（7 项） |
+| 端到端（真实 HTTP + 真实 SQLite + tmp 存储）+ 4 个故障注入 | `tests/integration/test_e2e_pipeline.py`（5 项） |
+
+### 3.5 M5 完整性与存储（`integrity/`、`storage/`、`reporting/`）
+
+| 能力 | 证据 |
+|---|---|
+| 六层检查链（existence/size/checksum/protocol/format/scientific） | `test_checks.py`、`test_checksum_provenance.py` |
+| 正常/损坏/截断 NetCDF 真实检查；依赖缺席 → SKIPPED | `test_netcdf.py` |
+| ETag 当 MD5 → protocol 级 FAILED | `test_checksum_provenance.py` |
+| 同文件系统 `os.replace`；EXDEV copy+fsync+rename+复核 | `test_atomic_commit.py` |
+| 目标已存在：相同跳过（不碰目标）、不同拒绝覆盖 | `test_publish.py` |
+| 提交日志 + 四分支恢复决策表 | `test_recovery.py`（storage 侧） |
+| 路径穿越/非法文件名/符号链接防护 | `test_path_safety.py`（48 项） |
+| 隔离保留文件并写 `.reason.json` | `test_quarantine_archive.py` |
+| 交付清单：`complete` 仅全 PASSED；相对路径；失败/跳过/隔离全留 | `test_delivery.py` |
+| 报告：成功/失败/跳过/隔离计数与 JSON 导出 | `test_report.py` |
+| CLI `file verify` / `report generate|show` | `test_cli_file.py`(9)、`test_cli_report.py`(9) |
+
+### 3.6 真实外网链路（手工执行，2026-11-04）
+
+在 `/tmp/rdh-live`（临时 state，不写 `~/.rdh`）执行，命令与结果：
+
+```bash
+rdh request validate /tmp/rdh-live/request.yaml          # 0：分段格式校验通过
+rdh plan create ... --sources ncar                     # 0：真实 GDEX API 发现 6 个资产
+rdh plan show plan-b86645b29fe41656                    # 0：6 个 PLANNED 任务
+rdh task run <plan> --max-tasks 1 --max-workers 1      # 0：completed=1
+rdh db status                                          # COMPLETED=1, QUEUED=5, 可交付请求
+rdh report generate ncar-live-smoke                    # 0：报告 + 交付清单
+```
+
+结果：`raw/era5-pressure-levels/d633000-osdf.csv`（39 382 B，`-r--r--r--`），
+SHA-256 `25896d45…`，交付清单 `complete=true` 且注明"1/6 个文件、5 个任务未完成"，
+报告计数 `discovered=6 / completed=1 / unfinished=5 / total_bytes=39382`。
+
+**边界必须说清**：这是 GDEX 的**公开目录 CSV 文件**，不是 ERA5 产物；真实 ERA5
+（CDS 或 RDA 的 netCDF/GRIB 产物）下载 **NOT RUN**，需账号许可与访问权限。
+
+### 3.7 质量门（实测）
+
+```bash
+PYTHONPATH=src .venv/bin/python -m pytest
+# 955 passed, 14 deselected (network), 0 failed, 1 warning
+PYTHONPATH=src .venv/bin/python -m pytest -o addopts="" -q -m network
+# 10 passed, 4 skipped（S3 3 + CDS 有凭证 1；均 NOT RUN，无 mock 冒充）
+.venv/bin/python -m ruff check .        # All checks passed!
+.venv/bin/python -m ruff format --check src tests   # 136 files already formatted
+.venv/bin/python -m mypy                # Success: no issues found in 64 source files
+PYTHONPATH=src .venv/bin/python -m pytest -o addopts="" --cov=researchdatahub
+# TOTAL 85%（8819 statements, 1137 miss, 2416 branches）
+```
+
+规模：`src/` 64 个 Python 文件 24 034 行；`tests/` 15 407 行；测试用例 969 个（含 network）。
+
+## 4. 遗留问题与 M6 建议
+
+| # | 遗留 | 影响 | 建议 |
+|---|---|---|---|
+| 1 | 真实 ERA5 产物下载 NOT RUN | 核心场景未端到端验证 | M6 第一优先：CDS 小样本（1 变量 × 1 天 × 全球）或 RDA 单文件，限制 < 1 GB |
+| 2 | CDS 执行断点：`HttpTransportAdapter` 只处理 https 路由，CDS 资产 route=`cds_api` | CDS 任务会以 "no transport" 失败 | M6 实现 `CdsApiTransport`（submit→poll→download），或让 CDS 结果资产以 https 路由交付 |
+| 3 | S3 端到端 NOT RUN、multipart 未实现 | 大文件 S3 下载只有单流 | M6 用真实 S3/MinIO 跑集成；需要时补 multipart（复用同一 `.part` 自证语义） |
+| 4 | `unmatched_variables` 依赖源声明变量覆盖（现标注 `assumed_from_discovery`） | 变量级覆盖率不精确 | 契约增加 `SourceAsset.variables`，由 adapter 真实填充 |
+| 5 | FileRecord/报告/状态非严格单事务（三次写） | 中间窗口靠 reconcile 修复 | 给 `ManifestRepository` 加复合写方法（`save_completion`） |
+| 6 | `priority_aging_seconds` 未实现 | 低优先级可能长期等待 | M6 调度策略补老化提升 |
+| 7 | `plan show --request-id`、`task run --plan 之外按请求聚合` | 运维便利性 | 增加 `list_plans` |
+| 8 | 性能未测（并发/内存/大文件） | 8 GB 设备实际表现未知 | M6 用 1–10 GB 文件测 RSS、吞吐、SQLite 写入延迟 |
+| 9 | 多进程共享一个 `~/.rdh` 未支持（单写者语义） | 误用会得到 locked 错误 | 文档已声明；M6 可加单实例锁 |
 
 ## 5. 风险与缓解
 

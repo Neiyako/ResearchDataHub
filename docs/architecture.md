@@ -7,10 +7,12 @@ ResearchDataHub 是一个**模块化单体（modular monolith）**：单个 Pyth
 本文描述：数据如何从“用户需求”流动到“可交付的数据文件”，以及在这个过程中
 **线程、事务、异常、状态机**分别在哪里划界。
 
-> **M0 状态说明**：本文描述的是**已经用代码固定的边界**（`core` 的模型、Protocol、状态机，
-> 以及 `config` / `cli` 的实现）。`sources` / `transfer` / `scheduler` 等执行模块在 M0
-> **只有接口、没有实现**（详见 [`docs/module-boundaries.md` §5](module-boundaries.md)）。
-> 文中凡涉及执行行为的描述，都标注了它是"契约要求"还是"M0 已实现"。
+> **实现状态（M1–M5 完成后）**：本文描述的全部模块均已有实现：
+> `manifest`（SQLite + 租约/心跳）、`transfer`（HTTP/S3）、`sources`（CDS/NCAR/Registry）、
+> `planner`（YAML → 计划）、`scheduler`（原子领取 + 心跳 + 恢复 + 对账）、
+> `integrity`（六层检查链）、`storage`（staging→raw 原子提交）、`reporting`（报告/交付清单）。
+> 真实能力的边界（哪些已验证、哪些 NOT RUN）见 [README §2](../README.md) 与
+> [`docs/engineering-report.md`](engineering-report.md)。
 
 ---
 
@@ -79,7 +81,7 @@ flowchart TD
     class PLAN,SCH,POOL,TR,INT,ST m1
 ```
 
-图例：绿色 = M0 已有实现；黄色 = M0 仅有契约（Protocol），实现在 M1。
+图例：绿色 = M0 已有的契约与配置层；黄色 = M1–M5 落地的执行层（现均已实现）。
 
 ### 1.2 纯文本降级说明
 
@@ -106,20 +108,20 @@ flowchart TD
 
 ## 2. 每个模块的职责
 
-| 模块 | 一句话职责 | 明确不做 | M0 状态 |
+| 模块 | 一句话职责 | 明确不做 | 实现状态 |
 |---|---|---|---|
 | `core` | 定义数据契约、异常、状态机、模块接口 | 任何 I/O、任何具体数据源知识 | ✅ 完成 |
 | `config` | 加载 YAML、展开 `env:`、严格校验 | 构造 `DatasetRequest`、访问网络、写文件 | ✅ 完成 |
-| `sources` | 发现远端资产（目录查询 → `SourceAsset`） | **下载字节**、重试、落盘 | ⬜ 仅 Protocol |
-| `transport` | 按访问路径搬运字节、断点续传、原子落盘 | 解析科学语义、源特有路径规则 | ⬜ 仅 Protocol |
-| `storage` | 临时区/原始区/隔离区/归档区，原子移动，只读保护 | 校验内容、决定任务状态 | ⬜ 仅 Protocol |
-| `integrity` | 只依赖元数据与字节执行完整性检查 | 信任远端声明、删除失败文件 | ⬜ 仅 Protocol |
-| `manifest` | SQLite 持久化：状态、事件、文件记录 | 业务判断（只存事实） | ⬜ 仅 Protocol |
-| `planner` | 需求 → 计划；源匹配、去重、未满足变量登记 | 执行、下载、改配置 | ⬜ 仅 Protocol |
-| `scheduler` | 并发控制、优先级、重试预算、状态推进 | 传输实现、校验实现 | ⬜ 仅 Protocol |
-| `catalog` | 数据集目录（声明式产品目录） | 运行时任务状态 | ⬜ 仅 Protocol |
-| `reporting` | 把清单渲染成人读/机读报告 | 采集逻辑 | ⬜ 仅 Protocol |
-| `cli` | 参数解析、调用、中文呈现、退出码 | 业务规则、校验规则 | ✅ M0 三命令 |
+| `sources` | 发现远端资产（目录查询 → `SourceAsset`） | **下载字节**、重试、落盘 | ✅ M3 |
+| `transfer` | 按访问路径搬运字节、断点续传、原子落盘 | 解析科学语义、源特有路径规则 | ✅ M2 |
+| `storage` | 临时区/原始区/隔离区/归档区，原子移动，只读保护 | 校验内容、决定任务状态 | ✅ M5 |
+| `integrity` | 只依赖元数据与字节执行完整性检查 | 信任远端声明、删除失败文件 | ✅ M5 |
+| `manifest` | SQLite 持久化：状态、事件、文件记录 | 业务判断（只存事实） | ✅ M1 |
+| `planner` | 需求 → 计划；源匹配、去重、未满足变量登记 | 执行、下载、改配置 | ✅ M4 |
+| `scheduler` | 并发控制、优先级、重试预算、状态推进 | 传输实现、校验实现 | ✅ M4 |
+| `catalog` | 数据集目录（声明式产品目录） | 运行时任务状态 | ⬜ 仅 Protocol（M6 候选） |
+| `reporting` | 把清单渲染成人读/机读报告 | 采集逻辑 | ✅ M5 |
+| `cli` | 参数解析、调用、中文呈现、退出码 | 业务规则、校验规则 | ✅ M1–M5 命令组 |
 
 ---
 
@@ -227,7 +229,7 @@ SQLite 的 `sqlite3.Connection` 默认（`check_same_thread=True`）禁止跨线
 在任务结束时关闭。**
 
 ```python
-# 契约要求的形态（M1 实现），不是 M0 已有代码
+# worker 循环形态（M4 已按此实现，见 scheduler/worker.py）
 def worker_loop(queue, repo_factory):
     with repo_factory() as repo:      # 本线程独立的连接
         while (task := queue.get()) is not None:
@@ -323,7 +325,7 @@ AppConfig / SourcesConfig
   这与 `core` 模型的严格性一致。
 - **配置对象不可变**：加载完成后，外部修改原始 dict 不会影响已加载对象。
 
-### 6.3 M0 的真实验证路径
+### 6.3 配置校验的真实验证路径
 
 ```bash
 # 缺环境变量 → 退出码 1，并逐条点名
@@ -452,25 +454,23 @@ CLI 层（`cli/_console.py`）只把 `RdhError` 渲染为中文可读信息并�
 
 ---
 
-## 8. M0 的真实边界
+## 8. 真实边界（M1–M5 后的事实）
 
-为了避免读者高估当前能力，这里明确区分：
-
-| 能力 | M0 实际状态 | 证据 |
+| 能力 | 状态 | 证据 |
 |---|---|---|
-| 契约定义（10 模型 / 13 异常 / 12 态 / 8 Protocol） | ✅ 可用 | `src/researchdatahub/core/` |
+| 契约定义（模型 / 异常 / 12 态状态机 / 8 Protocol） | ✅ 可用 | `src/researchdatahub/core/` |
 | 配置加载与校验 | ✅ 可用 | `rdh config validate` |
-| CLI 骨架与未实现拒绝 | ✅ 可用 | `plan`/`fetch`/`status` 退出码 2 |
-| 数据集发现 | ❌ 无实现 | `sources/__init__.py` 仅 docstring |
-| 字节传输 | ❌ 无实现 | `transfer/__init__.py` 仅 docstring |
-| 完整性检查 | ❌ 无实现 | `integrity/__init__.py` 仅 docstring |
-| SQLite Manifest | ❌ 无实现 | `manifest/__init__.py` 仅 docstring |
-| 报告生成 | ❌ 无实现 | `reporting/__init__.py` 仅 docstring |
-
-**M0 不会下载任何字节。** 这一点由 `_stubs.py` 强制：`fetch` 命令直接抛
-`NotImplementedFeatureError` 并以退出码 2 结束。
-
----
+| SQLite Manifest（WAL/外键/迁移/租约/并发领取） | ✅ 可用 | `tests/unit/test_manifest/`（82 项） |
+| HTTP/HTTPS 传输（流式、续传、取消、重试） | ✅ 可用 | `tests/unit/test_transfer/`（104 项，真实 socket） |
+| S3 传输 | ⚠️ 代码完成、**NOT RUN** | 无 MinIO/S3 环境；集成测试 skip，未用 mock 冒充 |
+| CDS 适配（schema/翻译/异步生命周期） | ⚠️ 部分验证 | 真实 schema 与公开端点已核对；有凭证链路 NOT RUN |
+| NCAR/GDEX 适配 | ✅ 可用（真实 API） | 真实目录 API 实测 + 一次真实下载（39 KB） |
+| 计划生成 | ✅ 可用 | `tests/unit/test_planner/`（39 项） |
+| 调度/心跳/恢复/暂停取消 | ✅ 可用 | `tests/unit/test_scheduler/`（24 项）+ e2e（5 项） |
+| 完整性校验（六层） | ✅ 可用 | `tests/unit/test_integrity/`（58 项） |
+| staging→raw 原子提交 / 隔离 / 崩溃对账 | ✅ 可用 | `tests/unit/test_storage/`（98 项） |
+| 交付清单与报告 | ✅ 可用 | `tests/unit/test_reporting/`（37 项） |
+| 真实 ERA5 产物下载 | ❌ NOT RUN | 需 CDS 许可 / RDA 权限；见 README §2 |
 
 ## 9. 相关文档
 
@@ -479,4 +479,8 @@ CLI 层（`cli/_console.py`）只把 `RdhError` 渲染为中文可读信息并�
 - 为什么是单体：[`docs/adr/ADR-0001-modular-monolith.md`](adr/ADR-0001-modular-monolith.md)
 - 为什么源与传输分离：[`docs/adr/ADR-0002-source-transport-separation.md`](adr/ADR-0002-source-transport-separation.md)
 - 为什么用 SQLite 做事实来源：[`docs/adr/ADR-0003-sqlite-manifest-source-of-truth.md`](adr/ADR-0003-sqlite-manifest-source-of-truth.md)
+- 任务恢复（租约+心跳）：[`ADR-0004`](adr/ADR-0004-task-recovery-lease-heartbeat.md)
+- 存储布局与原子提交：[`ADR-0005`](adr/ADR-0005-staging-raw-quarantine-storage.md)
+- 完整性与 checksum 策略：[`ADR-0006`](adr/ADR-0006-integrity-check-layering.md)
+- 工程验收报告：[`docs/engineering-report.md`](engineering-report.md)
 - 测试策略：[`docs/testing-strategy.md`](testing-strategy.md)

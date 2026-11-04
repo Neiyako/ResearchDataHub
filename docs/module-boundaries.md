@@ -406,30 +406,27 @@ print('8 protocols:', len([n for n in dir() if n.endswith(('Adapter','Checker','
 
 ---
 
-## 5. 当前实现状态（M0 事实）
+## 5. 当前实现状态（M1–M5 事实）
 
-以下表格描述**仓库此刻的真实状态**，不是计划。
-
-| 模块 | `core` 契约 | 实现类 | 位置 |
+| 包 | 实现状态 | 入口 | 测试规模 |
 |---|---|---|---|
-| `core` | — | 全部完成（模型/异常/状态机/Protocol） | `src/researchdatahub/core/` |
-| `config` | — | 完成（loader + models + env 展开 + 校验） | `src/researchdatahub/config/` |
-| `cli` | — | 完成 M0 命令：`version`、`config validate`、`source list` | `src/researchdatahub/cli/` |
-| `sources` | `DataSourceAdapter` | **无**（仅 docstring 占位） | `src/researchdatahub/sources/__init__.py` |
-| `transfer` | `TransportAdapter` | **无** | `src/researchdatahub/transfer/__init__.py` |
-| `storage` | `StorageBackend` | **无** | `src/researchdatahub/storage/__init__.py` |
-| `manifest` | `ManifestRepository` | **无** | `src/researchdatahub/manifest/__init__.py` |
-| `integrity` | `IntegrityChecker` | **无** | `src/researchdatahub/integrity/__init__.py` |
-| `planner` | `TaskPlanner` | **无** | `src/researchdatahub/planner/__init__.py` |
-| `scheduler` | `TaskScheduler` | **无** | `src/researchdatahub/scheduler/__init__.py` |
-| `catalog` | `CatalogProvider` | **无** | `src/researchdatahub/catalog/__init__.py` |
-| `reporting` | — | **无** | `src/researchdatahub/reporting/__init__.py` |
+| `core` | ✅ 完成（契约/状态机/Protocol） | `core/models.py`、`core/state.py`、`core/ports.py` | 覆盖于各包测试 |
+| `config` | ✅ 完成 | `config/loader.py`、`config/models.py` | 15 |
+| `manifest` | ✅ M1 | `SqliteManifestRepository`、`cli_service` | 82 |
+| `transfer` | ✅ M2（S3 集成 NOT RUN） | `HttpTransportAdapter`、`S3TransportAdapter`、`RetryPolicy`、`BoundedTransferRunner` | 104 |
+| `sources` | ✅ M3（CDS 有凭证链路 NOT RUN） | `SourceRegistry`、`CDSAdapter`、`NCARAdapter` | 82 + 11 network |
+| `planner` | ✅ M4 | `planner.service.create_plan/validate_request_file` | 39 |
+| `scheduler` | ✅ M4 | `build_scheduler`、`TaskControlService`、`RecoveryService` | 24 |
+| `integrity` | ✅ M5 | `IntegrityChecker.check/check_path` | 58 |
+| `storage` | ✅ M5 | `LocalStorageBackend` | 98 |
+| `reporting` | ✅ M5 | `build_delivery_manifest`、`build_collection_report` | 37 |
+| `catalog` | ⬜ 仅 Protocol | — | — |
+| `cli` | ✅ M1–M5 命令组 | `cli/main.py` 组合根 + 各 `*_cmd.py` | 48 |
 
-`tests/fixtures/contract_fakes.py` 中的 8 个类（`InMemorySourceAdapter`、`LocalCopyTransport`、
-`FilesystemStorage`、`InMemoryManifest`、`SizeAndChecksumChecker`、`SimplePlanner`、`SerialExecutor`、
-`StaticCatalog`）是**测试用参考实现**，不属于生产代码，也不应被 `src` 导入。
-
----
+模块间**仍然不横向 import**：`scheduler` 只依赖 `core` 的 Protocol，具体实现由
+`cli/_services.py`（组合根）注入。`sources` 不 import `transfer`、`transfer` 不含
+`ncar/cds` 字面量——这两条有测试断言（`tests/unit/test_sources/test_decoupling.py`、
+`tests/unit/test_planner/test_plan.py::test_planner_package_never_imports_transport_or_http`）。
 
 ## 6. 相关文档
 

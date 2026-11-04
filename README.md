@@ -3,9 +3,14 @@
 > Research Data Acquisition and Synchronization Hub — 面向气候科学与地球科学的
 > 多源数据发现、采集、传输调度、完整性验证、元数据管理与统一归档框架。
 
-**当前状态：M0（工程骨架与架构契约）。** M0 交付的是**契约、边界、状态机与验证机制**，
-不是可用的下载器。本文件在「可以做什么 / 不可以做什么」两节里如实列出能力边界——
-M0 没有任何数据源适配器、没有传输实现、不会联网下载一个字节。
+**当前状态：M1–M5 已完成（可用的采集链路）。** SQLite Manifest、HTTP/S3 传输
+（含安全断点续传）、CDS/NCAR 数据源适配、计划与调度（租约 + 心跳 + 崩溃恢复）、
+完整性校验与 staging→raw 原子提交、交付清单与报告均已实现并有测试。
+
+本文件如实区分「已验证」「未验证」「未实现」三类状态（见 §2 与 §7）。
+最近一次工程验收：**955 passed / 14 deselected（network）/ 0 failed**，
+`ruff` 与 `mypy --strict` 全绿；一次真实外网小规模链路（NCAR GDEX 目录发现 →
+HTTPS 下载 → SHA-256 → raw 提交 → 交付清单）已实际执行。
 
 ---
 
@@ -36,37 +41,43 @@ ResearchDataHub 要解决的是一类长期存在的问题：科研数据采集�
 
 - 不是分布式的：不引入 Kafka / Celery / Redis / Kubernetes / 微服务（[ADR-0001](docs/adr/ADR-0001-modular-monolith.md)）。
 - 不是数据加工平台：不默认做重网格化、单位换算、插值。需要时另行产出**新**产物并保留来源。
-- 不是 Web 应用：M0/M1 只有 CLI。
+- 不是 Web 应用：只有 CLI（M1–M5 无前端）。
 - 不做云端托管：本地优先，全部状态落在本地文件系统与 SQLite。
 
 ---
 
 ## 2. 现在能做什么 / 不能做什么
 
-### ✅ M0 可用
+### ✅ 已实现并验证
 
-| 命令 | 行为 |
+| 命令 | 行为 | 验证方式 |
+|---|---|---|
+| `rdh version` / `rdh config validate` / `rdh source list` | 版本、配置校验（严格 schema + `env:` 展开）、数据源清单（`implemented` 如实） | 单元 + 集成测试 |
+| `rdh db init/status/migrate` | SQLite Manifest 初始化（WAL + 外键 + 版本化迁移）、状态快照、幂等迁移 | 82 项 manifest 测试（含真实多线程并发领取） |
+| `rdh request validate <yaml>` | §6.2 分段格式 / 扁平格式；错误定位到 `文件:行` + 字段路径；`units` 不猜 | 39 项 planner 测试 |
+| `rdh plan create <yaml>` / `plan show <plan_id>` | 源匹配、资源发现、按 file/year/month/request 拆分、去重、未满足变量登记；计划落库 | 同上 + 真实 NCAR 目录实测 |
+| `rdh task run [plan_id]` / `task status/pause/resume/retry/cancel/reconcile` | Manifest 原子领取、有限并发、心跳续约、失败分类与退避、暂停恢复取消、启动恢复与崩溃对账 | 24 项 scheduler 测试 + 5 项 e2e（含 4 个故障注入） |
+| `rdh file verify <path>` | 任意文件完整性体检（无 Manifest 也可用）；`PASSED` 才退出 0 | 14 项 check_path + 9 项 CLI |
+| `rdh report generate/show <id>` | 采集报告（成功/失败/跳过/隔离全量）+ 交付清单 JSON（相对路径） | 37 项 reporting + 9 项 CLI |
+
+传输与数据源（Python API，已被 CLI/调度器集成）：
+
+- `transfer`：httpx 流式下载（`.part` 原子提交、三重自证断点续传、取消、进度）、
+  boto3 S3（流式、ClientError 分类、**ETag 不作为 MD5**）、统一重试策略、有界并发。
+- `sources`：CDS（真实 retrieve/v1 schema、参数翻译、服务端异步生命周期建模）、
+  NCAR（GDEX/RDA JSON 目录 API、真实响应解析）、Source Registry（工厂注册，无按源 if/else）。
+
+### ❌ 尚未实现 / 未验证（如实列出）
+
+| 项 | 状态 |
 |---|---|
-| `rdh --help` | 显示命令与能力边界；未实现命令在独立的「未实现（M1）」面板中标出 |
-| `rdh version` | 打印包版本、**数据契约版本**（`MODELS_VERSION`）、Python 与平台信息 |
-| `rdh config validate` | 校验 `defaults.yaml` 与 `sources.yaml`（`env:` 展开、schema 严格校验、未知字段拒绝），通过退出 0，失败退出 1 并逐条列出错误 |
-| `rdh source list` | 列出配置中声明的数据源（provider、访问路径、是否已实现）。M0 全部为 `implemented=False` |
-
-已实现并可被外部依赖的 Python 契约：
-
-- `researchdatahub.core`：10 个 Pydantic v2 数据模型、异常层次、12 态状态机、8 个 Protocol 接口。
-- `researchdatahub.config`：YAML 加载、`env:VAR` 展开、结构化校验结果。
-
-### ❌ M0 **不**具备
-
-| 未实现 | 说明 |
-|---|---|
-| `rdh plan` / `rdh fetch` / `rdh status` | 真实命令，但执行即返回退出码 2 与「未实现（planned for M1）」。**不会假装成功** |
-| 任何数据源适配器 | `sources/` 只有说明模块职责的 docstring |
-| 任何传输实现 | `transfer/` 同上；不联网、不下载 |
-| SQLite Manifest 实现 | `manifest/` 只有接口（`ManifestRepository`），表结构在 M1 落地 |
-| 完整性检查的实现 | `integrity/` 同上；`IntegrityChecker` 接口与语义已定 |
-| 断点续传、并发调度、重试执行 | M1 |
+| **真实 ERA5 数据下载**（CDS 或 RDA 的 ERA5 产物） | **NOT RUN**：需要 CDS 账号接受许可 / RDA 数据集访问权限。已完成的真实链路验证用的是 GDEX 公开目录文件（39 KB），不是 ERA5 产物 |
+| CDS 端到端执行（submit → poll → 下载结果文件） | **部分实现**：生命周期已建模、真实 schema 已核对、有凭证用例 **NOT RUN**；M2 传输层尚无 `cds_api` transport（CDS 任务当前会失败并给出明确原因） |
+| S3 端到端下载 | **NOT RUN**（无 MinIO/S3 环境）；无 mock 冒充，代码覆盖 URI/ETag 规则/错误分类 |
+| S3 multipart 并行下载 | 未实现（单条 `get_object` 顺序流式，`s3.part_size_mb` 仅作块上限） |
+| NetCDF 科学语义校验（变量/时间覆盖的正确性） | 只校验结构与声明一致性，**不做科学结论** |
+| 多进程/多机调度、数据库分布式锁 | 不支持（local-first 单机定位，ADR-0001） |
+| `plan show --request-id`、优先级老化提升 | 未实现（需要 `list_plans` API / 额外调度策略） |
 
 ---
 
@@ -139,9 +150,84 @@ unset CDSAPI_KEY
 rdh config validate
 # 错误 ... environment variable 'CDSAPI_KEY' is not set ...
 
-# 5) 查看声明的数据源（M0 全部 implemented=False）
+# 5) 查看声明的数据源（cds/ncar 已实现；s3/globus/zarr 路由仍为 False）
 rdh source list
 ```
+
+### 4.1 完整采集链路（M1–M5）
+
+```bash
+# 0) 准备配置：把示例复制成本地配置（configs/sources.yaml 已被 .gitignore 忽略）
+cp configs/sources.example.yaml configs/sources.yaml
+export CDSAPI_KEY="<your-cds-token>"     # 只有走 CDS 时才需要
+
+# 1) 初始化 Manifest（幂等；同时创建 raw/ staging/ quarantine/ temp/ archive/）
+rdh db init
+rdh db status                            # 看 schema 版本、WAL/外键、任务计数
+
+# 2) 写一份需求 YAML（见下文 4.2 与 examples/），先校验（不联网）
+rdh request validate my-request.yaml
+
+# 3) 生成采集计划（会联网查询数据源目录，但**不下载任何字节**）
+rdh plan create my-request.yaml
+rdh plan show <plan_id>                  # 看任务拆分、数据源、未满足变量
+
+# 4) 执行（从 Manifest 领取任务；Ctrl-C 或崩溃后重跑同一条命令即可续跑）
+rdh task run <plan_id> --max-workers 2
+rdh task status                          # 任务列表；单个任务看租约/心跳/事件
+
+# 5) 校验与交付
+rdh file verify /path/to/file.nc --expected-size 123456
+rdh report generate <request_id>         # 采集报告 + 交付清单 JSON
+rdh report show <report_id>
+```
+
+产物位置（全部由 `storage.root` 决定，默认 `~/.rdh`）：
+
+```
+~/.rdh/
+├── manifest.db               # SQLite 事实来源（ADR-0003）
+├── raw/<dataset>/<file>      # 正式数据（0444 只读，默认禁止覆盖）
+├── staging/                  # 下载中（.part + sidecar）
+├── quarantine/               # 校验失败（保留 + .reason.json）
+├── deliveries/<id>.json      # 交付清单（相对路径）
+└── reports/<id>.json         # 采集报告
+```
+
+### 4.2 需求 YAML（分段格式）
+
+```yaml
+request:
+  name: era5_cloud_water_2011
+  preferred_sources: [ncar, cds]
+dataset:
+  provider: cds
+  name: reanalysis-era5-pressure-levels
+  product: reanalysis
+  product_family: ERA5
+variables:
+  - name: clwc
+    units: kg kg**-1
+  - name: t
+    units: K
+temporal:
+  start: "2011-01-01"
+  end: "2011-12-31"
+  frequency: hourly
+spatial:
+  type: global
+vertical:
+  levels: [1000, 925, 850, 700, 500]
+storage:
+  preserve_original: true
+validation:
+  verify_size: true
+  calculate_sha256: true
+```
+
+`end: 2011-12-31` 表示"到 2011-12-31 结束"（内部解释为 `2012-01-01T00:00Z` 的闭开区间）；
+变量可以只写名字，但那样 `units` 记为 `unknown` 并给出警告——系统**不猜**单位。
+扁平格式（`examples/era5-request.yaml`）同样支持。
 
 示例需求文件：[`examples/era5-request.yaml`](examples/era5-request.yaml)
 （ERA5 气压层 `clwc/ciwc/t/q`，2011–2020，全球，1000–900 hPa，候选源 NCAR 与 CDS）。
@@ -177,7 +263,7 @@ ResearchDataHub/
 └── tests/             # unit / integration / fixtures
 ```
 
-各模块的 M0 状态在其 `__init__.py` 的 docstring 中声明，与本文档一致。
+各模块的实现状态在其 `__init__.py` 的 docstring 中声明，与本文档一致。
 
 ---
 
@@ -189,7 +275,7 @@ ResearchDataHub/
 .venv/bin/ruff check src tests
 .venv/bin/mypy src
 
-# 测试（默认不跑网络测试）
+# 测试（默认不跑网络测试；pytest addopts 已 -m 'not network'）
 PYTHONPATH=src .venv/bin/python -m pytest
 PYTHONPATH=src .venv/bin/python -m pytest --cov=researchdatahub --cov-report=term-missing
 ```
@@ -214,18 +300,38 @@ PYTHONPATH=src .venv/bin/python -m pytest --cov=researchdatahub --cov-report=ter
   | `env:RDH_HOME` | `/tmp/rdh-demo` |
   | `${RDH_HOME}/state` | `/tmp/rdh-demo/state` |
 
-  子目录（`data_dir` / `quarantine_dir` / `tmp_dir`）**必须相对**，不得以 `/`、`~` 或 `env:` 开头。
+  子目录（`raw_dir` / `staging_dir` / `quarantine_dir` / `temp_dir` / `archive_dir`）**必须相对**，
+  不得以 `/`、`~` 或 `env:` 开头，且五者不得重叠。
 - **密钥不进仓库**：配置文件中的密钥一律写成 `env:VAR` 引用（如 `credentials.key: env:CDSAPI_KEY`）；
   `configs/sources.yaml` 与 `*.local.yaml` 已在 `.gitignore` 中。
   CDS 的访问令牌只以 `env:CDSAPI_KEY` 形式出现，缺失时 `rdh config validate` 会点名报错（退出码 1），
   不会给出静默降级的"假通过"。
-- **原始数据只读**：`StorageBackend.publish_original` 的契约要求原子移动并置为只读。
+- **原始数据只读**：提交到 `raw/` 后默认 `chmod 0444`；目标已存在时比较大小+SHA-256，
+  相同则跳过、不同则报错，**绝不静默覆盖**。
 - **不默认转换数据**：任何加工产物都必须作为新对象并携带来源追踪字段。
-- **不联网、不下载**：M0 阶段没有任何传输实现；`rdh fetch` 直接拒绝（退出码 2），
-  不会在未告知的情况下访问网络。
+- **联网范围可控**：只有 `plan create`（目录查询）与 `task run`（下载）会访问网络；
+  `db` / `report` / `task status` 等命令完全不联网。默认测试套件排除真实外网用例。
+- **不记录密钥**：日志与异常只打印凭证的**变量名**，不打印值（`logging.redact_env`）。
+- **路径穿越防护**：下载文件名经清洗，所有落盘路径必须位于配置的存储根内。
 
 ---
 
-## 8. 许可证
+## 8. 文档索引
+
+| 文档 | 内容 |
+|---|---|
+| [architecture.md](docs/architecture.md) | 主数据流、线程/事务边界、模块职责 |
+| [data-contract.md](docs/data-contract.md) | 契约模型、科学等价性、版本策略 |
+| [module-boundaries.md](docs/module-boundaries.md) | 允许的 import 方向与检查脚本 |
+| [configuration.md](docs/configuration.md) | 每个配置字段的含义与约束 |
+| [recovery.md](docs/recovery.md) | 租约/心跳/崩溃恢复/对账 |
+| [data-integrity.md](docs/data-integrity.md) | 六层校验、checksum 策略、原子提交 |
+| [operations.md](docs/operations.md) | 部署、日常流程、故障处置、备份 |
+| [testing-strategy.md](docs/testing-strategy.md) | 测试分层、覆盖率、盲区 |
+| [development-plan.md](docs/development-plan.md) | 里程碑与逐项证据 |
+| [engineering-report.md](docs/engineering-report.md) | **M1–M5 验收报告**（含 NOT RUN 项） |
+| [ADR-0001…0006](docs/adr/) | 关键架构决策 |
+
+## 9. 许可证
 
 MIT，见 [LICENSE](LICENSE)。
