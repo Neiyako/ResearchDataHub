@@ -41,11 +41,15 @@ __all__ = [
     "IntegrityConfig",
     "LogFormat",
     "LoggingConfig",
+    "ManifestConfig",
+    "PlannerConfig",
     "RetryConfig",
+    "S3TransferConfig",
     "SchedulerConfig",
     "SourceConfig",
     "SourcesConfig",
     "StorageConfig",
+    "TransferConfig",
     "TransportBinding",
     "ValidationResult",
 ]
@@ -113,25 +117,33 @@ class Environment(StrEnum):
 
 
 class StorageConfig(_ConfigModel):
-    """本地存储布局。
+    """本地存储布局：``staging/`` → ``raw/`` → ``quarantine/`` / ``archive/``。
 
     ``root`` 支持三种写法：
     * ``~/.rdh``（波浪号展开）——默认值；
     * ``${RDH_HOME}`` 或 ``env:RDH_HOME``（环境变量引用，由 loader 展开；缺失即报错）；
     * 相对路径（相对仓库根/当前工作目录，由使用方决定，loader 只做类型与安全校验）。
+
+    各子目录相互独立、必须相对 ``root`` 且不得重复：重复会让 quarantine 与 raw 重叠，
+    隔离一个坏文件时可能覆盖正式数据。
     """
 
-    root: PathStr = Field(default="~/.rdh", description="状态根目录（Manifest 库、隔离区、日志）")
-    data_dir: str = Field(default="data", max_length=128, description="数据根（相对 root）")
+    root: PathStr = Field(default="~/.rdh", description="状态根目录（Manifest 库、数据区、日志）")
+    raw_dir: str = Field(default="raw", max_length=128, description="正式数据区（只读，禁止覆盖）")
+    staging_dir: str = Field(default="staging", max_length=128, description="下载中转区")
     quarantine_dir: str = Field(
-        default="quarantine", max_length=128, description="校验失败文件的隔离区（相对 root）"
+        default="quarantine", max_length=128, description="校验失败文件的隔离区"
     )
-    tmp_dir: str = Field(default="tmp", max_length=128, description="临时区（相对 root）")
+    temp_dir: str = Field(default="temp", max_length=128, description="进程级临时文件")
+    archive_dir: str = Field(default="archive", max_length=128, description="归档/打包产物")
     free_space_floor_gb: float = Field(
         default=20.0, ge=0.0, le=1_000_000.0, description="进入隔离/停止下载前的磁盘剩余阈值"
     )
     min_backend: Literal["local"] = Field(
-        default="local", description="M0 只支持本地后端；M1 扩展 s3/posix"
+        default="local", description="M1 只支持本地后端；后续扩展 s3/posix"
+    )
+    create_dirs_on_init: bool = Field(
+        default=True, description="``rdh db init`` 时是否顺带创建缺失的存储目录"
     )
 
     @field_validator("root")
@@ -141,7 +153,7 @@ class StorageConfig(_ConfigModel):
             raise ValueError("storage.root must be a concrete path, not a lone placeholder")
         return value
 
-    @field_validator("data_dir", "quarantine_dir", "tmp_dir")
+    @field_validator("raw_dir", "staging_dir", "quarantine_dir", "temp_dir", "archive_dir")
     @classmethod
     def _relative_subdir(cls, value: str) -> str:
         if value.startswith(("/", "~")) or value.startswith("env:"):
@@ -149,7 +161,25 @@ class StorageConfig(_ConfigModel):
                 f"subdirectory {value!r} must be relative to storage.root "
                 "(no leading '/', '~' or 'env:')"
             )
+        if value.strip() in {"", ".", ".."}:
+            raise ValueError(f"subdirectory {value!r} is not a usable directory name")
         return value
+
+    @model_validator(mode="after")
+    def _distinct_subdirs(self) -> StorageConfig:
+        names = [
+            self.raw_dir,
+            self.staging_dir,
+            self.quarantine_dir,
+            self.temp_dir,
+            self.archive_dir,
+        ]
+        if len(set(names)) != len(names):
+            raise ValueError(
+                "storage subdirectories must be distinct; overlapping quarantine/raw "
+                "could silently overwrite delivered data"
+            )
+        return self
 
 
 class ConcurrencyConfig(_ConfigModel):
@@ -248,6 +278,78 @@ class LoggingConfig(_ConfigModel):
         return value
 
 
+class S3TransferConfig(_ConfigModel):
+    """S3 传输适配器选项。**不实现 S3 协议**，只用成熟 SDK（boto3）。"""
+
+    endpoint_url: str | None = Field(default=None, max_length=4096)
+    region_name: str | None = Field(default=None, max_length=64)
+    addressing_style: Literal["auto", "virtual", "path"] = Field(default="auto")
+    part_size_mb: int = Field(default=64, ge=5, le=1024, description="分块下载块大小")
+    use_ssl: bool = True
+    max_pool_connections: int = Field(default=8, ge=1, le=64)
+    anonymous: bool = Field(default=False, description="是否以匿名（未签名）方式访问公开桶")
+    verify_etag_as_md5: bool = Field(
+        default=False,
+        description="严禁默认把 ETag 当 MD5：仅当对象单段上传且服务端确认时才可以置 True",
+    )
+
+
+class TransferConfig(_ConfigModel):
+    """传输层通用参数。默认值面向 8GB 内存设备：小分块、流式、保守超时。"""
+
+    timeout_seconds: float = Field(default=120.0, gt=0.0, le=86_400.0)
+    connect_timeout_seconds: float = Field(default=15.0, gt=0.0, le=600.0)
+    read_timeout_seconds: float = Field(default=60.0, gt=0.0, le=3600.0)
+    chunk_size_bytes: int = Field(
+        default=1_048_576, ge=65_536, le=33_554_432, description="流式写入分块大小"
+    )
+    max_redirects: int = Field(default=5, ge=0, le=20)
+    verify_tls: bool = True
+    resume_enabled: bool = Field(default=True, description="是否允许在可自证一致性时断点续传")
+    s3: S3TransferConfig = Field(default_factory=S3TransferConfig)
+
+    @model_validator(mode="after")
+    def _timeouts_ordered(self) -> TransferConfig:
+        if self.connect_timeout_seconds > self.timeout_seconds:
+            raise ValueError("transfer.connect_timeout_seconds must not exceed timeout_seconds")
+        if self.read_timeout_seconds > self.timeout_seconds:
+            raise ValueError("transfer.read_timeout_seconds must not exceed timeout_seconds")
+        return self
+
+
+class ManifestConfig(_ConfigModel):
+    """SQLite Manifest 参数（ADR-0003）。
+
+    ``journal_mode`` 固定为 WAL：M1 的硬性要求，且不允许配置成 rollback journal
+    ——那会让读写在并发下互相阻塞。
+    """
+
+    db_filename: str = Field(default="manifest.db", max_length=128)
+    journal_mode: Literal["wal"] = "wal"
+    synchronous: Literal["full", "normal"] = Field(default="normal")
+    busy_timeout_ms: int = Field(default=5000, ge=100, le=120_000)
+    write_retry_attempts: int = Field(default=5, ge=1, le=20)
+
+    @field_validator("db_filename")
+    @classmethod
+    def _plain_filename(cls, value: str) -> str:
+        if "/" in value or "\\" in value or value in {"", ".", ".."}:
+            raise ValueError("manifest.db_filename must be a plain file name")
+        return value
+
+
+class PlannerConfig(_ConfigModel):
+    """计划器参数。``preferred_split`` 只是**建议**：数据源能力优先。"""
+
+    preferred_split: Literal["auto", "file", "year", "month", "request"] = Field(default="auto")
+    max_tasks_per_plan: int = Field(
+        default=500, ge=1, le=100_000, description="单计划任务数上限，防止把需求拆成数万个小任务"
+    )
+    allow_partial: bool = Field(
+        default=True, description="部分变量无法满足时是否仍生成计划（未满足变量必须登记）"
+    )
+
+
 class SchedulerConfig(_ConfigModel):
     """调度器参数。
 
@@ -260,6 +362,24 @@ class SchedulerConfig(_ConfigModel):
     priority_aging_seconds: int = Field(
         default=1800, ge=0, le=86_400, description="等待超时后提升优先级，防止低优先级饿死"
     )
+    lease_seconds: int = Field(
+        default=900,
+        ge=60,
+        le=604_800,
+        description="任务租约时长；须小于 integrity.stale_timeout_seconds",
+    )
+    heartbeat_interval_seconds: int = Field(
+        default=60, ge=5, le=3600, description="心跳刷新间隔；须小于 lease_seconds 的 1/3"
+    )
+
+    @model_validator(mode="after")
+    def _lease_sane(self) -> SchedulerConfig:
+        if self.heartbeat_interval_seconds * 3 > self.lease_seconds:
+            raise ValueError(
+                "scheduler.heartbeat_interval_seconds must be at most lease_seconds / 3 "
+                "(otherwise a live worker loses its lease between heartbeats)"
+            )
+        return self
 
 
 class DefaultsConfig(_ConfigModel):
@@ -269,6 +389,9 @@ class DefaultsConfig(_ConfigModel):
     storage: StorageConfig = Field(default_factory=StorageConfig)
     concurrency: ConcurrencyConfig = Field(default_factory=ConcurrencyConfig)
     retry: RetryConfig = Field(default_factory=RetryConfig)
+    transfer: TransferConfig = Field(default_factory=TransferConfig)
+    manifest: ManifestConfig = Field(default_factory=ManifestConfig)
+    planner: PlannerConfig = Field(default_factory=PlannerConfig)
     integrity: IntegrityConfig = Field(default_factory=IntegrityConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
     scheduler: SchedulerConfig = Field(default_factory=SchedulerConfig)

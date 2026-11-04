@@ -14,7 +14,7 @@
 #        - "${RDH_HOME}/s"    内嵌插值，可出现在任意位置
 #      注意：校验器**允许**绝对路径（如外置 SSD "/Volumes/SSD/rdh"），因为本地大容量存储
 #      是合法需求；但提交进仓库的配置不得写死某台机器的个人路径，本文件因此使用 "~/.rdh"。
-#      子目录（data_dir 等）必须相对 storage.root，不得以 "/"、"~" 或 "env:" 开头。
+#      子目录（raw_dir 等）必须相对 storage.root，不得以 "/"、"~" 或 "env:" 开头。
 #   3. 本文件不含任何凭证；凭证只在 configs/sources.yaml 里以 env:VAR 形式出现。
 
 defaults:
@@ -22,16 +22,21 @@ defaults:
   environment: development
 
   storage:
-    # 状态根目录（Manifest SQLite、隔离区、临时区、日志都在它下面）。
+    # 状态根目录（Manifest SQLite、数据区、隔离区、临时区、日志都在它下面）。
     root: "~/.rdh"
-    # 以下均为相对 storage.root 的子目录。
-    data_dir: data
+    # 以下均为相对 storage.root 的子目录，且必须互不相同（重叠会导致隔离覆盖正式数据）。
+    # 数据流转：staging（下载中）→ 校验 → raw（正式，只读）/ quarantine（隔离）
+    raw_dir: raw
+    staging_dir: staging
     quarantine_dir: quarantine
-    tmp_dir: tmp
+    temp_dir: temp
+    archive_dir: archive
     # 落盘前的最低剩余空间（GB）；低于该值停止下载并报错，而不是写坏半个文件。
     free_space_floor_gb: 20.0
-    # M0 只支持本地后端；M1 再扩展（s3 / posix）。
+    # M1 只支持本地后端；后续再扩展（s3 / posix）。
     min_backend: local
+    # `rdh db init` 时是否顺带创建缺失的存储目录。
+    create_dirs_on_init: true
 
   concurrency:
     # 传输线程数；0 表示由运行方按 CPU 核数决定。
@@ -56,6 +61,49 @@ defaults:
       - connection_reset
       - http_5xx
       - http_429
+
+  transfer:
+    # 单次传输总超时（秒）。
+    timeout_seconds: 120.0
+    # 连接/读取超时；都必须 <= timeout_seconds（模型会校验）。
+    connect_timeout_seconds: 15.0
+    read_timeout_seconds: 60.0
+    # 流式写入分块（字节）。8GB 内存设备上一次只驻留一块，禁止整文件载入内存。
+    chunk_size_bytes: 1048576
+    max_redirects: 5
+    # 生产环境请勿关闭；自签测试服务器才临时关闭。
+    verify_tls: true
+    # 断点续传开关：即使开启，也只在远端 Range/ETag 能自证一致时才真正续传。
+    resume_enabled: true
+    s3:
+      # 空 = 用 boto3 默认（AWS 公有云）。测试用本机 MinIO 时填 http://127.0.0.1:9000。
+      endpoint_url: null
+      region_name: null
+      addressing_style: auto
+      # 分块下载块大小（MB）；会随内存预检下修。
+      part_size_mb: 64
+      use_ssl: true
+      max_pool_connections: 8
+      anonymous: false
+      # 严禁默认把 ETag 当 MD5：只有对象单段上传且服务端确认时才可置 true。
+      verify_etag_as_md5: false
+
+  manifest:
+    # SQLite 数据库文件名（位于 storage.root 下）。
+    db_filename: manifest.db
+    # M1 硬性要求：WAL 模式，不允许配置成其它值。
+    journal_mode: wal
+    synchronous: normal
+    busy_timeout_ms: 5000
+    write_retry_attempts: 5
+
+  planner:
+    # 拆分粒度建议：auto = 由数据源能力决定（file / year / month / request）。
+    preferred_split: auto
+    # 单计划任务数上限，防止把一个需求拆成数万个小任务。
+    max_tasks_per_plan: 500
+    # 部分变量无法满足时是否仍生成计划（未满足的变量必须登记在计划里）。
+    allow_partial: true
 
   integrity:
     # 默认完整性检查链。顺序即执行顺序；netcdf_openable 需要 .[sci] 额外依赖（xarray/netCDF4）。
@@ -85,3 +133,7 @@ defaults:
     free_space_floor_gb: 20.0
     # 低优先级任务等待超过该时长后提升优先级，防止被高优先级任务饿死（单位：秒）。
     priority_aging_seconds: 1800
+    # 任务租约（秒）：领取任务时获得，执行期间靠心跳续约。必须 > heartbeat_interval*3。
+    lease_seconds: 900
+    # 心跳刷新间隔（秒）。
+    heartbeat_interval_seconds: 60

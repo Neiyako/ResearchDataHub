@@ -42,6 +42,7 @@ __all__ = [
     "AcquisitionPlan",
     "AcquisitionTask",
     "Checksum",
+    "DatabaseStatus",
     "DatasetMetadata",
     "DatasetRequest",
     "DeliveryManifest",
@@ -52,10 +53,12 @@ __all__ = [
     "IntegrityStatus",
     "JsonValue",
     "Priority",
+    "RecoveryResult",
     "SourceAsset",
     "SourceMetadata",
     "SpatialExtent",
     "TemporalExtent",
+    "TransferLogEvent",
     "TransferResult",
     "TransferStatus",
     "VariableSpec",
@@ -500,9 +503,22 @@ class AcquisitionTask(_Contract):
     last_transition_at: datetime | None = None
     last_error: str | None = Field(default=None, max_length=2048)
     worker_id: str | None = Field(default=None, max_length=64)
+    # 租约与心跳（M1 新增）。SQLite ``tasks.lease_owner`` 列承载 ``worker_id``，
+    # 不再重复一个 ``lease_owner`` 字段：同一语义两个字段必然漂移。
+    # 语义：worker 领取任务时写入 worker_id 并设置 lease_expires_at；执行期间周期性
+    # 刷新 heartbeat_at；恢复流程只接管 ``heartbeat_at`` 已超时的在途任务。
+    heartbeat_at: datetime | None = None
+    lease_expires_at: datetime | None = None
     notes: list[str] = Field(default_factory=list)
 
-    @field_validator("scheduled_at", "started_at", "finished_at", "last_transition_at")
+    @field_validator(
+        "scheduled_at",
+        "started_at",
+        "finished_at",
+        "last_transition_at",
+        "heartbeat_at",
+        "lease_expires_at",
+    )
     @classmethod
     def _aware(cls, value: datetime | None) -> datetime | None:
         return None if value is None else _utc(value)
@@ -564,11 +580,34 @@ class TransferResult(_Contract):
     error_detail: str | None = Field(default=None, max_length=2048)
     retries_used: int = Field(default=0, ge=0)
     completed_at: datetime
+    # 以下为 M2 新增的传输自证字段。``expected_size`` 来自远端声明（可能 unknown=None），
+    # ``actual_size`` 是本地磁盘实测字节数；二者不同时必须判失败，不能只看 bytes_transferred。
+    source_uri: str | None = Field(default=None, max_length=4096)
+    expected_size: int | None = Field(default=None, ge=0)
+    actual_size: int | None = Field(default=None, ge=0)
+    started_at: datetime | None = None
+    retryable: bool = Field(default=False, description="失败时该错误是否值得重试")
+    resumed: bool = Field(default=False, description="本次传输是否使用了断点续传")
 
-    @field_validator("completed_at")
+    @field_validator("completed_at", "started_at")
     @classmethod
-    def _aware(cls, value: datetime) -> datetime:
-        return _utc(value)
+    def _aware(cls, value: datetime | None) -> datetime | None:
+        return None if value is None else _utc(value)
+
+    @model_validator(mode="after")
+    def _size_consistency(self) -> TransferResult:
+        if self.started_at is not None and self.completed_at < self.started_at:
+            raise ValueError("completed_at must be >= started_at")
+        if (
+            self.status is TransferStatus.SUCCEEDED
+            and self.expected_size is not None
+            and self.actual_size is not None
+            and self.expected_size != self.actual_size
+        ):
+            raise ValueError("succeeded transfer must have actual_size == expected_size")
+        if self.retryable and self.status is TransferStatus.SUCCEEDED:
+            raise ValueError("succeeded transfer cannot be marked retryable")
+        return self
 
     @model_validator(mode="after")
     def _status_fields(self) -> TransferResult:
@@ -677,3 +716,50 @@ class DeliveryManifest(_Contract):
     def with_totals(self) -> DeliveryManifest:
         """返回补齐 ``total_bytes`` 的副本，避免调用方手算。"""
         return self.model_copy(update={"total_bytes": sum(f.size_bytes for f in self.files)})
+
+
+# --------------------------------------------------------------------------- #
+# 持久化状态快照（M1）
+# --------------------------------------------------------------------------- #
+class DatabaseStatus(_Contract):
+    """``rdh db status`` 的结构化结果。只包含可观测事实，不做健康判定。"""
+
+    db_path: str = Field(min_length=1, max_length=4096)
+    db_schema_version: int = Field(ge=1, description="SQLite schema 版本（非契约版本）")
+    journal_mode: str = Field(max_length=16, description="SQLite journal_mode，期望 'wal'")
+    foreign_keys: bool = Field(description="外键约束是否启用")
+    task_counts: dict[str, int] = Field(default_factory=dict, description="状态 -> 任务数")
+    file_count: int = Field(default=0, ge=0)
+    integrity_failures: int = Field(default=0, ge=0)
+    delivery_ready_requests: list[str] = Field(default_factory=list)
+
+
+class RecoveryResult(_Contract):
+    """一次过期任务恢复的可审计记录。``new_state`` 由状态机给出，不是随手填的。"""
+
+    task_id: Identifier
+    previous_state: str = Field(min_length=1, max_length=32)
+    new_state: str = Field(min_length=1, max_length=32)
+    lease_owner: str | None = Field(default=None, max_length=64)
+    reason: str = Field(min_length=1, max_length=512)
+
+
+class TransferLogEvent(_Contract):
+    """一条传输过程事件（``transfer_logs`` 表）。不可变、只追加，用于事后复盘。
+
+    ``event_type`` 是稳定的机器可读枚举值（``started`` / ``http_status`` / ``range_probe``
+    / ``retry_scheduled`` / ``resumed`` / ``bytes_flushed`` / ``failed`` / ``completed``），
+    由传输层自行定义并保持向后兼容；``metadata`` 保留原始上下文（状态码、阶段字节数等）。
+    """
+
+    task_id: Identifier
+    event_type: str = Field(min_length=1, max_length=64)
+    message: str = Field(min_length=1, max_length=2048)
+    bytes_transferred: int = Field(default=0, ge=0)
+    metadata: dict[str, JsonValue] = Field(default_factory=dict)
+    timestamp: datetime
+
+    @field_validator("timestamp")
+    @classmethod
+    def _aware(cls, value: datetime) -> datetime:
+        return _utc(value)

@@ -21,22 +21,30 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator, Iterable, Iterator, Sequence
+from datetime import datetime
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
 from researchdatahub.core.models import (
     AcquisitionPlan,
     AcquisitionTask,
+    DatabaseStatus,
     DatasetMetadata,
     DatasetRequest,
     DeliveryManifest,
     FileRecord,
     IntegrityReport,
+    RecoveryResult,
     SourceAsset,
     SourceMetadata,
+    TransferLogEvent,
     TransferResult,
 )
-from researchdatahub.core.state import TaskState
+from researchdatahub.core.state import (
+    DEFAULT_LEASE_SECONDS,
+    DEFAULT_STALE_TIMEOUT_SECONDS,
+    TaskState,
+)
 
 __all__ = [
     "CatalogProvider",
@@ -345,17 +353,40 @@ class ManifestRepository(Protocol):
     事务边界
     --------
     ``save_task`` + ``append_event`` 必须落在同一事务内，避免“状态变了但没记事件”。
+    因此同时提供原始方法（供单测）与复合方法 :meth:`save_task_and_event`（供业务调用）。
+
+    本协议分四组能力，实现可以拆成多个类，但必须由同一连接/同一 schema 支撑：
+
+    1. **生命周期**：``initialize`` / ``close`` / ``schema_version`` / ``status``；
+    2. **任务与租约**：领取（原子）、心跳、状态推进、过期回收；
+    3. **目录数据**：数据源 / 数据集 / 请求 / 资产 / 文件 / 校验报告 / 事件；
+    4. **交付**：从已完成文件生成 ``DeliveryManifest``。
     """
 
+    # -- 生命周期 ---------------------------------------------------------- #
     def initialize(self) -> None:
-        """创建/迁移 schema。幂等。"""
+        """创建/迁移 schema。幂等：重复调用不得丢数据、不得报错。"""
         ...
 
+    def close(self) -> None:
+        """关闭连接。幂等。"""
+        ...
+
+    @property
+    def schema_version(self) -> int:
+        """当前库的 schema 版本（来自 ``schema_version`` 表）。"""
+        ...
+
+    def status(self) -> DatabaseStatus:
+        """返回 :class:`DatabaseStatus` 快照（``rdh db status`` 的数据来源）。"""
+        ...
+
+    # -- 任务与租约 -------------------------------------------------------- #
     def save_task(self, task: AcquisitionTask, *, expected_state: TaskState | None = None) -> None:
         """写入任务当前状态。
 
-        参数
-        ----
+        Parameters
+        ----------
         expected_state:
             乐观并发控制：若数据库中当前状态与此不符，抛 :class:`ManifestError`
             （防止两个 worker 同时推进同一任务）。
@@ -365,6 +396,17 @@ class ManifestRepository(Protocol):
         ManifestError
             记录不存在、版本冲突或事务失败。
         """
+        ...
+
+    def save_task_and_event(
+        self,
+        task: AcquisitionTask,
+        *,
+        expected_state: TaskState | None = None,
+        event: str,
+        payload: dict[str, object] | None = None,
+    ) -> None:
+        """**同一事务**内写入任务新状态与一条事件（业务代码应优先使用本方法）。"""
         ...
 
     def load_task(self, task_id: str) -> AcquisitionTask:
@@ -377,18 +419,153 @@ class ManifestRepository(Protocol):
         """
         ...
 
-    def list_tasks(self, *, state: TaskState | None = None) -> Iterator[AcquisitionTask]:
-        """流式列出任务（可按状态过滤）。惰性迭代，避免一次载入全部。"""
+    def list_tasks(
+        self,
+        *,
+        state: TaskState | None = None,
+        request_id: str | None = None,
+        limit: int | None = None,
+        offset: int = 0,
+    ) -> Iterator[AcquisitionTask]:
+        """流式列出任务（可按状态/请求过滤）。惰性迭代，避免一次载入全部。"""
+        ...
+
+    def claim_tasks(
+        self,
+        *,
+        owner: str,
+        limit: int,
+        now: datetime | None = None,
+        lease_seconds: int = DEFAULT_LEASE_SECONDS,
+        request_id: str | None = None,
+    ) -> Sequence[AcquisitionTask]:
+        """原子领取至多 ``limit`` 个可执行任务，返回已是 ``RUNNING`` 且持有租约的任务。
+
+        实现必须用单条 ``UPDATE ... RETURNING`` 或等价的 ``BEGIN IMMEDIATE`` 事务，
+        保证**同一个任务不会被两个 worker 同时领取**；返回的任务已持久化。
+
+        可领取状态：``QUEUED``；以及 ``scheduled_at <= now`` 的 ``RETRY_WAIT``。
+
+        Raises
+        ------
+        ManifestError
+            事务失败或租约参数非法。
+        """
+        ...
+
+    def heartbeat(
+        self,
+        task_id: str,
+        *,
+        owner: str,
+        now: datetime | None = None,
+        lease_seconds: int = DEFAULT_LEASE_SECONDS,
+    ) -> bool:
+        """续约。返回 ``False`` 表示租约已被他人持有/任务已非在途，调用方必须停止执行。"""
+        ...
+
+    def release_expired(
+        self,
+        *,
+        now: datetime | None = None,
+        stale_timeout_seconds: int = DEFAULT_STALE_TIMEOUT_SECONDS,
+        lease_seconds: int = DEFAULT_LEASE_SECONDS,
+    ) -> Sequence[RecoveryResult]:
+        """回收过期在途任务（租约失效 + 心跳超时），按状态机规则重新排队或判失败。
+
+        必须区分两种情况并分别记录：
+        * **租约过期但心跳未超时**：可能是慢任务被误抢，应**续租**而不是接管；
+        * **心跳超时**：进程已死，按 :func:`researchdatahub.core.state.recover_stale` 处理。
+        """
         ...
 
     def append_event(self, task_id: str, event: str, payload: dict[str, object]) -> None:
         """追加一条不可变的事件记录（审计日志）。"""
         ...
 
+    def list_events(self, task_id: str, *, limit: int | None = None) -> Sequence[TransferLogEvent]:
+        """按时间顺序读取任务事件。"""
+        ...
+
+    # -- 目录数据 ---------------------------------------------------------- #
+    def upsert_source(self, source: SourceMetadata, *, adapter_id: str) -> None:
+        """登记/更新数据源（按 ``source_id`` 幂等 upsert）。"""
+        ...
+
+    def list_sources(self) -> Sequence[SourceMetadata]:
+        """列出已登记的数据源（按 ``source_id`` 升序）。"""
+        ...
+
+    def get_source(self, source_id: str) -> SourceMetadata:
+        """读取单个数据源。
+
+        Raises
+        ------
+        ManifestError
+            数据源未登记。
+        """
+        ...
+
+    def save_dataset(self, dataset_id: str, metadata: DatasetMetadata) -> None:
+        """登记数据集科学元数据（按 ``dataset_id`` 幂等 upsert）。"""
+        ...
+
+    def get_dataset(self, dataset_id: str) -> tuple[str, DatasetMetadata]:
+        """返回 ``(dataset_name, metadata)``。"""
+        ...
+
+    def save_request(self, request: DatasetRequest) -> None:
+        """登记用户请求（幂等；同 ID 重复提交以最新内容为准并记录 ``updated_at``）。"""
+        ...
+
+    def get_request(self, request_id: str) -> DatasetRequest:
+        """读取请求。"""
+        ...
+
+    def save_plan(self, plan: AcquisitionPlan) -> None:
+        """登记计划与其任务（同一事务；重复 ``plan_id`` 视为幂等重放）。"""
+        ...
+
+    def load_plan(self, plan_id: str) -> AcquisitionPlan:
+        """读取计划（任务按声明顺序）。"""
+        ...
+
+    def save_asset(self, asset: SourceAsset) -> None:
+        """登记一个发现到的远端资产（按 ``asset_id`` 幂等 upsert）。"""
+        ...
+
+    def list_assets(
+        self, *, dataset_id: str | None = None, source_id: str | None = None
+    ) -> Iterator[SourceAsset]:
+        """流式列出资产（可按数据集/数据源过滤）。"""
+        ...
+
+    # -- 文件与校验 -------------------------------------------------------- #
     def save_file_record(self, record: FileRecord) -> None:
         """登记一个已落盘的文件（与任务完成同一事务内）。"""
         ...
 
+    def load_file_record(self, file_id: str) -> FileRecord:
+        """读取文件记录。"""
+        ...
+
+    def list_file_records(
+        self, *, task_id: str | None = None, request_id: str | None = None
+    ) -> Iterator[FileRecord]:
+        """流式列出文件记录（可按任务/请求过滤）。"""
+        ...
+
+    def save_integrity_report(self, report: IntegrityReport) -> None:
+        """追加一条完整性报告（不可变，只追加）。"""
+        ...
+
+    def list_integrity_reports(
+        self, *, task_id: str | None = None, file_id: str | None = None
+    ) -> Sequence[IntegrityReport]:
+        """读取完整性报告（可按任务/文件过滤）。"""
+        ...
+
+    # -- 交付 -------------------------------------------------------------- #
     def build_delivery_manifest(self, request_id: str) -> DeliveryManifest:
         """从已完成的文件记录生成交付清单。
 

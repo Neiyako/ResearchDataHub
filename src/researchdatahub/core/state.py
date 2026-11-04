@@ -37,7 +37,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import TYPE_CHECKING, Final
 
@@ -48,6 +48,7 @@ if TYPE_CHECKING:
 
 __all__ = [
     "ACTIVE_STATES",
+    "DEFAULT_LEASE_SECONDS",
     "DEFAULT_STALE_TIMEOUT_SECONDS",
     "TERMINAL_STATES",
     "TRANSITIONS",
@@ -55,8 +56,10 @@ __all__ = [
     "can_transition",
     "describe_transitions",
     "is_stale",
+    "lease_expired",
     "next_state_after_failure",
     "recover_stale",
+    "renew_lease",
     "transition",
 ]
 
@@ -95,7 +98,16 @@ ACTIVE_STATES: Final[frozenset[TaskState]] = frozenset(
 """“在途”状态：进程重启时需要被恢复或判定为过期。"""
 
 DEFAULT_STALE_TIMEOUT_SECONDS: Final[int] = 3600
-"""默认的 RUNNING 过期阈值（秒）。超过该时长仍为 RUNNING 视为进程异常退出遗留。"""
+"""默认的 RUNNING 过期阈值（秒）。超过该时长未刷新心跳视为进程异常退出遗留。"""
+
+DEFAULT_LEASE_SECONDS: Final[int] = 900
+"""默认单次租约时长（秒）。worker 领取任务时获得，执行期间必须持续续约。
+
+租约必须显著小于 ``DEFAULT_STALE_TIMEOUT_SECONDS``：否则一个仍在续约的慢任务
+会被误判为过期并被第二个 worker 抢走，导致同一任务被并发执行。
+二者关系由 :func:`lease_expired` 与 :func:`is_stale` 分别表达：
+* ``lease_expired``：**这个 worker 是否已失去该任务的执行权**（短周期，秒级到分钟级）；
+* ``is_stale``：**进程是否已经死了**（长周期，默认 1 小时），用于恢复流程。"""
 
 
 def _cancel_from() -> frozenset[TaskState]:
@@ -209,6 +221,7 @@ def transition(
     error: str | None = None,
     worker_id: str | None = None,
     after_integrity: bool = False,
+    lease_seconds: int = DEFAULT_LEASE_SECONDS,
 ) -> AcquisitionTask:
     """把任务推进到 ``target`` 状态，返回**新的**任务对象。
 
@@ -231,6 +244,9 @@ def transition(
         执行该转换的 worker 标识。
     after_integrity:
         置于完整性检查上下文；仅对 ``FAILED -> QUARANTINED`` 这一事后隔离转换放行。
+    lease_seconds:
+        进入 ``RUNNING`` 时签发的租约时长（秒），同时写入 ``lease_expires_at``。
+        终态转换会清空租约。
 
     Returns
     -------
@@ -288,8 +304,13 @@ def transition(
     if target is TaskState.RUNNING:
         updates["started_at"] = stamp
         updates["attempt"] = task.attempt + 1
+        # 进入 RUNNING 即持有租约：心跳与租约到期时间同时起算。
+        updates["heartbeat_at"] = stamp
+        updates["lease_expires_at"] = stamp + timedelta(seconds=lease_seconds)
     if target in TERMINAL_STATES:
         updates["finished_at"] = stamp
+        # 终态必须释放租约，否则恢复流程会把已结束的任务当成"仍被持有"。
+        updates["lease_expires_at"] = None
     if target in (TaskState.FAILED, TaskState.QUARANTINED, TaskState.RETRY_WAIT):
         updates["last_error"] = error or reason
 
@@ -316,13 +337,17 @@ def is_stale(
     """判断在途任务是否因进程异常退出而滞留。
 
     只有 ``RUNNING`` / ``VERIFYING`` 可能过期，其它状态一律返回 ``False``。
-    参考时间取 ``last_transition_at``，其次 ``started_at``；两者皆无视为过期
+    参考时间优先取 ``heartbeat_at``（worker 最近一次自证存活），其次
+    ``last_transition_at``、``started_at``；全都缺失视为过期
     （无法自证的运行中任务不应被信任）。
+
+    注意 ``is_stale`` 判断的是"进程可能已经死了"，比
+    :func:`lease_expired` 宽松得多，只用于崩溃恢复，不用于领取任务。
     """
     if task.state not in (TaskState.RUNNING, TaskState.VERIFYING):
         return False
     stamp = _normalize_now(now)
-    reference = task.last_transition_at or task.started_at
+    reference = task.heartbeat_at or task.last_transition_at or task.started_at
     if reference is None:
         return True
     return (stamp - reference).total_seconds() >= timeout_seconds
@@ -359,6 +384,71 @@ def recover_stale(
         reason="stale RUNNING with exhausted retries",
         now=stamp,
         error="process exited while RUNNING and retry budget is exhausted",
+    )
+
+
+def lease_expired(
+    task: AcquisitionTask,
+    *,
+    now: datetime | None = None,
+    grace_seconds: int = 0,
+) -> bool:
+    """判断任务租约是否已失效（即当前 worker 是否已失去执行权）。
+
+    与 :func:`is_stale` 的分工：租约是**短周期**的抢占保护（默认
+    :data:`DEFAULT_LEASE_SECONDS`），用来阻止第二个 worker 同时执行同一任务；
+    过期判定是**长周期**的崩溃恢复判定。
+
+    Parameters
+    ----------
+    task:
+        任务快照。
+    now:
+        tz-aware 当前时间；``None`` 取系统 UTC。
+    grace_seconds:
+        宽限秒数：允许租约到期后再等一段时间才判定失效，用于吸收时钟漂移。
+
+    Returns
+    -------
+    bool
+        租约为空（没有 worker 持有）时返回 ``True``。
+    """
+    if task.lease_expires_at is None:
+        return True
+    stamp = _normalize_now(now)
+    return stamp >= task.lease_expires_at + timedelta(seconds=grace_seconds)
+
+
+def renew_lease(
+    task: AcquisitionTask,
+    *,
+    now: datetime | None = None,
+    lease_seconds: int = DEFAULT_LEASE_SECONDS,
+) -> AcquisitionTask:
+    """续约：把 ``heartbeat_at`` 与 ``lease_expires_at`` 推到当前时间之后。
+
+    纯函数，返回新任务对象；持久化由 ``ManifestRepository.heartbeat()`` 负责。
+    只有 ``RUNNING`` / ``VERIFYING`` 持有租约，其它状态调用即报错——
+    对已终止任务续约会让"过期检测"失效，属于必须暴露的缺陷。
+
+    Raises
+    ------
+    StateTransitionError
+        任务不在 ``RUNNING`` / ``VERIFYING``。
+    """
+    if task.state not in (TaskState.RUNNING, TaskState.VERIFYING):
+        raise StateTransitionError(
+            "only RUNNING/VERIFYING tasks hold a lease",
+            from_state=task.state.value,
+            to_state=task.state.value,
+            task_id=task.task_id,
+        )
+    stamp = _normalize_now(now)
+    return task.model_copy(
+        update={
+            "heartbeat_at": stamp,
+            "lease_expires_at": stamp + timedelta(seconds=lease_seconds),
+        }
     )
 
 
