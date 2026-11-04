@@ -103,8 +103,8 @@ ResearchDataHub 把这件事拆成有稳定边界的模块：
 ## 4. 快速开始
 
 ```bash
-# 1) 安装（开发环境）
-python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
+# 1) 安装（开发环境；测试需要 cds/sci 可选依赖，否则 CDS/NetCDF 相关用例会失败）
+python3 -m venv .venv && .venv/bin/pip install -e ".[dev,cds,sci]"
 .venv/bin/rdh version            # 打印版本表，退出码 0
 
 # 2) 配置数据源（凭证只以 env: 引用出现，不写进 YAML）
