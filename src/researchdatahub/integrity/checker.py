@@ -50,6 +50,7 @@ from researchdatahub.config.models import IntegrityConfig
 from researchdatahub.core.errors import IntegrityError
 from researchdatahub.core.models import (
     AcquisitionTask,
+    Checksum,
     FileRecord,
     IntegrityCheckKind,
     IntegrityReport,
@@ -248,6 +249,56 @@ class CheckResult:
         }
 
 
+@dataclass(frozen=True)
+class PathCheckResult:
+    """对**任意路径**做体检的结果（不依赖 ``FileRecord`` / ``AcquisitionTask``）。
+
+    为什么需要它
+    ------------
+    ``rdh file verify <path>`` 面对的是交付盘上的历史文件，既没有 task 也没有可信的
+    ``dataset_id`` / ``source_id``。用占位值构造 ``FileRecord`` 等于伪造元数据，因此这里
+    返回一个只描述**文件自身字节事实**的结构：``path`` / ``size_bytes`` / ``sha256`` /
+    逐条检查结果 / 汇总状态 / failures。缺失的期望值（大小、校验和、元数据）不会被
+    假装通过——对应检查记 ``SKIPPED`` 并在 ``detail`` 说明原因。
+    """
+
+    path: Path
+    status: IntegrityStatus
+    size_bytes: int
+    sha256: str | None
+    checks: tuple[CheckResult, ...]
+    failures: tuple[str, ...]
+    checked_at: datetime
+    checker_id: str
+    actual_format: str | None = None
+    netcdf: NetcdfSummary | None = None
+    expected_size: int | None = None
+    expected_checksum: str | None = None
+
+    @property
+    def ok(self) -> bool:
+        """是否完全通过（``SKIPPED`` / ``UNKNOWN`` 都不是通过）。"""
+        return self.status is IntegrityStatus.PASSED
+
+    def as_json(self) -> dict[str, JsonValue]:
+        """JSON 友好表示（CLI 可直接用它输出 ``--json``）。"""
+        return {
+            "path": str(self.path),
+            "status": self.status.value,
+            "ok": self.ok,
+            "size_bytes": self.size_bytes,
+            "sha256": self.sha256,
+            "actual_format": self.actual_format,
+            "netcdf": self.netcdf.as_json() if self.netcdf is not None else None,
+            "expected_size": self.expected_size,
+            "expected_checksum": self.expected_checksum,
+            "checks": [check.as_json() for check in self.checks],
+            "failures": list(self.failures),
+            "checked_at": self.checked_at.isoformat(),
+            "checker_id": self.checker_id,
+        }
+
+
 def _load_optional(module_name: str) -> ModuleType | None:
     """懒加载可选依赖；缺席时返回 ``None``（调用方记 SKIPPED，不吞其它异常）。"""
     try:
@@ -377,25 +428,19 @@ class IntegrityChecker:
                 detail={"path": str(path), "file_id": file_record.file_id},
             )
 
-        results: list[CheckResult] = []
+        origin, origin_problem = self._resolve_checksum_origin(file_record, task)
         state = _CheckState(
             path=path,
-            record=file_record,
-            task=task,
+            expected_size=file_record.size_bytes,
+            expected_checksum=file_record.checksum,
             expected_metadata=expected_metadata,
             expected_format=self._expected_format(file_record, task),
+            content_type=file_record.content_type,
+            asset_size=task.asset.size_bytes,
+            checksum_origin=origin,
+            checksum_origin_problem=origin_problem,
         )
-        # 可读性是 checksum/format/netcdf 的前提；即使调用方没显式请求也要先探测，
-        # 否则会出现「文件其实读不了，但因为没跑 readable 检查而被当成可读」的漏洞。
-        self._probe_readable(state)
-        for kind in _EXECUTION_ORDER:
-            if kind not in requested:
-                continue
-            result = self._run_one(kind, state)
-            if result is not None:
-                results.append(result)
-                if self._config.fail_fast and result.status is CheckStatus.FAILED:
-                    break
+        results = self._execute_checks(state, requested)
         status = self._aggregate(results)
         failures = [
             f"{result.kind.value}: {result.detail}"
@@ -437,6 +482,124 @@ class IntegrityChecker:
             checked_at=self._clock(),
             checker_id=self._checker_id,
         )
+
+    def check_path(
+        self,
+        path: Path,
+        *,
+        kinds: Sequence[str] | None = None,
+        expected_size: int | None = None,
+        expected_checksum: Checksum | None = None,
+        expected_metadata: Mapping[str, object] | None = None,
+    ) -> PathCheckResult:
+        """对任意路径做完整性体检（不需要 ``FileRecord`` / ``AcquisitionTask``）。
+
+        语义与 :meth:`check` 完全一致，区别只在于**没有可信的上下文元数据**：
+
+        * ``exists`` / ``readable`` / ``non_empty`` / ``format_sniff`` / ``netcdf_openable``
+          照常执行；
+        * ``size_match`` / ``truncation`` 只在给出 ``expected_size`` 时判定，否则记
+          ``SKIPPED``（“没有期望值”不等于“大小正确”）；
+        * ``checksum_match`` 只在给出 ``expected_checksum`` 时判定；否则仍计算本地
+          SHA-256 并放进 ``sha256`` / ``observed``，但检查记 ``SKIPPED``——只记录，不判通过；
+        * 不伪造 ``task_id`` / ``file_id`` / ``dataset_id``：需要它们的地方一律不填。
+
+        Parameters
+        ----------
+        path:
+            待体检文件路径。
+        kinds:
+            检查种类；``None`` 用 ``config.default_checks``，空序列表示不检查任何项。
+        expected_size:
+            期望字节数（来自外部记录，可能不存在）。
+        expected_checksum:
+            期望校验和（来自外部记录，可能不存在）。
+        expected_metadata:
+            支持的键同 :meth:`check`。
+
+        Returns
+        -------
+        PathCheckResult
+            ``status`` 为 ``FAILED`` / ``SKIPPED`` / ``UNKNOWN`` 时均不代表通过。
+
+        Raises
+        ------
+        IntegrityError
+            路径不存在/不是常规文件、``expected_size`` 为负、检查种类不受支持、
+            文件读取过程中发生 I/O 错误。
+        """
+        candidate = Path(path).expanduser()
+        if not candidate.exists():
+            raise IntegrityError(
+                "integrity check cannot proceed: file is missing",
+                detail={"path": str(candidate)},
+            )
+        if candidate.is_dir():
+            raise IntegrityError(
+                "integrity check cannot proceed: path is a directory",
+                detail={"path": str(candidate)},
+            )
+        if expected_size is not None and expected_size < 0:
+            raise IntegrityError(
+                "expected_size must be >= 0", detail={"expected_size": expected_size}
+            )
+        requested = self._resolve_kinds(kinds)
+        state = _CheckState(
+            path=candidate,
+            expected_size=expected_size,
+            expected_checksum=expected_checksum,
+            expected_metadata=expected_metadata,
+            expected_format=self._expected_format_from_path(candidate),
+        )
+        results = self._execute_checks(state, requested)
+        if state.sha256_hexdigest is None and state.readable:
+            # ``PathCheckResult.sha256`` 是 CLI ``file verify`` 的核心输出；即使调用方
+            # 没请求 checksum 检查，可读文件也要记录本地 SHA-256（只记录，不代表通过）。
+            try:
+                state.ensure_sha256()
+            except OSError as exc:
+                raise IntegrityError(
+                    "cannot compute file hash during path verification",
+                    detail={"path": str(candidate), "reason": str(exc)},
+                ) from exc
+        status = self._aggregate(results)
+        failures = tuple(
+            f"{result.kind.value}: {result.detail}"
+            for result in results
+            if result.status is CheckStatus.FAILED
+        )
+        return PathCheckResult(
+            path=candidate,
+            status=status,
+            size_bytes=state.size(),
+            sha256=state.sha256_hexdigest,
+            checks=tuple(results),
+            failures=failures,
+            checked_at=self._clock(),
+            checker_id=self._checker_id,
+            actual_format=state.actual_format,
+            netcdf=state.netcdf_summary,
+            expected_size=expected_size,
+            expected_checksum=(expected_checksum.value if expected_checksum is not None else None),
+        )
+
+    def _execute_checks(
+        self, state: _CheckState, requested: tuple[CheckKind, ...]
+    ) -> list[CheckResult]:
+        """按固定顺序执行被请求的检查（`check` 与 `check_path` 共用）。"""
+        # 可读性是 checksum/format/netcdf 的前提；即使调用方没显式请求也要先探测，
+        # 否则会出现「文件其实读不了，但因为没跑 readable 检查而被当成可读」的漏洞。
+        self._probe_readable(state)
+        results: list[CheckResult] = []
+        for kind in _EXECUTION_ORDER:
+            if kind not in requested:
+                continue
+            result = self._run_one(kind, state)
+            if result is not None:
+                results.append(result)
+                if self._config.fail_fast and result.status is CheckStatus.FAILED:
+                    break
+        return results
 
     # -- 检查链 ---------------------------------------------------------- #
     def _resolve_kinds(self, kinds: Sequence[str] | None) -> tuple[CheckKind, ...]:
@@ -544,14 +707,21 @@ class IntegrityChecker:
         )
 
     def _check_size(self, kind: CheckKind, state: _CheckState) -> CheckResult:
-        expected = state.record.size_bytes
         actual = state.size()
-        asset_size = state.task.asset.size_bytes
+        expected = state.expected_size
+        if expected is None:
+            return _result(
+                kind,
+                CheckStatus.SKIPPED,
+                None,
+                actual,
+                "no expected size supplied; size recorded only, not verified",
+            )
         detail = f"size {actual} bytes matches expected {expected} bytes"
         if actual != expected:
             detail = f"size mismatch: expected {expected} bytes, observed {actual} bytes"
-            if asset_size != expected:
-                detail += f"; remote asset declared {asset_size} bytes"
+            if state.asset_size is not None and state.asset_size != expected:
+                detail += f"; remote asset declared {state.asset_size} bytes"
         return _result(
             kind,
             CheckStatus.PASSED if actual == expected else CheckStatus.FAILED,
@@ -561,8 +731,16 @@ class IntegrityChecker:
         )
 
     def _check_truncation(self, kind: CheckKind, state: _CheckState) -> CheckResult:
-        expected = state.record.size_bytes
         actual = state.size()
+        expected = state.expected_size
+        if expected is None:
+            return _result(
+                kind,
+                CheckStatus.SKIPPED,
+                None,
+                actual,
+                "no expected size supplied; truncation cannot be judged",
+            )
         truncated = actual < expected
         return _result(
             kind,
@@ -577,25 +755,55 @@ class IntegrityChecker:
         )
 
     def _check_checksum(self, kind: CheckKind, state: _CheckState) -> CheckResult:
+        expected = state.expected_checksum
         if not state.readable:
             return _result(
                 kind,
                 CheckStatus.SKIPPED,
-                state.record.checksum.value,
+                expected.value if expected is not None else None,
                 None,
                 "checksum not computed because file is not readable",
             )
-        origin, origin_problem = self._checksum_origin(state)
-        if origin_problem is not None:
+        if expected is None:
+            # 没有期望值：只记录本地 SHA-256，绝不把「算出了哈希」当成「校验通过」。
+            try:
+                local_sha256 = state.ensure_sha256()
+            except OSError as exc:
+                return _result(
+                    kind,
+                    CheckStatus.FAILED,
+                    None,
+                    None,
+                    f"failed to compute local SHA-256: {exc}",
+                )
+            state.checksum_observation = {
+                "algorithm": "sha256",
+                "origin": None,
+                "expected_hexdigest": None,
+                "computed_hexdigest": local_sha256,
+                "matched": None,
+                "remote_checksum_verified": False,
+                "local_sha256_recorded": True,
+                "trusted": False,
+            }
+            return _result(
+                kind,
+                CheckStatus.SKIPPED,
+                None,
+                f"sha256:{local_sha256}",
+                "no expected checksum supplied; local SHA-256 recorded but nothing verified",
+            )
+        origin = state.checksum_origin
+        if state.checksum_origin_problem is not None:
             return _result(
                 kind,
                 CheckStatus.FAILED,
-                state.record.checksum.value,
+                expected.value,
                 None,
-                origin_problem,
+                state.checksum_origin_problem,
                 level=CheckLevel.PROTOCOL,
             )
-        algorithm = state.record.checksum.algorithm
+        algorithm = expected.algorithm
         try:
             sha256_digest = state.ensure_sha256()
             actual = _digest_for(state.path, algorithm, sha256_digest)
@@ -603,17 +811,22 @@ class IntegrityChecker:
             return _result(
                 kind,
                 CheckStatus.FAILED,
-                state.record.checksum.value,
+                expected.value,
                 None,
                 f"failed to compute checksum: {exc}",
             )
-        matches = actual == state.record.checksum.hexdigest
-        trusted = origin in (ChecksumOrigin.REMOTE_TRUSTED, ChecksumOrigin.LOCAL_COMPUTED)
+        matches = actual == expected.hexdigest
+        trusted = origin in (
+            None,
+            ChecksumOrigin.REMOTE_TRUSTED,
+            ChecksumOrigin.LOCAL_COMPUTED,
+        )
         remote_verified = matches and origin is ChecksumOrigin.REMOTE_TRUSTED
+        origin_value = origin.value if origin is not None else "caller_supplied"
         state.checksum_observation = {
             "algorithm": algorithm,
-            "origin": origin.value,
-            "expected_hexdigest": state.record.checksum.hexdigest,
+            "origin": origin_value,
+            "expected_hexdigest": expected.hexdigest,
             "computed_hexdigest": actual,
             "matched": matches,
             "remote_checksum_verified": remote_verified,
@@ -623,13 +836,13 @@ class IntegrityChecker:
         return _result(
             kind,
             CheckStatus.PASSED if matches else CheckStatus.FAILED,
-            state.record.checksum.value,
+            expected.value,
             f"{algorithm}:{actual}",
             (
-                f"{algorithm} checksum matches (origin={origin.value}, "
+                f"{algorithm} checksum matches (origin={origin_value}, "
                 f"remote_checksum_verified={remote_verified})"
                 if matches
-                else f"{algorithm} checksum mismatch (origin={origin.value})"
+                else f"{algorithm} checksum mismatch (origin={origin_value})"
             ),
             level=CheckLevel.PROTOCOL if not trusted else CheckLevel.CHECKSUM,
         )
@@ -730,8 +943,8 @@ class IntegrityChecker:
             "size_bytes": state.size(),
             "format": self._ensure_format(state),
         }
-        if state.record.content_type is not None:
-            observed["content_type"] = state.record.content_type
+        if state.content_type is not None:
+            observed["content_type"] = state.content_type
         summary = state.netcdf_summary
         if summary is None and _wants_netcdf_metadata(state.expected_metadata):
             probe_result = self._probe_netcdf(state)
@@ -759,8 +972,10 @@ class IntegrityChecker:
         )
 
     # -- 辅助 ------------------------------------------------------------ #
-    def _checksum_origin(self, state: _CheckState) -> tuple[ChecksumOrigin, str | None]:
-        record = state.record
+    @staticmethod
+    def _resolve_checksum_origin(
+        record: FileRecord, task: AcquisitionTask
+    ) -> tuple[ChecksumOrigin, str | None]:
         raw = record.extensions.get(_CHECKSUM_ORIGIN_KEY)
         if raw is not None:
             if not isinstance(raw, str):
@@ -788,7 +1003,7 @@ class IntegrityChecker:
                 ChecksumOrigin.REMOTE_ETAG,
                 "MD5 checksum equals the remote ETag; ETag must never be used as MD5",
             )
-        remote = state.task.asset.checksum
+        remote = task.asset.checksum
         if remote is not None and remote.value == record.checksum.value:
             return ChecksumOrigin.REMOTE_TRUSTED, None
         return ChecksumOrigin.LOCAL_COMPUTED, None
@@ -840,6 +1055,18 @@ class IntegrityChecker:
         return "unknown"
 
     @staticmethod
+    def _expected_format_from_path(path: Path) -> str:
+        """仅凭扩展名推断期望容器格式（``check_path`` 没有 content_type 可用）。"""
+        suffix = path.suffix.lower()
+        if suffix in _NETCDF_SUFFIXES:
+            return "netcdf"
+        if suffix in _GRIB_SUFFIXES:
+            return "grib"
+        if suffix == ".zip":
+            return "zip"
+        return "unknown"
+
+    @staticmethod
     def _aggregate(results: Sequence[CheckResult]) -> IntegrityStatus:
         if any(result.status is CheckStatus.FAILED for result in results):
             return IntegrityStatus.FAILED
@@ -855,13 +1082,22 @@ class IntegrityChecker:
 # --------------------------------------------------------------------------- #
 @dataclass
 class _CheckState:
-    """一次 ``check`` 调用内的可变观测状态（不跨调用共享，无线程安全问题）。"""
+    """一次检查调用内的可变观测状态（不跨调用共享，无线程安全问题）。
+
+    只保存**期望值**与观测值，不保存 ``FileRecord`` / ``AcquisitionTask``：这样
+    :meth:`IntegrityChecker.check_path` 可以对任意路径复用同一条检查链，而不会为了
+    满足内部结构去伪造 task/file/dataset 元数据。
+    """
 
     path: Path
-    record: FileRecord
-    task: AcquisitionTask
+    expected_size: int | None
+    expected_checksum: Checksum | None
     expected_metadata: Mapping[str, object] | None
     expected_format: str
+    content_type: str | None = None
+    asset_size: int | None = None
+    checksum_origin: ChecksumOrigin | None = None
+    checksum_origin_problem: str | None = None
     actual_size: int | None = None
     actual_format: str | None = None
     sha256_hexdigest: str | None = None
@@ -880,7 +1116,6 @@ class _CheckState:
             except OSError as exc:
                 raise IntegrityError(
                     "cannot stat file during integrity check",
-                    task_id=self.task.task_id,
                     detail={"path": str(self.path), "reason": str(exc)},
                 ) from exc
         return self.actual_size

@@ -5,6 +5,9 @@
 * :class:`~researchdatahub.integrity.checker.IntegrityChecker`：实现
   :class:`~researchdatahub.core.ports.IntegrityChecker`；失败返回 ``FAILED`` 报告，
   只有“检查无法进行”才抛 :class:`~researchdatahub.core.errors.IntegrityError`。
+* :meth:`~researchdatahub.integrity.checker.IntegrityChecker.check_path` +
+  :class:`~researchdatahub.integrity.checker.PathCheckResult`：对**任意路径**做体检
+  （CLI ``rdh file verify`` 用），不需要也不伪造 ``FileRecord`` / ``AcquisitionTask``。
 * :class:`~researchdatahub.integrity.checker.CheckResult` / ``CheckKind`` / ``CheckLevel``：
   报告里的逐条检查证据与层级（existence / size / checksum / protocol / format / scientific）。
 * :class:`~researchdatahub.integrity.checker.NetcdfSummary` 与 ``probe_netcdf``：懒加载
@@ -22,6 +25,7 @@ from researchdatahub.integrity.checker import (
     IntegrityChecker,
     NetcdfProbe,
     NetcdfSummary,
+    PathCheckResult,
     netcdf_backend_available,
     probe_netcdf,
 )
@@ -36,6 +40,7 @@ __all__ = [
     "IntegrityChecker",
     "NetcdfProbe",
     "NetcdfSummary",
+    "PathCheckResult",
     "netcdf_backend_available",
     "probe_netcdf",
 ]
