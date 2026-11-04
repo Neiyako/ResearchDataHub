@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use ResearchDataHub in research, please cite it as below."
+title: ResearchDataHub
+abstract: >-
+  Multi-source research data acquisition and synchronization framework for climate
+  and Earth science: source discovery (Copernicus CDS, NSF NCAR GDEX/RDA), transfer
+  scheduling with resumable downloads and bounded concurrency, SQLite-backed task
+  manifest with lease/heartbeat recovery, layered integrity verification, atomic
+  staging-to-raw publication, and auditable delivery manifests.
+version: 0.1.0
+date-released: 2026-11-04
+license: MIT
+repository-code: https://github.com/Neiyako/ResearchDataHub
+url: https://github.com/Neiyako/ResearchDataHub
+keywords:
+  - climate data
+  - earth science
+  - data acquisition
+  - ERA5
+  - reproducibility
+  - data integrity
+authors:
+  - alias: Neiyako
+    name: ResearchDataHub contributors

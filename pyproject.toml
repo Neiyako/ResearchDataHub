@@ -10,7 +10,19 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = { file = "LICENSE" }
 authors = [{ name = "ResearchDataHub contributors" }]
-keywords = ["climate", "earth-science", "data-acquisition", "era5", "cmip6", "reanalysis"]
+keywords = [
+  "climate",
+  "earth-science",
+  "data-acquisition",
+  "era5",
+  "cmip6",
+  "reanalysis",
+  "cdsapi",
+  "ncar",
+  "data-integrity",
+  "provenance",
+  "reproducibility",
+]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Environment :: Console",
@@ -19,6 +31,7 @@ classifiers = [
   "Operating System :: POSIX :: Linux",
   "Operating System :: MacOS :: MacOS X",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering :: Atmospheric Science",
   "Typing :: Typed",
 ]
@@ -47,7 +60,11 @@ dev = [
 rdh = "researchdatahub.cli.main:app"
 
 [project.urls]
-Homepage = "https://github.com/researchdatahub/researchdatahub"
+Homepage = "https://github.com/Neiyako/ResearchDataHub"
+Repository = "https://github.com/Neiyako/ResearchDataHub"
+Issues = "https://github.com/Neiyako/ResearchDataHub/issues"
+Changelog = "https://github.com/Neiyako/ResearchDataHub/blob/main/CHANGELOG.md"
+Documentation = "https://github.com/Neiyako/ResearchDataHub/tree/main/docs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/researchdatahub"]
