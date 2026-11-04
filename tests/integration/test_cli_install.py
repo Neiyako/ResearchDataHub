@@ -95,10 +95,15 @@ def test_real_process_source_list() -> None:
 
 
 @pytest.mark.integration
-def test_real_process_unimplemented_command_is_not_zero() -> None:
+def test_real_process_command_group_without_subcommand_is_not_zero() -> None:
+    """真实子进程：命令组裸调用必须非零退出（M4 起 ``plan`` 是真命令，不再是占位符）。
+
+    "假成功禁令" 仍然由这条测试守：任何命令在缺少必需输入时都不得以 0 退出。
+    """
     result = run("plan")
-    assert result.returncode == 2
-    assert "未实现" in result.stderr + result.stdout
+    assert result.returncode != 0
+    combined = (result.stderr + result.stdout).lower()
+    assert "usage" in combined or "用法" in combined
 
 
 @pytest.mark.integration

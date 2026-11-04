@@ -103,8 +103,12 @@ def register_report_commands(app: typer.Typer) -> None:
         root: _RootOption = None,
     ) -> None:
         """从 Manifest 事实生成采集报告。"""
+        from researchdatahub.core.state import TaskState
         from researchdatahub.manifest.cli_service import open_manifest, resolve_db_target
-        from researchdatahub.reporting.delivery import build_delivery_manifest
+        from researchdatahub.reporting.delivery import (
+            build_delivery_manifest,
+            write_delivery_manifest,
+        )
         from researchdatahub.reporting.report import (
             build_collection_report,
             render_collection_report,
@@ -139,6 +143,24 @@ def register_report_commands(app: typer.Typer) -> None:
             delivery_note: str | None = None
             if files:
                 try:
+                    unfinished = sum(
+                        1
+                        for task in tasks
+                        if task.state
+                        not in {
+                            TaskState.COMPLETED,
+                            TaskState.SKIPPED,
+                            TaskState.FAILED,
+                            TaskState.CANCELLED,
+                            TaskState.QUARANTINED,
+                        }
+                    )
+                    scope_note = (
+                        f"本次交付仅包含 {len(files)} 个已完成文件；"
+                        f"{unfinished} 个任务尚未完成，不计入本清单。"
+                        if unfinished
+                        else None
+                    )
                     manifest = build_delivery_manifest(
                         request_id=request_id,
                         plan_id=effective_plan,
@@ -147,34 +169,14 @@ def register_report_commands(app: typer.Typer) -> None:
                         integrity_reports=reports,
                         sources=sources,
                         created_at=now,
+                        notes=scope_note,
                         verify_files=True,
                         base_dir=storage_root,
                     )
                     delivery_path = _delivery_dir(storage_root) / f"{manifest.delivery_id}.json"
-                    _write_json_atomic(
-                        delivery_path,
-                        {
-                            "schema_version": manifest.schema_version,
-                            "delivery_id": manifest.delivery_id,
-                            "request_id": manifest.request_id,
-                            "plan_id": manifest.plan_id,
-                            "complete": manifest.complete,
-                            "total_bytes": manifest.total_bytes,
-                            "created_at": manifest.created_at.isoformat(),
-                            "tool_version": manifest.tool_version,
-                            "files": [
-                                {
-                                    "file_id": record.file_id,
-                                    "task_id": record.task_id,
-                                    "relative_path": record.local_path,
-                                    "size_bytes": record.size_bytes,
-                                    "checksum_algorithm": record.checksum.algorithm,
-                                    "checksum": record.checksum.value,
-                                }
-                                for record in manifest.files
-                            ],
-                        },
-                    )
+                    # 必须用 reporting 的导出函数：它统一处理相对路径、排除项与校验状态，
+                    # 手写字典容易漏掉"路径必须相对"这条交付要求（实测踩过）。
+                    write_delivery_manifest(manifest, delivery_path, relative_to=storage_root)
                 except RdhError as exc:
                     # 交付清单构建失败（例如存在未通过的校验报告）不应阻止生成报告：
                     # 报告本身正是用来解释"为什么还不能交付"的。

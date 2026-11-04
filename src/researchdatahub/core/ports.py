@@ -576,8 +576,13 @@ class ManifestRepository(Protocol):
         """
         ...
 
-    async def aiter_tasks(self) -> AsyncIterator[AcquisitionTask]:
-        """异步迭代任务（供异步 worker 使用）。语义与 ``list_tasks`` 相同。"""
+    def aiter_tasks(self) -> AsyncIterator[AcquisitionTask]:
+        """异步迭代任务（供异步 worker 使用）。语义与 ``list_tasks`` 相同。
+
+        实现可以是 ``async def`` + ``yield``（即异步生成器）：调用它返回的是
+        ``AsyncIterator``，**不是**协程。因此这里用普通方法声明，避免类型层把
+        "异步生成器" 误表示成 "返回 AsyncIterator 的协程"。
+        """
         ...
 
 

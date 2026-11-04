@@ -32,14 +32,19 @@ def test_help_exits_zero_and_lists_commands() -> None:
         assert command in output
 
 
-def test_help_marks_unimplemented_commands() -> None:
-    """未实现命令必须在帮助里可见且被标记，不能隐藏成"不存在"。"""
+def test_help_lists_real_command_groups() -> None:
+    """M1–M5 的命令组必须都在帮助里可见：它们是真实能力，不是占位符。"""
     code, output = invoke("--help")
     assert code == 0
-    assert "未实现" in output
+    for group in ("db", "request", "plan", "task", "file", "report"):
+        assert group in output, f"帮助里缺少命令组 {group}"
+    assert "未实现" not in output
 
 
-@pytest.mark.parametrize("command", ["version", "config", "source", "plan", "fetch", "status"])
+@pytest.mark.parametrize(
+    "command",
+    ["version", "config", "source", "db", "request", "plan", "task", "file", "report"],
+)
 def test_subcommand_help_works(command: str) -> None:
     code, output = invoke(command, "--help")
     assert code == 0, output
@@ -103,21 +108,28 @@ def test_source_list_with_env(monkeypatch: pytest.MonkeyPatch) -> None:
     assert "cds" in output
 
 
-def test_source_list_reports_all_unimplemented(monkeypatch: pytest.MonkeyPatch) -> None:
-    """M0 没有任何已实现的源适配器：必须如实标注，不得暗示可用。"""
+def test_source_list_reports_implementation_status(monkeypatch: pytest.MonkeyPatch) -> None:
+    """``implemented`` 列必须反映配置事实（M3 之后 cds/ncar 为 True，s3/globus/zarr 仍 False）。"""
     monkeypatch.setenv("CDSAPI_KEY", "test-token-not-real")
     code, output = invoke("source", "list", "--sources", str(SOURCES))
     assert code == 0
-    assert "False" in output or "否" in output or "未实现" in output
+    assert "True" in output
+    assert "可用传输路径" in output
 
 
-@pytest.mark.parametrize("command", ["plan", "fetch", "status"])
-def test_unimplemented_commands_fail_loudly(command: str) -> None:
-    """假命令禁令：未实现功能必须非零退出且输出"未实现"。"""
+@pytest.mark.parametrize("command", ["plan", "request", "task"])
+def test_command_groups_require_subcommand(command: str) -> None:
+    """命令组裸调用必须是非零退出并给出用法，不能"静默成功"。"""
     code, output = invoke(command)
-    assert code != 0, f"{command} 不应以退出码 0“假装成功”"
-    assert code == 2, f"{command} 应使用约定的退出码 2，实际 {code}"
-    assert "未实现" in output or "not implemented" in output.lower()
+    assert code != 0, f"{command} 不应以退出码 0 结束"
+    assert "Usage" in output or "用法" in output
+
+
+def test_missing_required_argument_fails() -> None:
+    """缺必需参数必须失败（而不是默认执行某个危险动作）。"""
+    code, output = invoke("plan", "create")
+    assert code != 0
+    assert "Missing argument" in output or "缺少" in output
 
 
 def test_unknown_command_fails() -> None:

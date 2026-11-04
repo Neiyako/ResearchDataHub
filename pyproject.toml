@@ -101,7 +101,9 @@ indent-style = "space"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q --strict-markers --strict-config"
+# 默认套件不跑真实外网测试：network 用例用 `pytest -m network` 显式触发。
+# 理由：默认套件必须可离线、可重复；把外网抖动算进 CI 红/绿会让"测试通过"失去意义。
+addopts = "-q --strict-markers --strict-config -m 'not network'"
 markers = [
   "network: 需要外网的测试（默认不跑：pytest -m network）",
   "integration: 集成测试（真实 CLI 子进程）",
