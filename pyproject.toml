@@ -125,7 +125,7 @@ markers = [
   "network: 需要外网的测试（默认不跑：pytest -m network）",
   "integration: 集成测试（真实 CLI 子进程）",
 ]
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 filterwarnings = ["error::DeprecationWarning:researchdatahub.*"]
 
 [tool.coverage.run]

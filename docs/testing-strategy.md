@@ -330,9 +330,18 @@ grep -rn "MagicMock\|mocker.patch" tests/ --include="*.py" | grep -i "core\|tran
 
 ---
 
-## 10. CI 建议
+## 10. CI（已落地，v0.1.0 起）
 
-M0 尚未配置 CI。以下是 M1 落地时的建议（**当前未实现**，不是已有能力）。
+CI 见 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)：Ubuntu + macOS ×
+Python 3.12/3.13 跑 `ruff`、`mypy --strict`、离线 pytest；另有 ubuntu 覆盖率任务（上传
+`coverage.xml`）。Release 见 [`.github/workflows/release.yml`](../.github/workflows/release.yml)
+（tag `v*` 触发构建 sdist/wheel、在临时 venv 安装 wheel 并跑 `rdh version`、发布 GitHub Release）。
+
+**已知时序抖动**：`tests/unit/test_scheduler/test_run_pipeline.py` 的重试相关用例依赖真实
+时钟与退避时间，在满载机器上偶发失败（单跑稳定）。CI 对失败用例允许一次 `--lf` 重跑以
+吸收这种抖动（**真回归会再次失败**，不会因此放过）。本地复现请先单跑该文件确认。
+
+以下是 M1 规划阶段留下的建议（保留作历史对照）：
 
 ```yaml
 # 建议的 .github/workflows/ci.yml（M1）

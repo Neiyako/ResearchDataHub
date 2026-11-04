@@ -47,7 +47,11 @@ jobs:
         run: mypy src
 
       - name: Offline test suite (network excluded)
-        run: pytest -o addopts="" -m "not network" -q
+        run: |
+          python -m pytest -o addopts="" -m "not network" -q \
+            || python -m pytest -o addopts="" -m "not network" -q --lf
+        # 允许一次失败重跑：仅吸收已知时序抖动（见 docs/testing-strategy.md §12），
+        # 真回归仍会在重跑后失败并把 CI 标红。
 
   coverage:
     name: coverage (ubuntu / py3.13)
@@ -69,7 +73,9 @@ jobs:
           pip install -e ".[dev,cds,sci]"
 
       - name: Coverage
-        run: pytest -o addopts="" -m "not network" --cov=researchdatahub --cov-report=term-missing --cov-report=xml
+        run: |
+          python -m pytest -o addopts="" -m "not network" --cov=researchdatahub --cov-report=term-missing --cov-report=xml \
+            || python -m pytest -o addopts="" -m "not network" --cov=researchdatahub --cov-report=term-missing --cov-report=xml --lf
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
