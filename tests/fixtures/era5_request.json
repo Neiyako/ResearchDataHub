@@ -1,0 +1,31 @@
+{
+  "request_id": "req-era5-clwc-2011-2020",
+  "dataset_id": "era5-pressure-levels",
+  "metadata": {
+    "schema_version": "1.0",
+    "product": "ERA5",
+    "product_type": "reanalysis",
+    "variables": [
+      {"name": "clwc", "units": "kg kg**-1", "long_name": "Specific cloud liquid water content"},
+      {"name": "ciwc", "units": "kg kg**-1", "long_name": "Specific cloud ice water content"},
+      {"name": "t", "units": "K", "long_name": "Temperature"},
+      {"name": "q", "units": "kg kg**-1", "long_name": "Specific humidity"}
+    ],
+    "temporal_coverage": {"start": "2011-01-01T00:00:00Z", "end": "2021-01-01T00:00:00Z"},
+    "spatial_extent": {"west": -180.0, "east": 180.0, "south": -90.0, "north": 90.0, "grid_degrees": 0.25},
+    "vertical_levels": {"kind": "pressure", "levels": [1000.0, 975.0, 950.0, 925.0, 900.0], "units": "hPa"},
+    "grid": {"resolution_degrees": 0.25, "projection": "regular_latlon", "regridded": false},
+    "time_definition": "utc_hourly",
+    "data_version": "e5.1",
+    "post_processing": [],
+    "regridded": false,
+    "units_normalized": false,
+    "extensions": {"era5.param_ids": {"clwc": 246, "ciwc": 247, "t": 130, "q": 133}}
+  },
+  "preferred_sources": ["ncar", "cds"],
+  "max_sources": 2,
+  "checks": ["size_match", "checksum_match", "netcdf_openable"],
+  "preserve_original": true,
+  "priority": "normal",
+  "extensions": {}
+}

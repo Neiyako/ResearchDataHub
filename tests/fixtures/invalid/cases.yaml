@@ -1,0 +1,73 @@
+# 非法输入用例：每条描述一个应当被拒绝的构造。
+# 测试逐条消费，断言 ValidationError 且错误信息包含 expect_field 指定的关键词。
+- name: temporal_inverted
+  expect_field: "end"
+  kind: metadata
+  patch:
+    temporal_coverage: {start: "2021-01-01T00:00:00Z", end: "2011-01-01T00:00:00Z"}
+
+- name: spatial_west_ge_east
+  expect_field: "west"
+  kind: metadata
+  patch:
+    spatial_extent: {west: 120.0, east: 60.0, south: -10.0, north: 10.0}
+
+- name: spatial_lat_out_of_range
+  expect_field: "north"
+  kind: metadata
+  patch:
+    spatial_extent: {west: -10.0, east: 10.0, south: -10.0, north: 95.0}
+
+- name: variable_name_uppercase
+  expect_field: "name"
+  kind: metadata
+  patch:
+    variables: [{name: "Temperature", units: "K"}]
+
+- name: variable_missing_units
+  expect_field: "units"
+  kind: metadata
+  patch:
+    variables: [{name: "t"}]
+
+- name: duplicate_variable
+  expect_field: "duplicate"
+  kind: metadata
+  patch:
+    variables: [{name: "t", units: "K"}, {name: "t", units: "K"}]
+
+- name: pressure_levels_ascending
+  expect_field: "decreasing"
+  kind: metadata
+  patch:
+    vertical_levels: {kind: "pressure", levels: [900.0, 950.0, 1000.0], units: "hPa"}
+
+- name: pressure_levels_empty
+  expect_field: "levels"
+  kind: metadata
+  patch:
+    vertical_levels: {kind: "pressure", levels: [], units: "hPa"}
+
+- name: extension_key_not_namespaced
+  expect_field: "namespaced"
+  kind: metadata
+  patch:
+    extensions: {"param_ids": 130}
+
+- name: unknown_top_level_field
+  expect_field: "era5_param"
+  kind: request
+  patch:
+    era5_param: 130
+
+- name: empty_variables
+  expect_field: "variables"
+  kind: metadata
+  patch:
+    variables: []
+
+- name: naive_datetime
+  expect_field: "timezone-aware"
+  kind: metadata
+  patch:
+    temporal_coverage: {start: "2011-01-01T00:00:00", end: "2021-01-01T00:00:00Z"}

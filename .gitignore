@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+.strict-version-manifest.json
+
+# ResearchDataHub 本地状态（Manifest 数据库、临时区、隔离区）
+.rdh/
+state/
+*.sqlite3
+*.db
+!tests/fixtures/**/*.db
+
+# 本地配置（含密钥，绝不入库）
+configs/sources.yaml
+configs/local.yaml
+*.local.yaml
+.env
+.env.*
+
+# 科研数据文件（体积巨大，不进 git）
+*.nc
+*.nc4
+*.grib
+*.grib2
+*.grb
+*.zip
+*.tar
+*.tar.gz
+*.part
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# macOS
+.DS_Store
+
+# ResearchDataHub 本地配置与运行产物（追加）
+configs/defaults.local.yaml
+configs/*.yaml.tmp
+*.rdh-tmp
+rdh-state/
+rdh-state.json
+.tmp-downloads/
+*.part.*
+# IDE / 编辑器
+.idea/
+.vscode/
+*.swp
+# 文档构建产物
+site/

@@ -1,0 +1,92 @@
+# ResearchDataHub 采集需求示例：ERA5 气压层湿物理量（2011-01-01 → 2021-01-01，全球，0.25°）
+#
+# 本文件是**用户需求**（DatasetRequest），不是配置文件：
+#   - 它说明“我要什么科学数据”，不说明“哪里有文件、怎么下载”；
+#   - 候选数据源写在 preferred_sources 里，具体路由与传输由 sources.yaml + 计划器决定。
+#
+# 校验方式（两种等价，任选其一）：
+#   rdh config validate --request examples/era5-request.yaml    # M1 提供的命令
+#   python -c "import yaml; from researchdatahub.core import DatasetRequest; \
+#              DatasetRequest.model_validate(yaml.safe_load(open('examples/era5-request.yaml')))"
+#
+# 字段约束（由 pydantic 模型强制，遵守即通过）：
+#   request_id / dataset_id   小写标识符 ^[a-z0-9][a-z0-9._-]{1,62}$
+#   时间                     tz-aware（本文件用 Z 结尾），start < end；闭开区间 [start, end)
+#   vertical_levels.levels   气压层单位为 hPa 且**必须严格递减**（1000 > 975 > ...）
+#   checks                   枚举取值：size_match / checksum_match / format_sniff /
+#                            netcdf_openable / variable_present / time_coverage / metadata_consistent
+#   extensions               键必须带命名空间点号（如 era5.pressure_level_product）
+
+schema_version: "1.0"
+request_id: era5-clwc-ciwc-t-q-pl-2011-2021
+dataset_id: era5-pressure-levels
+
+metadata:
+  product: ERA5
+  product_type: reanalysis
+  variables:
+    - name: clwc
+      units: kg kg**-1
+      long_name: Specific cloud liquid water content
+      standard_name: mass_fraction_of_cloud_liquid_water_in_air
+      cell_methods: "time: mean"
+    - name: ciwc
+      units: kg kg**-1
+      long_name: Specific cloud ice water content
+      standard_name: mass_fraction_of_cloud_ice_in_air
+      cell_methods: "time: mean"
+    - name: t
+      units: K
+      long_name: Temperature
+      standard_name: air_temperature
+      cell_methods: "time: mean"
+    - name: q
+      units: kg kg**-1
+      long_name: Specific humidity
+      standard_name: specific_humidity
+      cell_methods: "time: mean"
+  temporal_coverage:
+    start: 2011-01-01T00:00:00Z
+    end: 2021-01-01T00:00:00Z
+  spatial_extent:
+    west: -180.0
+    east: 180.0
+    south: -90.0
+    north: 90.0
+    grid_degrees: 0.25
+  vertical_levels:
+    kind: pressure
+    # 降序！1000 hPa（近地面）→ 900 hPa。顺序反了模型会报错。
+    levels: [1000.0, 975.0, 950.0, 925.0, 900.0]
+    units: hPa
+  grid:
+    resolution_degrees: 0.25
+    projection: regular_latlon
+    regridded: false
+    source_grid: era5-native-0.25
+  time_definition: utc_hourly
+  data_version: era5-t2m-era5-release-1.0
+  post_processing: []
+  regridded: false
+  units_normalized: false
+  extensions:
+    era5.product_family: reanalysis-era5-pressure-levels
+    era5.dataset_note: ECMWF-ERA5；CDS 侧名称为 reanalysis-era5-pressure-levels
+
+# 候选数据源（顺序表达偏好）：NCAR RDA 优先（文件直取、可断点续传），CDS API 作为备选。
+preferred_sources: [ncar, cds]
+# 最多允许几个源参与同一需求（1..8）。2 = 允许 NCAR 取到后仍向 CDS 取缺失片段。
+max_sources: 2
+
+# 交付前完整性检查：大小、校验和、NetCDF 可打开。全部 PASSED 才允许 COMPLETED。
+checks:
+  - size_match
+  - checksum_match
+  - netcdf_openable
+
+# 保留远端原始文件，不做任何重写/裁剪（科研可复现性优先）。
+preserve_original: true
+priority: normal
+
+extensions:
+  era5.request_note: 用于云水路径（PWV/LWP/IWP）研究的湿物理量需求示例

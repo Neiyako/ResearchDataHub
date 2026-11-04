@@ -1,0 +1,86 @@
+# ResearchDataHub 数据源声明（示例）
+#
+#   cp configs/sources.example.yaml configs/sources.yaml
+#
+# 然后按需修改本地值。configs/sources.yaml 已被 .gitignore 忽略，
+# 本示例文件**不含任何真实凭证**：凭证一律写成 env:VAR 引用，由 loader 在加载时展开。
+# 需要为以下环境变量设置真实值后，`rdh config validate` 才会通过：
+#   CDSAPI_KEY  —— CDS 个人访问令牌（必填才能校验通过；只在本机 shell 里 export）
+#   提示：CDS 端点 (endpoint / credentials.url) 是公开地址，明文写在文件里；
+#         唯一需要保密的凭证是 CDSAPI_KEY，只以 env: 引用形式出现。
+#
+# 结构约定（ADR-0002：数据源适配器与传输适配器分离）：
+#   sources.<id>.adapter           数据源适配器：负责“数据在哪、元数据长什么样”（M0 未实现）
+#   sources.<id>.transports[].adapter  传输适配器：只负责“怎么搬字节”（S3 / HTTPS / Globus / Zarr / CDS API）
+#   access route 是二者之间的连接点；同一个源可以有多条 route，各有独立的传输实现。
+#
+# M0 阶段所有 implemented 均为 false：`rdh source list` 会照实展示，
+# `rdh plan` / `rdh fetch` 会明确报“未实现”并以非 0 退出码结束——不会伪造成功。
+
+sources:
+  ncar:
+    provider: NSF NCAR RDA
+    display_name: NCAR Research Data Archive
+    description: >-
+      NSF NCAR 的科研数据归档（RDA）。ERA5 等再分析产品以 NetCDF/GRIB 文件形式发布，
+      可通过 S3（rda.ucar.edu 的公开桶）、HTTPS、Globus 或 Zarr 访问。
+      访问受限数据集需要免费注册（https://rda.ucar.edu）并生成个人 API key。
+    # 数据源适配器：把 DatasetRequest 翻译成 RDA 目录查询与文件清单（M1 实现）。
+    adapter: rda
+    implemented: false
+    datasets:
+      - era5-pressure-levels
+      - era5-single-levels
+    transports:
+      - route: s3
+        adapter: s3
+        implemented: false
+        options:
+          s3.part_size_mb: 64
+      - route: https
+        adapter: https
+        implemented: false
+        options:
+          https.timeout_seconds: 120
+      - route: globus
+        adapter: globus
+        implemented: false
+        options:
+          globus.endpoint: "rda#datashare"
+      - route: zarr
+        adapter: zarr
+        implemented: false
+        options:
+          zarr.chunk_cache_mb: 256
+    endpoint: https://rda.ucar.edu
+    rate_limit_per_minute: 30
+    extensions:
+      ncar.dataset_group: ds633.0
+
+  cds:
+    provider: Copernicus CDS
+    display_name: Copernicus Climate Data Store
+    description: >-
+      ECMWF Copernicus Climate Data Store。ERA5 通过 CDS API 按请求排队生成（不是静态文件目录），
+      因此只有一条 cds_api 访问路径；需在 CDS 账户页接受许可并生成访问令牌。
+    # 数据源适配器：把 DatasetRequest 翻译成 CDS 的 variable / pressure level / area / date 参数。
+    adapter: cds
+    implemented: false
+    datasets:
+      - era5-pressure-levels
+      - era5-single-levels
+    transports:
+      - route: cds_api
+        adapter: cds_api
+        implemented: false
+        options:
+          cds_api.request_timeout_seconds: 3600
+    endpoint: https://cds.climate.copernicus.eu/api
+    rate_limit_per_minute: 60
+    # 凭证只存变量引用；loader 在加载时展开，校验报告只显示变量名，不显示值。
+    # url 是公开端点，可明文；只有 key 是密钥，必须走环境变量。
+    credentials:
+      url: https://cds.climate.copernicus.eu/api
+      key: env:CDSAPI_KEY
+    extensions:
+      cds.dataset_name: reanalysis-era5-pressure-levels

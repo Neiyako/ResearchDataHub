@@ -1,0 +1,87 @@
+# ResearchDataHub 全局默认配置
+#
+# 用法：
+#   rdh config validate                                  # 校验本文件 + configs/sources.yaml
+#   rdh config validate --defaults configs/defaults.yaml
+#
+# 约定：
+#   1. 所有键必须被 src/researchdatahub/config/models.py 中的 schema 接受（extra="forbid"），
+#      多写一个未知键会直接校验失败，不会静默忽略。
+#   2. storage.root 必须是**具体路径**，不允许是孤立占位符（"$" / "${" / "~"）。
+#      推荐三种可移植写法：
+#        - "~/.rdh"           波浪号展开（**本文件采用的默认值**，开箱即用）
+#        - "env:RDH_HOME"     引用环境变量 env:VAR（未设置时 rdh config validate 会报错点名该变量）
+#        - "${RDH_HOME}/s"    内嵌插值，可出现在任意位置
+#      注意：校验器**允许**绝对路径（如外置 SSD "/Volumes/SSD/rdh"），因为本地大容量存储
+#      是合法需求；但提交进仓库的配置不得写死某台机器的个人路径，本文件因此使用 "~/.rdh"。
+#      子目录（data_dir 等）必须相对 storage.root，不得以 "/"、"~" 或 "env:" 开头。
+#   3. 本文件不含任何凭证；凭证只在 configs/sources.yaml 里以 env:VAR 形式出现。
+
+defaults:
+  # 运行环境标签：仅用于日志/报告标注，不改变 M0 的行为。
+  environment: development
+
+  storage:
+    # 状态根目录（Manifest SQLite、隔离区、临时区、日志都在它下面）。
+    root: "~/.rdh"
+    # 以下均为相对 storage.root 的子目录。
+    data_dir: data
+    quarantine_dir: quarantine
+    tmp_dir: tmp
+    # 落盘前的最低剩余空间（GB）；低于该值停止下载并报错，而不是写坏半个文件。
+    free_space_floor_gb: 20.0
+    # M0 只支持本地后端；M1 再扩展（s3 / posix）。
+    min_backend: local
+
+  concurrency:
+    # 传输线程数；0 表示由运行方按 CPU 核数决定。
+    workers: 4
+    # 同一数据源的并发上限，避免触发远端限流（NCAR RDA / CDS 都有配额）。
+    per_source_limit: 2
+    # 元数据发现阶段的并发；0 表示自动。
+    discovery_workers: 2
+
+  retry:
+    # 单任务最大尝试次数（AcquisitionTask.max_attempts 的默认来源）。
+    max_attempts: 3
+    # 指数退避基数：第 n 次失败后等待 backoff_seconds * 2^(n-1)，再乘 jitter 抖动。
+    backoff_seconds: 5.0
+    # 单次退避上限，防止 2^n 爆掉。
+    backoff_max_seconds: 300.0
+    # 均匀抖动比例 [0, 1]：实际等待 = 计算值 * (1 + U(-jitter, +jitter))。
+    jitter: 0.2
+    # 可重试条件（传输层据此把异常映射为 RetryableTransportError，其余直接 FAILED）。
+    retry_on:
+      - timeout
+      - connection_reset
+      - http_5xx
+      - http_429
+
+  integrity:
+    # 默认完整性检查链。顺序即执行顺序；netcdf_openable 需要 .[sci] 额外依赖（xarray/netCDF4）。
+    default_checks:
+      - size_match
+      - checksum_match
+      - netcdf_openable
+    # RUNNING 超过该时长视为进程崩溃遗留，可被恢复流程接管（单位：秒，最小 60）。
+    stale_timeout_seconds: 3600
+    # false = 跑完全部检查再汇总；true = 首个失败即终止（更快暴露问题，但报告信息更少）。
+    fail_fast: false
+
+  logging:
+    level: info
+    # console = 彩色人类可读；jsonl = 每行一个 JSON 对象，便于检索与审计。
+    format: console
+    # 日志文件（相对 storage.root）；null 表示只输出到终端。
+    file: null
+    # 写日志前必须打码的环境变量名（密钥绝不明文落盘）。
+    redact_env:
+      - CDSAPI_KEY
+
+  scheduler:
+    # 调度线程数（负责出队/状态推进，与 concurrency.workers 的传输线程是两回事）。
+    max_workers: 4
+    # 开始排队前的总量预检阈值（GB）；运行中的每次落盘复检用 storage.free_space_floor_gb。
+    free_space_floor_gb: 20.0
+    # 低优先级任务等待超过该时长后提升优先级，防止被高优先级任务饿死（单位：秒）。
+    priority_aging_seconds: 1800

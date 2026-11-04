@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "source_id": "ncar",
+  "display_name": "NSF NCAR Research Data Archive",
+  "provider": "NSF NCAR",
+  "access_route": "s3",
+  "dataset_id": "ds633.0",
+  "origin_uri": "s3://rda-data/ds633.0/e5.1/pressure/2011/",
+  "license": "NCAR RDA terms of use",
+  "retrieved_at": "2026-11-04T09:00:00Z",
+  "extensions": {"ncar.bucket_region": "us-west-2"}
+}

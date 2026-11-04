@@ -1,0 +1,52 @@
+# 资产/任务/传输/报告层面的非法用例
+- name: negative_size
+  kind: asset
+  expect_field: "size_bytes"
+  patch: {size_bytes: -1}
+
+- name: bad_checksum_format
+  kind: asset
+  expect_field: "value"
+  patch: {checksum: {value: "deadbeef"}}
+
+- name: asset_source_mismatch
+  kind: asset
+  expect_field: "metadata.source_id must equal source_id"
+  patch: {metadata_source_id: "cds"}
+
+- name: task_attempt_exceeds_max
+  kind: task
+  expect_field: "attempt"
+  patch: {attempt: 5, max_attempts: 3}
+
+- name: task_finished_before_started
+  kind: task
+  expect_field: "finished_at"
+  patch: {started_at: "2026-11-04T10:00:00Z", finished_at: "2026-11-04T09:00:00Z"}
+
+- name: transfer_success_without_path
+  kind: transfer
+  expect_field: "destination_path"
+  patch: {status: "succeeded", destination_path: null}
+
+- name: transfer_failed_without_code
+  kind: transfer
+  expect_field: "error_code"
+  patch: {status: "failed", error_code: null}
+
+- name: integrity_failed_without_reasons
+  kind: integrity
+  expect_field: "failure"
+  patch: {status: "failed", failures: []}
+
+- name: integrity_passed_with_failures
+  kind: integrity
+  expect_field: "passed"
+  patch: {status: "passed", failures: ["size mismatch"]}
+
+# total_bytes=0 时先被“完整交付必须有非零体积”拦住，这是刻意的失败顺序；
+# 因此这里给出非零 total_bytes，专门验证 PASSED 守卫。
+- name: delivery_complete_with_failed_integrity
+  kind: delivery
+  expect_field: "PASSED"
+  patch: {complete: true, total_bytes: 536870912, integrity_status: "failed"}
