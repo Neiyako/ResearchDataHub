@@ -81,7 +81,7 @@ def register_config_commands(app: typer.Typer) -> None:
     config_app = typer.Typer(
         no_args_is_help=True,
         add_completion=False,
-        help="配置相关操作（M0 只提供校验）。",
+        help="配置相关操作（校验 defaults.yaml / sources.yaml）。",
     )
     app.add_typer(config_app, name="config")
 
