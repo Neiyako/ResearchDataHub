@@ -18,7 +18,7 @@
 | **M3** | 数据源适配：CDS + NCAR + Registry + 元数据标准化 | ✅ 已完成（CDS 有凭证链路 NOT RUN） | commit `dfa02be`；82 项 + 11 network |
 | **M4** | 计划与调度：YAML 需求、计划生成、原子调度、心跳恢复 | ✅ 已完成 | commit `e5e1365`；63 项 + 5 e2e |
 | **M5** | 完整性与存储：校验链、staging→raw 原子提交、交付清单/报告 | ✅ 已完成 | commit `dc533ab`、`ec32590`；193 项 |
-| **M6** | 真实 ERA5 小规模端到端、性能与长期稳定性验证 | ⬜ 未开始 | 建议见 §4 |
+| **M6** | 真实 ERA5 小规模端到端、性能与长期稳定性验证 | 🟡 进行中（子项 1：轻量下载效率基准 ✅） | [`M6-efficiency-benchmark.md`](M6-efficiency-benchmark.md)、[`M6-verification.md`](M6-verification.md)、[`benchmarks/m6/results.json`](../benchmarks/m6/results.json) |
 
 ---
 
@@ -234,6 +234,24 @@ PYTHONPATH=src .venv/bin/python -m pytest -o addopts="" --cov=researchdatahub
 ```
 
 规模：`src/` 64 个 Python 文件 24 034 行；`tests/` 15 407 行；测试用例 969 个（含 network）。
+
+### 3.8 M6 轻量下载效率基准（2026-11-04 实测）
+
+三条件均为真实网络执行（CDS 个人令牌 + NCAR GDEX 公开访问），同一逻辑需求：
+ERA5 2t，2024-01-01..03 逐时，30–45°N/100–125°E，NetCDF。
+
+| 条件 | 结果 | 关键证据 |
+|---|---|---|
+| 纯 CDS API | 新请求 45 min 窗口内未就绪（下界 ≥2 700 s）；空闲期小样本 59.2 s | `benchmarks/m6/results.json`；产物 xarray 校验 |
+| 纯 NCAR GDEX | 端到端 113.6 s，下载 1 134 576 716 B，10.5 MB/s | 目录声明与 HEAD 一致；SHA-256 `e619fc57…9b04` |
+| 混合制（双源对冲） | 先就绪 112.55 s（winner=NCAR）；CDS 侧未就绪 | `results.json` `runs[mode=mixed].validation` |
+
+产物校验确认拿到的是真 ERA5（`VAR_2T`/2t，2024-01 全月逐时，全球网格；CDS 侧区域裁剪正确），
+并顺带**消除了一个历史未验证项**：CDS `area` 数组顺序 `[N,W,S,E]` 由真实产物反证
+（非对称 bbox `[45,100,30,120]` → `latitude 30..45`、`longitude 100..120`），
+`sources/cds.py` 的 `area_order_verified` 已据此置为 `True`。
+
+报告：[`M6-efficiency-benchmark.md`](M6-efficiency-benchmark.md)；验收：[`M6-verification.md`](M6-verification.md)。
 
 ## 4. 遗留问题与 M6 建议
 

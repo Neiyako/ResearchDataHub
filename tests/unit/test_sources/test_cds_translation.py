@@ -83,8 +83,8 @@ def test_fixture_request_translates_to_verified_cds_parameters():
     assert request["download_format"] == "unarchived"
 
 
-def test_area_uses_declared_order_and_is_marked_unverified():
-    """bbox 按 [north, west, south, east] 输出；该顺序尚未被官方文档复核。"""
+def test_area_uses_declared_order_and_is_marked_verified():
+    """bbox 按 [north, west, south, east] 输出；该顺序已由真实产物反证（M6 基准）。"""
     metadata = make_metadata(
         spatial_extent=SpatialExtent(west=-10.0, east=30.0, south=50.0, north=60.0)
     )
@@ -92,7 +92,7 @@ def test_area_uses_declared_order_and_is_marked_unverified():
     translated = _translator().translate(request)
     assert translated.request["area"] == [60.0, -10.0, 50.0, 30.0]
     assert CdsRequestTranslator.area_order == ("north", "west", "south", "east")
-    assert CdsRequestTranslator.area_order_verified is False
+    assert CdsRequestTranslator.area_order_verified is True
 
 
 def test_temporal_range_is_expanded_by_union_and_end_is_exclusive():
@@ -219,7 +219,7 @@ def test_capabilities_report_availability_without_fabricating():
     capabilities = missing.capabilities()
     assert capabilities.available is False
     assert "cdsapi>=0.7.7" in capabilities.missing_dependencies
-    assert any("area array ordering" in item for item in capabilities.unverified)
+    assert not any("area array ordering" in item for item in capabilities.unverified)
 
     no_credentials = CDSAdapter(source_id="cds", dependency_probe=lambda: object())
     assert no_credentials.capabilities().available is False
@@ -233,7 +233,7 @@ def test_capabilities_report_availability_without_fabricating():
     assert ready.capabilities().available is True
     rendered = str(ready.capabilities().to_dict())
     assert "super-secret-token" not in rendered
-    assert "area array ordering" in str(ready.capabilities().unverified)
+    assert "area array ordering" not in str(ready.capabilities().unverified)
 
 
 def test_cds_adapter_satisfies_datasource_protocol():

@@ -226,7 +226,7 @@ def test_describe_reads_real_shaped_catalogue_metadata(http_server: LocalHttpSer
     assert metadata.dataset_id == COLLECTION
     assert all("." in key for key in metadata.extensions)
     assert metadata.extensions["cds.collection_id"] == COLLECTION
-    assert metadata.extensions["cds.area_order_verified"] is False
+    assert metadata.extensions["cds.area_order_verified"] is True
 
 
 def test_health_check_true_on_ok_and_false_on_http_error(http_server: LocalHttpServer):

@@ -63,3 +63,9 @@ rdh-state.json
 *.swp
 # 文档构建产物
 site/
+
+# AWGS 验收工作区（本地证据与 verdict，不入库）
+.awgs/
+
+# M6 基准的临时下载目录（结果 JSON 入库，数据文件不入库）
+benchmarks/m6/*/work/

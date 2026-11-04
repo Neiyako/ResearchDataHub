@@ -1,0 +1,180 @@
+{
+  "schema": "rdh-m6-bench/1",
+  "generated_at": "2026-11-04T11:27:04.774986+00:00",
+  "environment": "macOS-27.0.1-arm64-arm-64bit-Mach-O / Python 3.13.13 / arm64",
+  "workload": {
+    "cds_request": {
+      "product_type": "reanalysis",
+      "variable": [
+        "2m_temperature"
+      ],
+      "year": "2024",
+      "month": "01",
+      "day": [
+        "01",
+        "02",
+        "03"
+      ],
+      "time": [
+        "00:00",
+        "01:00",
+        "02:00",
+        "03:00",
+        "04:00",
+        "05:00",
+        "06:00",
+        "07:00",
+        "08:00",
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00",
+        "17:00",
+        "18:00",
+        "19:00",
+        "20:00",
+        "21:00",
+        "22:00",
+        "23:00"
+      ],
+      "area": [
+        45.0,
+        100.0,
+        30.0,
+        125.0
+      ],
+      "data_format": "netcdf",
+      "download_format": "unarchived"
+    },
+    "mixed_cds_request": {
+      "product_type": "reanalysis",
+      "variable": [
+        "2m_temperature"
+      ],
+      "year": "2024",
+      "month": "01",
+      "day": [
+        "11",
+        "12",
+        "13"
+      ],
+      "time": [
+        "00:00",
+        "01:00",
+        "02:00",
+        "03:00",
+        "04:00",
+        "05:00",
+        "06:00",
+        "07:00",
+        "08:00",
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00",
+        "17:00",
+        "18:00",
+        "19:00",
+        "20:00",
+        "21:00",
+        "22:00",
+        "23:00"
+      ],
+      "area": [
+        45.0,
+        100.0,
+        30.0,
+        125.0
+      ],
+      "data_format": "netcdf",
+      "download_format": "unarchived"
+    },
+    "ncar": {
+      "var_code": "128_167_2t",
+      "year": 2024,
+      "month": 1,
+      "byte_cap": null
+    }
+  },
+  "runs": [
+    {
+      "mode": "ncar",
+      "workload": {
+        "var_code": "128_167_2t",
+        "year": 2024,
+        "month": 1,
+        "byte_cap": null
+      },
+      "ok": true,
+      "wall_seconds": 113.61230525001884,
+      "bytes_total": 1134576716,
+      "phases": {
+        "catalog": 2.633167541003786,
+        "head": 1.4302180829981808,
+        "download": 108.72615508298622
+      },
+      "artifacts": [
+        {
+          "kind": "ncar_https",
+          "path": "/tmp/rdh-m6-bench/ncar-e5.oper.an.sfc.128_167_2t.ll025sc.2024010100_2024013123.nc",
+          "url": "https://osdf-director.osg-htc.org/ncar/gdex/d633000/e5.oper.an.sfc/202401/e5.oper.an.sfc.128_167_2t.ll025sc.2024010100_2024013123.nc",
+          "partial": false,
+          "declared_bytes": 1134576716,
+          "downloaded_bytes": 1134576716,
+          "http_status": 200,
+          "ttfb_seconds": 1.9182150409906171,
+          "download_mbps": 10.504099571484822,
+          "sha256": "e619fc57d804be78797d74a3e9ec06a5537d5b84a5cebffd22ecb9f4b9879b04"
+        }
+      ],
+      "validation": {
+        "variables": [
+          "VAR_2T",
+          "utc_date"
+        ],
+        "dims": {
+          "time": 744,
+          "latitude": 721,
+          "longitude": 1440
+        },
+        "time": [
+          "2024-01-01T00:00:00.000000000",
+          "2024-01-31T23:00:00.000000000",
+          744
+        ],
+        "latitude": [
+          -90.0,
+          90.0,
+          721
+        ],
+        "longitude": [
+          0.0,
+          359.75,
+          1440
+        ]
+      },
+      "notes": [],
+      "error": null
+    }
+  ],
+  "extra": {
+    "ncar": {
+      "file_name": "e5.oper.an.sfc.128_167_2t.ll025sc.2024010100_2024013123.nc",
+      "size_bytes": 1134576716,
+      "url": "https://osdf-director.osg-htc.org/ncar/gdex/d633000/e5.oper.an.sfc/202401/e5.oper.an.sfc.128_167_2t.ll025sc.2024010100_2024013123.nc",
+      "thredds_url": "https://tds.gdex.ucar.edu/thredds/catalog/files/d633000/e5.oper.an.sfc/202401/catalog.html?dataset=files/d633000/e5.oper.an.sfc/202401/e5.oper.an.sfc.128_167_2t.ll025sc.2024010100_2024013123.nc",
+      "data_format": "netCDF4",
+      "head_status": 200,
+      "head_content_length": "1134576716",
+      "accept_ranges": "bytes"
+    }
+  }
+}

@@ -135,8 +135,12 @@ CDSAPI_KEY="..." PYTHONPATH=src .venv/bin/python -m pytest -m network
 2. 远端服务不稳定会让 CI 假红，侵蚀"红灯可信度"；
 3. CDS 请求可能排队数分钟到数小时，不适合放进快速反馈环。
 
-**当前状态**：M0 没有任何 network 测试（没有真实适配器可测）。该层在 M1 随
-`CDSAPIAdapter` / `RDAAdapter` 一起引入。
+**当前状态**：M3 起有 11 项 network 测试（CDS schema/catalogue、NCAR GDEX 目录与可达性）。
+M6 的真实下载效率基准**不进 pytest**：它需要数分钟到数十分钟的排队与 1 GB 级流量，
+因此放在 [`scripts/m6_efficiency_bench.py`](../scripts/m6_efficiency_bench.py)，
+只把纯函数（请求构造、文件选择、汇总渲染）纳入离线单测
+（`tests/unit/test_m6_benchmark.py`，9 项）；运行结果与判定见
+[`docs/M6-verification.md`](M6-verification.md)。
 
 ---
 
@@ -366,11 +370,11 @@ jobs:
 
 | 盲区 | 原因 | 何时补 |
 |---|---|---|
-| 真实 ERA5 产物下载与校验 | 需 CDS 许可 / RDA 数据集权限 | M6（第一优先） |
-| CDS 有凭证的 submit→poll→download 全链路 | 无 CDSAPI_KEY | M6 |
+| 真实 ERA5 产物下载与校验 | ✅ M6 已补：CDS 子集 + NCAR 月度全域文件真实下载并校验（`docs/M6-efficiency-benchmark.md`） | — |
+| CDS 有凭证的 submit→poll→download 全链路 | ✅ M6 脚本层已实测（含排队、队列上限拒绝）；调度器内仍缺 `cds_api` transport | M6 后续 |
 | S3 端到端（真实桶/MinIO） | 无 S3 环境；测试 3 项 skip，**未用 mock 冒充** | M6 |
 | S3 multipart 并行下载 | 功能未实现 | 视需求 |
-| 大文件（1–10 GB）RSS 与吞吐 | 需要真实数据与机器时间 | M6 |
+| 大文件（1–10 GB）RSS 与吞吐 | 吞吐已测（1.13 GB 单文件 10.5 MB/s）；**RSS 未测** | M6 后续 |
 | 长时间稳定性（数小时连续采集） | 未做 | M6 |
 | 多进程同时写同一个库 | 明确不支持（单写者语义） | 不计划 |
 | Windows 平台 | 不在支持范围 | 不计划 |

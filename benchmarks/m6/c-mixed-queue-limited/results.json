@@ -1,0 +1,241 @@
+{
+  "schema": "rdh-m6-bench/1",
+  "generated_at": "2026-11-04T11:29:05.382705+00:00",
+  "environment": "macOS-27.0.1-arm64-arm-64bit-Mach-O / Python 3.13.13 / arm64",
+  "workload": {
+    "cds_request": {
+      "product_type": "reanalysis",
+      "variable": [
+        "2m_temperature"
+      ],
+      "year": "2024",
+      "month": "01",
+      "day": [
+        "01",
+        "02",
+        "03"
+      ],
+      "time": [
+        "00:00",
+        "01:00",
+        "02:00",
+        "03:00",
+        "04:00",
+        "05:00",
+        "06:00",
+        "07:00",
+        "08:00",
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00",
+        "17:00",
+        "18:00",
+        "19:00",
+        "20:00",
+        "21:00",
+        "22:00",
+        "23:00"
+      ],
+      "area": [
+        45.0,
+        100.0,
+        30.0,
+        125.0
+      ],
+      "data_format": "netcdf",
+      "download_format": "unarchived"
+    },
+    "mixed_cds_request": {
+      "product_type": "reanalysis",
+      "variable": [
+        "2m_temperature"
+      ],
+      "year": "2024",
+      "month": "01",
+      "day": [
+        "11",
+        "12",
+        "13"
+      ],
+      "time": [
+        "00:00",
+        "01:00",
+        "02:00",
+        "03:00",
+        "04:00",
+        "05:00",
+        "06:00",
+        "07:00",
+        "08:00",
+        "09:00",
+        "10:00",
+        "11:00",
+        "12:00",
+        "13:00",
+        "14:00",
+        "15:00",
+        "16:00",
+        "17:00",
+        "18:00",
+        "19:00",
+        "20:00",
+        "21:00",
+        "22:00",
+        "23:00"
+      ],
+      "area": [
+        45.0,
+        100.0,
+        30.0,
+        125.0
+      ],
+      "data_format": "netcdf",
+      "download_format": "unarchived"
+    },
+    "ncar": {
+      "var_code": "128_167_2t",
+      "year": 2024,
+      "month": 1,
+      "byte_cap": null
+    }
+  },
+  "runs": [
+    {
+      "mode": "mixed",
+      "workload": {
+        "cds": {
+          "product_type": "reanalysis",
+          "variable": [
+            "2m_temperature"
+          ],
+          "year": "2024",
+          "month": "01",
+          "day": [
+            "11",
+            "12",
+            "13"
+          ],
+          "time": [
+            "00:00",
+            "01:00",
+            "02:00",
+            "03:00",
+            "04:00",
+            "05:00",
+            "06:00",
+            "07:00",
+            "08:00",
+            "09:00",
+            "10:00",
+            "11:00",
+            "12:00",
+            "13:00",
+            "14:00",
+            "15:00",
+            "16:00",
+            "17:00",
+            "18:00",
+            "19:00",
+            "20:00",
+            "21:00",
+            "22:00",
+            "23:00"
+          ],
+          "area": [
+            45.0,
+            100.0,
+            30.0,
+            125.0
+          ],
+          "data_format": "netcdf",
+          "download_format": "unarchived"
+        },
+        "ncar": {
+          "var_code": "128_167_2t",
+          "year": 2024,
+          "month": 1,
+          "byte_cap": null
+        }
+      },
+      "ok": true,
+      "wall_seconds": 116.00809454199043,
+      "bytes_total": 1134576716,
+      "phases": {
+        "cds": 19.63,
+        "ncar": 116.00596791601856
+      },
+      "artifacts": [
+        {
+          "side": "ncar",
+          "kind": "ncar_https",
+          "path": "/tmp/rdh-m6-bench/ncar-e5.oper.an.sfc.128_167_2t.ll025sc.2024010100_2024013123.nc",
+          "url": "https://osdf-director.osg-htc.org/ncar/gdex/d633000/e5.oper.an.sfc/202401/e5.oper.an.sfc.128_167_2t.ll025sc.2024010100_2024013123.nc",
+          "partial": false,
+          "declared_bytes": 1134576716,
+          "downloaded_bytes": 1134576716,
+          "http_status": 200,
+          "ttfb_seconds": 3.4410625839955173,
+          "download_mbps": 10.270018662956382,
+          "sha256": "e619fc57d804be78797d74a3e9ec06a5537d5b84a5cebffd22ecb9f4b9879b04"
+        }
+      ],
+      "validation": {
+        "winner": "ncar",
+        "time_to_first_artifact_seconds": 116.01,
+        "both_sides_seconds": {
+          "cds": 0.0,
+          "ncar": 116.00596791601856
+        },
+        "wasted_bytes": 0,
+        "cds_ok": false,
+        "ncar_ok": true
+      },
+      "notes": [
+        "cds: CDS 请求未成功：rejected",
+        "CDS 侧：提交后 19.6 s 即被拒绝 —— Maximum number queued requests for this dataset has been reached（服务端原文）",
+        "修正说明：旧脚本用 wall_seconds 选赢家，失败侧 wall=0 会被误判为赢家；已按同一 run 的实测字段重算 winner/first_ready/wasted，原始记录见 benchmarks/m6/*-raw/"
+      ],
+      "error": null
+    }
+  ],
+  "extra": {
+    "mixed": {
+      "sides": {
+        "cds": {
+          "transitions": [
+            {
+              "status": "accepted",
+              "at": 3.2747468339803163
+            },
+            {
+              "status": "rejected",
+              "at": 19.62668579199817
+            }
+          ]
+        },
+        "ncar": {
+          "file_name": "e5.oper.an.sfc.128_167_2t.ll025sc.2024010100_2024013123.nc",
+          "size_bytes": 1134576716,
+          "url": "https://osdf-director.osg-htc.org/ncar/gdex/d633000/e5.oper.an.sfc/202401/e5.oper.an.sfc.128_167_2t.ll025sc.2024010100_2024013123.nc",
+          "thredds_url": "https://tds.gdex.ucar.edu/thredds/catalog/files/d633000/e5.oper.an.sfc/202401/catalog.html?dataset=files/d633000/e5.oper.an.sfc/202401/e5.oper.an.sfc.128_167_2t.ll025sc.2024010100_2024013123.nc",
+          "data_format": "netCDF4",
+          "head_status": 200,
+          "head_content_length": "1134576716",
+          "accept_ranges": "bytes"
+        }
+      },
+      "wasted_bytes": 1134576716
+    }
+  },
+  "corrections": {
+    "what": "mixed winner / first_ready / wasted 由同一 run 的实测字段重算",
+    "why": "旧版 run_mixed 只按 wall_seconds 排序，CDS 失败侧 wall=0 被误判为赢家；run_cds 失败路径也未写 wall_seconds",
+    "cds_phase_seconds": 19.62668579199817,
+    "script": ".awgs/tasks/M6-BENCH/fix_mixed_records.py"
+  }
+}

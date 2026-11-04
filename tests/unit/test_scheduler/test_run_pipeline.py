@@ -9,7 +9,6 @@ from __future__ import annotations
 import threading
 from pathlib import Path
 
-from tests.conftest import FIXED_NOW
 from tests.unit.test_scheduler.support import (
     create_and_submit,
     directory_files,
@@ -380,7 +379,10 @@ def test_lease_loss_stops_worker_without_writing_state(
     thread = threading.Thread(target=lambda: scheduler.run(), name="scheduler-run", daemon=True)
     thread.start()
     assert wait_until(lambda: bool(server.requests_for("/lease/file.nc")), timeout=10)
-    TaskControlService(repo, clock=lambda: FIXED_NOW).cancel(task_id, "用户取消")
+    # 这里必须用真实时钟：调度器线程用真实时间写 started_at，若 cancel 用 FIXED_NOW（固定
+    # 2026-11-04T12:00Z），一旦真实时钟越过该时刻，finished_at < started_at 会让持久化任务
+    # 违反数据契约（M6 验收时在 12:20Z 触发）。取消时间跟随真实时钟即可。
+    TaskControlService(repo).cancel(task_id, "用户取消")
     thread.join(timeout=30)
     assert not thread.is_alive()
 

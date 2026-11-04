@@ -3,14 +3,18 @@
 > Research Data Acquisition and Synchronization Hub — 面向气候科学与地球科学的
 > 多源数据发现、采集、传输调度、完整性验证、元数据管理与统一归档框架。
 
-**当前状态：M1–M5 已完成（可用的采集链路）。** SQLite Manifest、HTTP/S3 传输
+**当前状态：M1–M5 已完成（可用的采集链路）；M6 的「轻量下载效率基准」子项已完成。** SQLite Manifest、HTTP/S3 传输
 （含安全断点续传）、CDS/NCAR 数据源适配、计划与调度（租约 + 心跳 + 崩溃恢复）、
-完整性校验与 staging→raw 原子提交、交付清单与报告均已实现并有测试。
+完整性校验与 staging→raw 原子提交、交付清单与报告均已实现并有测试；真实 ERA5 产物
+（CDS 小样本子集 + NCAR 月度全域文件 1.13 GB）已于 2026-11-04 实际下载并校验，
+CDS 3 天请求因服务端保护性限流未完成（如实记录），效率对比见
+[`docs/M6-efficiency-benchmark.md`](docs/M6-efficiency-benchmark.md)。
 
 本文件如实区分「已验证」「未验证」「未实现」三类状态（见 §2 与 §7）。
-最近一次工程验收：**955 passed / 14 deselected（network）/ 0 failed**，
-`ruff` 与 `mypy --strict` 全绿；一次真实外网小规模链路（NCAR GDEX 目录发现 →
-HTTPS 下载 → SHA-256 → raw 提交 → 交付清单）已实际执行。
+最近一次工程验收：**967 passed / 14 deselected（network）/ 0 failed**，
+`ruff` 与 `mypy --strict` 全绿；真实外网链路已执行：NCAR GDEX 目录发现 → HTTPS 下载 →
+SHA-256 → raw 提交 → 交付清单，以及 M6 的 CDS 子集 / NCAR 1.13 GB 月度文件真实下载
+（2026-11-04，见 [`docs/M6-efficiency-benchmark.md`](docs/M6-efficiency-benchmark.md)）。
 
 ---
 
@@ -71,8 +75,8 @@ ResearchDataHub 要解决的是一类长期存在的问题：科研数据采集�
 
 | 项 | 状态 |
 |---|---|
-| **真实 ERA5 数据下载**（CDS 或 RDA 的 ERA5 产物） | **NOT RUN**：需要 CDS 账号接受许可 / RDA 数据集访问权限。已完成的真实链路验证用的是 GDEX 公开目录文件（39 KB），不是 ERA5 产物 |
-| CDS 端到端执行（submit → poll → 下载结果文件） | **部分实现**：生命周期已建模、真实 schema 已核对、有凭证用例 **NOT RUN**；M2 传输层尚无 `cds_api` transport（CDS 任务当前会失败并给出明确原因） |
+| **真实 ERA5 数据下载**（CDS 或 RDA 的 ERA5 产物） | ✅ **部分实测（2026-11-04）**：NCAR GDEX 月度全域文件（1.13 GB，SHA-256 校验）与 CDS 小样本子集（1 天 × 1 时次，34 KB，xarray 校验）真实下载；**CDS 3 天请求因服务端限流 45 min 未就绪**（如实标记）。效率对比见 [`docs/M6-efficiency-benchmark.md`](docs/M6-efficiency-benchmark.md) |
+| CDS 端到端执行（submit → poll → 下载结果文件） | **脚本层已实测**（M6 基准：排队→生成→下载，含队列上限拒绝的真实错误）；但 **RDH 传输层仍无 `cds_api` transport**，CDS 任务在调度器内会以 "no transport" 失败（M6 遗留） |
 | S3 端到端下载 | **NOT RUN**（无 MinIO/S3 环境）；无 mock 冒充，代码覆盖 URI/ETag 规则/错误分类 |
 | S3 multipart 并行下载 | 未实现（单条 `get_object` 顺序流式，`s3.part_size_mb` 仅作块上限） |
 | NetCDF 科学语义校验（变量/时间覆盖的正确性） | 只校验结构与声明一致性，**不做科学结论** |
@@ -259,6 +263,7 @@ ResearchDataHub/
 │   └── reporting/     # 报告                —— M1
 ├── configs/           # defaults.yaml / sources.example.yaml
 ├── examples/          # era5-request.yaml
+├── scripts/           # M6 效率基准与结果合并（scripts/m6_*.py）
 ├── docs/              # 架构、数据契约、模块边界、计划、测试策略、ADR
 └── tests/             # unit / integration / fixtures
 ```
@@ -330,6 +335,8 @@ PYTHONPATH=src .venv/bin/python -m pytest --cov=researchdatahub --cov-report=ter
 | [testing-strategy.md](docs/testing-strategy.md) | 测试分层、覆盖率、盲区 |
 | [development-plan.md](docs/development-plan.md) | 里程碑与逐项证据 |
 | [engineering-report.md](docs/engineering-report.md) | **M1–M5 验收报告**（含 NOT RUN 项） |
+| [M6-efficiency-benchmark.md](docs/M6-efficiency-benchmark.md) | **M6 轻量下载效率基准**（纯 CDS / 纯 NCAR / 混合制，实测数据与结论） |
+| [M6-verification.md](docs/M6-verification.md) | **M6 子项 1 验收记录**（五态判定 + 证据 + 遗留） |
 | [ADR-0001…0006](docs/adr/) | 关键架构决策 |
 
 ## 9. 许可证

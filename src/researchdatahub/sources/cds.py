@@ -28,11 +28,10 @@ CDS 不是静态文件目录，而是"提交请求 → 服务端排队生成 →
 
 **未验证项**（不得当成事实）
 ----------------------------
-* ``area`` 数组顺序：本实现采用 ``[north, west, south, east]``（CDS 请求的通行约定），
-  但本次环境没有官方文档原文/有凭证请求可复核，故标记为待验证：
-  ``CdsRequestTranslator.area_order_verified is False``。
-  验证方式：用有凭证账户提交一个非对称 bbox 请求，检查返回文件的经纬度范围；
-  或取得官方 "CDS API Keywords" 文档原文。
+* ``area`` 数组顺序：本实现采用 ``[north, west, south, east]``。**2026-11-04 已用真实
+  产物验证**：提交非对称 bbox ``area=[45, 100, 30, 120]`` 的 t2m 请求，返回文件经 xarray
+  校验 ``latitude ∈ [30, 45]``、``longitude ∈ [100, 120]``（61×81 格），与 [N,W,S,E] 一致。
+  证据：[`docs/M6-efficiency-benchmark.md`](../../../docs/M6-efficiency-benchmark.md) §3.1。
 * 结果校验和 ``file:checksum`` 的具体格式：无凭证时看不到结果对象，不能假设它是
   ``sha256:<hex>``；因此仅当它符合核心模型 ``<algo>:<hex>`` 形式时才填
   ``SourceAsset.checksum``，否则原样保留在 extensions 并标记未知。
@@ -128,7 +127,9 @@ _TEMPORAL_GRANULARITY: Final[dict[str, str]] = {
     "monthly": "monthly",
 }
 _AREA_ORDER: Final[tuple[str, ...]] = ("north", "west", "south", "east")
-_AREA_ORDER_VERIFIED: Final[bool] = False
+# 2026-11-04 由真实产物反证（非对称 bbox [45,100,30,120] → lat 30..45 / lon 100..120），
+# 证据见 docs/M6-efficiency-benchmark.md §3.1。
+_AREA_ORDER_VERIFIED: Final[bool] = True
 _POLL_INTERVAL_SECONDS: Final[float] = 2.0
 _UNPROBED: Final[object] = object()
 """依赖探测尚未执行的哨兵（``None`` 表示已探测且缺失）。"""
@@ -1111,8 +1112,6 @@ class CDSAdapter(SourceAdapter):
         elif not self.credentials_configured:
             reason = "CDS credentials are not configured (sources.<id>.credentials.key)"
         unverified = [
-            "area array ordering: implemented as [north, west, south, east] "
-            "(area_order_verified=False; verify with an authenticated asymmetric bbox request)",
             "result checksum format ('file:checksum') not observed without credentials",
             "signed result URL expiry window and multi-file result splitting not verified",
         ]
