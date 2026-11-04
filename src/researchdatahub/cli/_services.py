@@ -165,7 +165,14 @@ def build_registry(context: CliContext) -> SourceRegistry:
 
 
 def build_transports(context: CliContext) -> Sequence[TransportAdapterBase]:
-    """构造传输适配器（HTTP + S3）。调用方负责 ``close()``。"""
+    """构造传输适配器（HTTP + S3 + CDS API）。调用方负责 ``close()``。
+
+    CDS 资产（``access_route=cds_api``）的 ``origin_uri`` 是 CDS 结果接口返回的临时
+    签名 https URL，但普通 :class:`HttpTransportAdapter` 只认 ``https`` 路由，不会接管
+    它。少装配 :class:`CdsApiTransport` 时，``rdh task run`` 会直接以
+    "no transport adapter supports access_route='cds_api'" 失败。
+    """
+    from researchdatahub.transfer.cds_api import CdsApiTransport
     from researchdatahub.transfer.http import HttpTransportAdapter
     from researchdatahub.transfer.retry import RetryPolicy
     from researchdatahub.transfer.s3 import S3TransportAdapter
@@ -180,6 +187,8 @@ def build_transports(context: CliContext) -> Sequence[TransportAdapterBase]:
             s3_config=transfer_config.s3,
             retry=retry,
         ),
+        # 继承 HttpTransportAdapter：流式/.part/续传/重试全部复用，只改路由判别与标识。
+        CdsApiTransport(config=transfer_config, retry=retry),
     )
 
 

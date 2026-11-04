@@ -1,0 +1,67 @@
+# ResearchDataHub 采集需求：ERA5 云水混合比超小样本（青高原，2024-01-01 00 UTC，3 层）
+#
+# 用途：云端云水资源（GCWR / LWP / IWP）研究的**最小可验证样本**，
+# 与 DBAS 的 fetch 驱动 + Hydroweave 的严格云水模型做三端联调。
+# 只取 1 个时次、2 个变量、3 个气压层、青藏高原区域——产物约 0.2 MB 量级。
+
+schema_version: "1.0"
+request_id: era5-clwc-ciwc-tp-2024-01-01
+dataset_id: era5-pressure-levels
+
+metadata:
+  product: ERA5
+  product_type: reanalysis
+  variables:
+    - name: clwc
+      units: kg kg**-1
+      long_name: Specific cloud liquid water content
+      standard_name: mass_fraction_of_cloud_liquid_water_in_air
+      cell_methods: "time: mean"
+    - name: ciwc
+      units: kg kg**-1
+      long_name: Specific cloud ice water content
+      standard_name: mass_fraction_of_cloud_ice_in_air
+      cell_methods: "time: mean"
+  temporal_coverage:
+    # 1 小时窗口 → CDS 请求 year=2024 month=01 day=01 time=00:00
+    start: 2024-01-01T00:00:00Z
+    end: 2024-01-01T01:00:00Z
+  spatial_extent:
+    west: 70.0
+    east: 105.0
+    south: 25.0
+    north: 40.0
+    grid_degrees: 0.25
+  vertical_levels:
+    kind: pressure
+    # 严格递减
+    levels: [500.0, 400.0, 300.0]
+    units: hPa
+  grid:
+    resolution_degrees: 0.25
+    projection: regular_latlon
+    regridded: false
+    source_grid: era5-native-0.25
+  time_definition: utc_hourly
+  data_version: era5-t2m-era5-release-1.0
+  post_processing: []
+  regridded: false
+  units_normalized: false
+  extensions:
+    era5.product_family: reanalysis-era5-pressure-levels
+    era5.dataset_note: ECMWF-ERA5；CDS 侧名称为 reanalysis-era5-pressure-levels
+
+# 只走 CDS：小区域子集，按字节/成本最优；不并发双投（CDS 串行政策）。
+preferred_sources: [cds]
+max_sources: 1
+
+checks:
+  - size_match
+  - checksum_match
+  - netcdf_openable
+
+preserve_original: true
+priority: normal
+
+extensions:
+  era5.request_note: 三端联调最小样本：clwc/ciwc 云水路径（LWP/IWP）验证

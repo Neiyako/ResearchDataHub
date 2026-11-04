@@ -5,7 +5,8 @@
 * 基类：:class:`TransportAdapterBase`（实现 ``core.ports.TransportAdapter``，并额外提供
   ``get_remote_metadata`` / ``probe_resume`` / ``transfer_outcome``）。
 * 实现：:class:`HttpTransportAdapter`（``https``/``http``）、
-  :class:`S3TransportAdapter`（``s3``）。
+  :class:`S3TransportAdapter`（``s3``）、:class:`CdsApiTransport`（``cds_api``，复用
+  HTTP 实现下载 CDS 结果签名 URL）。
 * 重试：:class:`RetryPolicy`（从 ``config.models.RetryConfig`` 构造）。
 * 并发：:class:`BoundedTransferRunner`（固定并发、提交端限流）。
 * 事件：:class:`TransferEventSink`（产出 ``core.models.TransferLogEvent``）。
@@ -39,6 +40,7 @@ from researchdatahub.transfer.base import (
     TransportAdapterBase,
     decide_resume,
 )
+from researchdatahub.transfer.cds_api import CdsApiTransport
 from researchdatahub.transfer.errors import (
     PermanentTransferError,
     RetryableTransferError,
@@ -86,6 +88,7 @@ __all__ = [
     "PART_SUFFIX",
     "SIDECAR_SUFFIX",
     "BoundedTransferRunner",
+    "CdsApiTransport",
     "HttpStatusClass",
     "HttpTransportAdapter",
     "PartSidecar",
