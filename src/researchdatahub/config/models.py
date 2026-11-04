@@ -297,7 +297,15 @@ class S3TransferConfig(_ConfigModel):
 class TransferConfig(_ConfigModel):
     """传输层通用参数。默认值面向 8GB 内存设备：小分块、流式、保守超时。"""
 
-    timeout_seconds: float = Field(default=120.0, gt=0.0, le=86_400.0)
+    timeout_seconds: float | None = Field(
+        default=None,
+        ge=1.0,
+        le=86_400.0,
+        description=(
+            "单次尝试的总时长上限（秒）；null=不限制总时长，只靠 connect/read 超时兜底。"
+            "科研数据单文件常达数 GB，默认不设总上限，避免把正常下载误判为超时"
+        ),
+    )
     connect_timeout_seconds: float = Field(default=15.0, gt=0.0, le=600.0)
     read_timeout_seconds: float = Field(default=60.0, gt=0.0, le=3600.0)
     chunk_size_bytes: int = Field(
@@ -310,6 +318,8 @@ class TransferConfig(_ConfigModel):
 
     @model_validator(mode="after")
     def _timeouts_ordered(self) -> TransferConfig:
+        if self.timeout_seconds is None:
+            return self
         if self.connect_timeout_seconds > self.timeout_seconds:
             raise ValueError("transfer.connect_timeout_seconds must not exceed timeout_seconds")
         if self.read_timeout_seconds > self.timeout_seconds:

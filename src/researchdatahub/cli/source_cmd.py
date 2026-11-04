@@ -7,8 +7,9 @@
 * 数据来自 :func:`researchdatahub.config.loader.load_sources` 返回的
   :class:`~researchdatahub.config.models.SourcesConfig`；CLI 不解析 YAML，也不补默认值。
 * ``routes`` 取自 :attr:`~researchdatahub.config.models.SourceConfig.routes`（访问路径集合）。
-* ``implemented`` 在 M0 **恒为 False**：M0 只交付契约与骨架，没有任何真实适配器。
-  表格下方固定打印一句说明，避免用户把“配置里有”误读成“现在能下载”。
+* ``implemented`` 直接取自配置：M3 之后 ``cds`` / ``ncar`` 为 ``True``，
+  未验证的 ``s3`` / ``globus`` / ``zarr`` 传输绑定仍为 ``False``。
+  表格下方按**实测计数**给说明，避免用户把“配置里有”误读成“现在能下载”。
 * 凭证只在 loader 内展开，本命令**不读取、不打印**任何凭证值。
 """
 
@@ -27,10 +28,7 @@ from researchdatahub.core.errors import RdhError
 if TYPE_CHECKING:
     from researchdatahub.config.models import SourcesConfig
 
-__all__ = ["register_source_commands", "source_implemented_in_m0"]
-
-#: M0 没有任何真实数据源适配器；该常量是「implemented」列的唯一事实来源。
-source_implemented_in_m0: bool = False
+__all__ = ["register_source_commands"]
 
 EXIT_OK = 0
 EXIT_INVALID = 1
@@ -75,7 +73,7 @@ def register_source_commands(app: typer.Typer) -> None:
     source_app = typer.Typer(
         no_args_is_help=True,
         add_completion=False,
-        help="数据源相关操作（M0 只提供只读清单）。",
+        help="数据源相关操作（当前只提供只读清单）。",
     )
     app.add_typer(source_app, name="source")
 
@@ -86,7 +84,7 @@ def register_source_commands(app: typer.Typer) -> None:
             typer.Option("--sources", help="数据源配置文件路径。", show_default=True),
         ] = DEFAULT_SOURCES_PATH,
     ) -> None:
-        """渲染数据源表格；M0 全部 ``implemented=False``。"""
+        """渲染数据源表格；``implemented`` 列直接反映配置事实。"""
         if not sources.is_file():
             err_console.print(f"[bold red]错误[/] 数据源配置文件不存在：{sources}")
             raise typer.Exit(code=EXIT_INVALID)
@@ -123,9 +121,10 @@ def register_source_commands(app: typer.Typer) -> None:
         con_console.print(table)
 
         pending = sum(1 for config in loaded.sources.values() if not config.implemented)
+        usable = sum(len(config.usable_routes) for config in loaded.sources.values())
         con_console.print(
-            f"[yellow]说明[/] M0 只交付契约与命令行骨架：共 {len(rows)} 个已声明数据源，"
-            f"其中 {pending} 个尚未实现（implemented=False）。"
+            f"[yellow]说明[/] 共 {len(rows)} 个已声明数据源，其中 {pending} 个适配器"
+            f"尚未实现（implemented=False）；可用传输路径 {usable} 条。"
             "本命令只读取配置，不联网、不下载任何数据。"
         )
         raise typer.Exit(code=EXIT_OK)

@@ -14,8 +14,9 @@
 #   sources.<id>.transports[].adapter  传输适配器：只负责“怎么搬字节”（S3 / HTTPS / Globus / Zarr / CDS API）
 #   access route 是二者之间的连接点；同一个源可以有多条 route，各有独立的传输实现。
 #
-# M0 阶段所有 implemented 均为 false：`rdh source list` 会照实展示，
-# `rdh plan` / `rdh fetch` 会明确报“未实现”并以非 0 退出码结束——不会伪造成功。
+# implemented 语义：只有**真的能工作**的适配器才可置 true。
+# M3 落地后：ncar(https) 与 cds(cds_api) 为 true；s3/globus/zarr 仍为 false（未验证/未实现）。
+# `rdh source list` 会照实展示；计划器只会为 usable_routes 出计划，不会伪造成功。
 
 sources:
   ncar:
@@ -25,9 +26,9 @@ sources:
       NSF NCAR 的科研数据归档（RDA）。ERA5 等再分析产品以 NetCDF/GRIB 文件形式发布，
       可通过 S3（rda.ucar.edu 的公开桶）、HTTPS、Globus 或 Zarr 访问。
       访问受限数据集需要免费注册（https://rda.ucar.edu）并生成个人 API key。
-    # 数据源适配器：把 DatasetRequest 翻译成 RDA 目录查询与文件清单（M1 实现）。
+    # 数据源适配器：把 DatasetRequest 翻译成 GDEX/RDA 目录查询与文件清单（M3 已实现）。
     adapter: rda
-    implemented: false
+    implemented: true
     datasets:
       - era5-pressure-levels
       - era5-single-levels
@@ -35,11 +36,13 @@ sources:
       - route: s3
         adapter: s3
         implemented: false
+        # 未实现原因：GDEX 未发布可验证的 S3 bucket/prefix 规则（M3 实测），
+        # 未经验证的桶名不得写进配置，也不得在适配器里猜测。
         options:
           s3.part_size_mb: 64
       - route: https
         adapter: https
-        implemented: false
+        implemented: true
         options:
           https.timeout_seconds: 120
       - route: globus
@@ -55,7 +58,10 @@ sources:
     endpoint: https://rda.ucar.edu
     rate_limit_per_minute: 30
     extensions:
+      # 逻辑数据集 -> GDEX 文件组（gindex）。变量到 gindex 没有机器可读映射，
+      # 因此发现阶段要求显式指定；未指定时适配器如实报错而不是猜一个。
       ncar.dataset_group: ds633.0
+      ncar.gindex: -1
 
   cds:
     provider: Copernicus CDS
@@ -63,16 +69,17 @@ sources:
     description: >-
       ECMWF Copernicus Climate Data Store。ERA5 通过 CDS API 按请求排队生成（不是静态文件目录），
       因此只有一条 cds_api 访问路径；需在 CDS 账户页接受许可并生成访问令牌。
-    # 数据源适配器：把 DatasetRequest 翻译成 CDS 的 variable / pressure level / area / date 参数。
+    # 数据源适配器：把 DatasetRequest 翻译成 CDS 的 variable / pressure level / area / date 参数，
+    # 并把服务端异步请求生命周期（submit -> poll -> 结果 URL）建模为独立过程（M3 已实现）。
     adapter: cds
-    implemented: false
+    implemented: true
     datasets:
       - era5-pressure-levels
       - era5-single-levels
     transports:
       - route: cds_api
         adapter: cds_api
-        implemented: false
+        implemented: true
         options:
           cds_api.request_timeout_seconds: 3600
     endpoint: https://cds.climate.copernicus.eu/api
@@ -83,4 +90,5 @@ sources:
       url: https://cds.climate.copernicus.eu/api
       key: env:CDSAPI_KEY
     extensions:
+      # 逻辑数据集 -> CDS 数据集名。单个 data 源名可直接给；多数据集用 cds.dataset_names 映射。
       cds.dataset_name: reanalysis-era5-pressure-levels

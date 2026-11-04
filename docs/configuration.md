@@ -87,6 +87,11 @@ root: "${RDH_HOME}/storage"    # 内嵌插值
 
 8 GB 内存设备的建议值：`workers: 2`–`4`，`per_source_limit: 2`。
 
+**为什么总超时默认 `null`**：ERA5 单文件常在数百 MB 到数 GB；按 10 MB/s 计，5 GB 需要
+约 500 秒。若把"总时长"设为 120 秒，正常的大文件下载会被反复判超时并重试，永远下不完。
+"连接不上"由 `connect_timeout_seconds` 兜底，"传输卡住不动"由 `read_timeout_seconds`
+兜底——这两者才是真正需要设死的。需要硬性总预算时（例如共享网络单任务限额）再显式配置。
+
 ### 1.3 `defaults.retry`
 
 | 键 | 默认 | 范围 | 说明 |
@@ -106,9 +111,9 @@ root: "${RDH_HOME}/storage"    # 内嵌插值
 
 | 键 | 默认 | 范围 | 说明 |
 |---|---|---|---|
-| `timeout_seconds` | `120.0` | > 0 | 单次传输总超时 |
-| `connect_timeout_seconds` | `15.0` | > 0, ≤ timeout | 连接超时 |
-| `read_timeout_seconds` | `60.0` | > 0, ≤ timeout | 读超时（每次 socket 读，不是总时长） |
+| `timeout_seconds` | `null` | `null` 或 1–86400 | 单次尝试总时长上限；`null` = 不限制。**默认不限制**，理由见下 |
+| `connect_timeout_seconds` | `15.0` | > 0，≤ timeout（若设了） | 连接超时 |
+| `read_timeout_seconds` | `60.0` | > 0，≤ timeout（若设了） | 读超时（每次 socket 读空闲，不是总时长） |
 | `chunk_size_bytes` | `1048576` | 64 KiB–32 MiB | 流式写入分块；内存占用 ≈ 该值 |
 | `max_redirects` | `5` | 0–20 | HTTP 重定向上限 |
 | `verify_tls` | `true` | bool | 生产环境不得关闭 |

@@ -44,7 +44,9 @@ def _task(**overrides: Any) -> AcquisitionTask:
 def _running(**overrides: Any) -> AcquisitionTask:
     """QUEUED → RUNNING，拿到租约。"""
     queued = _task(state=TaskState.QUEUED)
-    return transition(queued, TaskState.RUNNING, reason="claim", now=NOW, worker_id="w1", **overrides)
+    return transition(
+        queued, TaskState.RUNNING, reason="claim", now=NOW, worker_id="w1", **overrides
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -125,7 +127,10 @@ def test_is_stale_prefers_heartbeat_over_last_transition() -> None:
     这是 M1 最容易写错的地方：只看 last_transition_at 会把长任务误判为崩溃并重复下载。
     """
     running = transition(
-        _task(state=TaskState.QUEUED), TaskState.RUNNING, reason="claim", now=NOW - timedelta(hours=2)
+        _task(state=TaskState.QUEUED),
+        TaskState.RUNNING,
+        reason="claim",
+        now=NOW - timedelta(hours=2),
     )
     fresh = renew_lease(running, now=NOW - timedelta(seconds=10))
     assert is_stale(fresh, now=NOW) is False

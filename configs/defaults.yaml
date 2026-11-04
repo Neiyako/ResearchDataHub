@@ -63,8 +63,10 @@ defaults:
       - http_429
 
   transfer:
-    # 单次传输总超时（秒）。
-    timeout_seconds: 120.0
+    # 单次尝试的总时长上限（秒）；null = 不限制总时长。
+    # 为什么默认 null：科研数据单文件常达数 GB（10 MB/s 下 5 GB 就要 500 秒），
+    # 设死总时长会把正常下载误判为超时并触发无意义重试。真正的"卡死"由 read_timeout 兜底。
+    timeout_seconds: null
     # 连接/读取超时；都必须 <= timeout_seconds（模型会校验）。
     connect_timeout_seconds: 15.0
     read_timeout_seconds: 60.0
