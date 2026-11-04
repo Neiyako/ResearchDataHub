@@ -9,8 +9,8 @@
 
 M0 能力边界
 -----------
-可用：``version``、``config validate``、``source list``。
-未实现（执行即失败，退出码 2）：``plan``、``fetch``、``status``。
+可用：``version``、``config validate``、``source list``、``db init|status|migrate``。
+未实现（执行即失败，退出码 2）：``plan``、``fetch``、``status``（M4 落地）。
 见 :mod:`researchdatahub.cli._stubs`。
 
 异常策略
@@ -28,6 +28,7 @@ import typer
 from researchdatahub.cli._console import render_error
 from researchdatahub.cli._stubs import register_stub_commands
 from researchdatahub.cli.config_cmd import register_config_commands
+from researchdatahub.cli.db_cmd import register_db_commands
 from researchdatahub.cli.source_cmd import register_source_commands
 from researchdatahub.cli.version_cmd import register_version_command
 from researchdatahub.core.errors import RdhError
@@ -35,14 +36,14 @@ from researchdatahub.core.errors import RdhError
 __all__ = ["app", "main", "register_commands"]
 
 _HELP_EPILOG = (
-    "M0 可用：version / config validate / source list。\n"
-    "未实现（执行即退出码 2）：plan / fetch / status，计划在 M1 落地。"
+    "可用：version / config validate / source list / db init|status|migrate。\n"
+    "M2–M5 落地中：plan / fetch / status 仍为显式拒绝（退出码 2），不会假装成功。"
 )
 
 app: typer.Typer = typer.Typer(
     no_args_is_help=True,
     add_completion=False,
-    help="ResearchDataHub：多源科研数据采集与同步（M0 骨架版）。",
+    help="ResearchDataHub：多源科研数据采集与同步（M1：SQLite Manifest 可用）。",
     epilog=_HELP_EPILOG,
 )
 
@@ -58,6 +59,7 @@ def register_commands(target: typer.Typer) -> None:
     register_version_command(target)
     register_config_commands(target)
     register_source_commands(target)
+    register_db_commands(target)
     register_stub_commands(target)
 
 

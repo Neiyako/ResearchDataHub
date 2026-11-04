@@ -393,7 +393,72 @@ def scientific_identity(self) -> tuple[object, ...]:
 
 ---
 
-## 11. 相关文档
+## 11. M1–M5 契约增补（向后兼容加法）
+
+M0 的 10 个持久化模型没有覆盖"执行过程"的事实：谁在跑、跑到哪、本次传输实际写了多少字节。
+M1–M5 按 §8.2 的规则**只加字段、不改语义、不升版本**（契约仍为 `1.0`），清单如下。
+
+### 11.1 `AcquisitionTask`：租约与心跳
+
+| 字段 | 类型 | 默认 | 语义 |
+|---|---|---|---|
+| `heartbeat_at` | `datetime \| None` | `None` | 持有者最近一次自证存活的时间 |
+| `lease_expires_at` | `datetime \| None` | `None` | 租约到期时间；`None` = 无人持有 |
+
+配套规则（实现见 [`core/state.py`](../src/researchdatahub/core/state.py)）：
+
+* 进入 `RUNNING` 时**签发**租约：`heartbeat_at = now`、`lease_expires_at = now + lease_seconds`；
+* 进入任何终态时**释放**租约（置 `None`），否则恢复流程会把它当成"仍被持有"；
+* `renew_lease()` 只能在 `RUNNING` / `VERIFYING` 上调用；
+* `lease_expired()`（短周期抢占保护）与 `is_stale()`（长周期崩溃判定）是两条独立时间线，
+  决策依据见 [ADR-0004](adr/ADR-0004-task-recovery-lease-heartbeat.md)。
+
+**字段映射**：SQLite `tasks.lease_owner` 列承载 `AcquisitionTask.worker_id`，不新增同义字段
+（同一语义两个字段必然漂移）。
+
+### 11.2 `TransferResult`：传输自证字段
+
+| 字段 | 类型 | 默认 | 语义 |
+|---|---|---|---|
+| `source_uri` | `str \| None` | `None` | 本次实际请求的远端 URI（重定向后以最终 URI 为准） |
+| `expected_size` | `int \| None` | `None` | 远端声明的字节数；未知则 `None`（**不是 0**） |
+| `actual_size` | `int \| None` | `None` | 本地落盘实测字节数 |
+| `started_at` | `datetime \| None` | `None` | 本次传输开始时间（用于与 `completed_at` 算真实时长） |
+| `retryable` | `bool` | `False` | 失败时该错误是否值得重试 |
+| `resumed` | `bool` | `False` | 本次是否**真的**使用了断点续传 |
+
+模型不变式（`_size_consistency`）：
+
+* `completed_at >= started_at`；
+* `SUCCEEDED` 且 `expected_size`/`actual_size` 都有值时，二者必须相等；
+* `SUCCEEDED` 不允许 `retryable=True`。
+
+"`expected_size=None`（远端没给）"与"0 字节"是两件事，前者不得被当成后者去校验。
+
+### 11.3 新增三个只描述"事实"的小模型
+
+| 模型 | 用途 | 关键约束 |
+|---|---|---|
+| `TransferLogEvent` | `transfer_logs` 表的一条事件（`task_id` / `event_type` / `message` / `bytes_transferred` / `metadata` / `timestamp`） | 只追加；`event_type` 稳定、向后兼容 |
+| `RecoveryResult` | 一次过期任务恢复的审计记录（`task_id` / `previous_state` / `new_state` / `lease_owner` / `reason`） | 状态由状态机给出，不得随手填写 |
+| `DatabaseStatus` | `rdh db status` 的结构化输出（库路径、`db_schema_version`、`journal_mode`、外键开关、各状态任务数、文件数、校验失败数、可交付请求） | 字段名用 `db_schema_version` 以免与契约 `schema_version` 混淆 |
+
+注意 `DatabaseStatus.db_schema_version` 与合同契约版本 `schema_version` 是**两个不同的版本号**：
+前者是 SQLite 表结构迁移版本，后者是 Pydantic 数据契约版本。混用会让"升级表结构"被误读成
+"数据契约 2.0"。
+
+### 11.4 速查表增补
+
+| 问题 | 用哪个 | 不用哪个 |
+|---|---|---|
+| 这个任务现在还有人在跑吗？ | `heartbeat_at` + `lease_expires_at`（`lease_expired()`） | `last_transition_at` 单看 |
+| 进程是不是死了？ | `is_stale()`（心跳优先） | 进程内存里的 worker 表 |
+| 这次传输续传了吗？ | `TransferResult.resumed` | 文件追加位置 |
+| 远端声明多大？ | `TransferResult.expected_size` | `bytes_transferred`（可能中途失败） |
+| 库结构版本？ | `DatabaseStatus.db_schema_version` | `MODELS_VERSION` |
+| 任务为什么被重新排队？ | `RecoveryResult.reason` + `transfer_logs` 事件 | 猜 |
+
+## 12. 相关文档
 
 - 模块接口的完整签名与异常：[`docs/module-boundaries.md`](module-boundaries.md)
 - 数据在这些类型之间如何流动：[`docs/architecture.md`](architecture.md)
