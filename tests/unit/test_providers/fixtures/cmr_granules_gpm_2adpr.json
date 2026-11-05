@@ -1,0 +1,417 @@
+{
+ "feed": {
+  "updated": "2026-11-05T14:50:11.522Z",
+  "id": "https://cmr.earthdata.nasa.gov:443/search/granules.json?concept_id=C2179081499-GES_DISC&page_size=2",
+  "title": "ECHO granule metadata",
+  "entry": [
+   {
+    "producer_granule_id": "2A.GPM.DPR.V9-20211125.20140308-S220950-E234217.000144.V07A.HDF5",
+    "time_start": "2014-03-08T22:09:50.674Z",
+    "updated": "2021-12-20T16:59:03.000Z",
+    "dataset_id": "GPM DPR Precipitation Profile L2A 1.5 hours 5 km V07 (GPM_2ADPR) at GES DISC",
+    "data_center": "GES_DISC",
+    "title": "GPM_2ADPR.07:2A.GPM.DPR.V9-20211125.20140308-S220950-E234217.000144.V07A.HDF5",
+    "coordinate_system": "GEODETIC",
+    "day_night_flag": "UNSPECIFIED",
+    "time_end": "2014-03-08T23:42:18.044Z",
+    "id": "G2187436353-GES_DISC",
+    "original_format": "ECHO10",
+    "granule_size": "823.5269718170166",
+    "browse_flag": false,
+    "polygons": [
+     [
+      "-65.69436 159.82907 -61.99638 -169.29515 -61.02104 -170.39254 -64.58762 159.78477 -65.69436 159.82907"
+     ],
+     [
+      "-61.99286 -169.28106 -53.09125 -148.98605 -52.33611 -150.32035 -61.03373 -170.43646 -61.99286 -169.28106"
+     ],
+     [
+      "-53.08663 -148.98161 -41.77986 -136.67462 -41.18893 -137.91608 -52.35575 -150.34305 -53.08663 -148.98161"
+     ],
+     [
+      "-41.7771 -136.67553 -29.40413 -128.46815 -28.91777 -129.59171 -41.21008 -137.92631 -41.7771 -136.67553"
+     ],
+     [
+      "-29.40485 -128.47116 -16.53061 -122.25808 -16.10527 -123.30135 -28.93734 -129.59611 -29.40485 -128.47116"
+     ],
+     [
+      "-16.53565 -122.26154 -3.44275 -116.9213 -3.04483 -117.9294 -16.12167 -123.30356 -16.53565 -122.26154"
+     ],
+     [
+      "-3.45261 -116.92356 9.67069 -111.72307 10.07193 -112.74302 -3.05667 -117.93212 -3.45261 -116.92356"
+     ],
+     [
+      "9.65595 -111.72422 22.63434 -105.99393 23.07159 -107.07463 10.06491 -112.74714 9.65595 -111.72422"
+     ],
+     [
+      "22.61574 -105.99633 35.21954 -98.85745 35.7324 -100.04646 23.06894 -107.07881 22.61574 -105.99633"
+     ],
+     [
+      "35.19836 -98.86371 47.02261 -88.81884 47.66604 -90.14318 35.73367 -100.04947 35.19836 -98.86371"
+     ],
+     [
+      "47.00119 -88.83409 57.16436 -73.07992 58.01006 -74.42348 47.67007 -90.14262 47.00119 -88.83409"
+     ],
+     [
+      "57.14696 -73.11284 63.65836 -47.85736 64.72677 -48.57897 58.01456 -74.41524 57.14696 -73.11284"
+     ],
+     [
+      "63.65134 -47.91241 63.6629 -16.1874 64.74062 -15.54242 64.7286 -48.56114 63.65134 -47.91241"
+     ],
+     [
+      "63.67083 -16.24178 57.17263 9.05357 58.0394 10.35316 64.73794 -15.52507 63.67083 -16.24178"
+     ],
+     [
+      "57.19124 9.02304 47.02722 24.80737 47.69318 26.10964 58.03344 10.35946 57.19124 9.02304"
+     ],
+     [
+      "47.04931 24.79446 35.21631 34.85538 35.74752 36.03181 47.68798 26.10846 47.04931 24.79446"
+     ],
+     [
+      "35.2376 34.85096 22.62008 41.99959 23.06857 43.07064 35.74522 36.02755 35.2376 34.85096"
+     ],
+     [
+      "22.63851 41.99856 9.64363 47.73639 10.0475 48.74641 23.07034 43.06567 22.63851 41.99856"
+     ],
+     [
+      "9.65789 47.73617 -3.48271 52.94424 -3.09216 53.93885 10.05363 48.74193 9.65789 47.73617"
+     ],
+     [
+      "-3.47353 52.94204 -16.58278 58.29206 -16.17415 59.32027 -3.08085 53.93661 -3.47353 52.94204"
+     ],
+     [
+      "-16.5787 58.28812 -29.46682 64.51631 -29.00446 65.62835 -16.1582 59.31914 -16.5787 58.28812"
+     ],
+     [
+      "-29.46705 64.51228 -41.84856 72.74571 -41.28619 73.98526 -28.98492 65.62552 -29.46705 64.51228"
+     ],
+     [
+      "-41.85243 72.74338 -53.15775 85.0994 -52.43047 86.45179 -41.26472 73.9771 -41.85243 72.74338"
+     ],
+     [
+      "-53.16366 85.10197 -62.04375 105.48351 -61.08642 106.63022 -52.40993 86.43146 -53.16366 85.10197"
+     ],
+     [
+      "-62.04873 105.49609 -65.69511 136.33323 -64.58913 136.37067 -61.07248 106.58812 -62.04873 105.49609"
+     ]
+    ],
+    "collection_concept_id": "C2179081499-GES_DISC",
+    "online_access_flag": true,
+    "links": [
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/data#",
+      "title": "Download 2A.GPM.DPR.V9-20211125.20140308-S220950-E234217.000144.V07A.HDF5",
+      "hreflang": "en-US",
+      "href": "https://data.gesdisc.earthdata.nasa.gov/data/GPM_L2/GPM_2ADPR.07/2014/067/2A.GPM.DPR.V9-20211125.20140308-S220950-E234217.000144.V07A.HDF5"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/s3#",
+      "title": "This link provides direct download access via S3 to the granule",
+      "hreflang": "en-US",
+      "href": "s3://gesdisc-cumulus-prod-protected/GPM_L2/GPM_2ADPR.07/2014/067/2A.GPM.DPR.V9-20211125.20140308-S220950-E234217.000144.V07A.HDF5"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/metadata#",
+      "title": "api endpoint to retrieve temporary credentials valid for same-region direct s3 access (VIEW RELATED INFORMATION)",
+      "hreflang": "en-US",
+      "href": "https://data.gesdisc.earthdata.nasa.gov/s3credentials"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/service#",
+      "title": "OPeNDAP request URL (GET DATA : OPENDAP DATA)",
+      "hreflang": "en-US",
+      "href": "https://opendap.earthdata.nasa.gov/collections/C2179081499-GES_DISC/granules/GPM_2ADPR.07%3A2A.GPM.DPR.V9-20211125.20140308-S220950-E234217.000144.V07A.HDF5"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/metadata#",
+      "hreflang": "en-US",
+      "href": "https://disc.gsfc.nasa.gov/datacollection/GPM_2ADPR_07.html"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/data#",
+      "hreflang": "en-US",
+      "href": "https://cmr.earthdata.nasa.gov/virtual-directory/collections/C2179081499-GES_DISC/temporal"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/service#",
+      "hreflang": "en-US",
+      "href": "https://cmr.earthdata.nasa.gov/virtual-directory/collections/C2179081499-GES_DISC/temporal"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/data#",
+      "hreflang": "en-US",
+      "href": "https://search.earthdata.nasa.gov/search/granules?p=C2179081499-GES_DISC"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/metadata#",
+      "hreflang": "en-US",
+      "href": "https://gpm.nasa.gov"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://gpm1.gesdisc.eosdis.nasa.gov/data/GPM_L2/doc/README.GPM.pdf"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://arthurhou.pps.eosdis.nasa.gov/Documents/ATBD_DPR_V07A.pdf"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://gpmweb2https.pps.eosdis.nasa.gov/pub/GPMfilespec/new/filespec.GPM.V7.pdf"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://pps.gsfc.nasa.gov/Documents/ReleaseNote_DPRL2L3_productV07A_20211117.pdf"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://pps.gsfc.nasa.gov/Documents/DPR_L2_variables_20101128.xls"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://pps.gsfc.nasa.gov/gpminstruments.html"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://gpmweb2https.pps.eosdis.nasa.gov/tsdis/AB/docs/gpm_anomalous.html"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://journals.ametsoc.org/doi/10.1175/JTECH-D-17-0060.1"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "ftp://gpmweb2.pps.eosdis.nasa.gov/pub/GPMfilespec/filespec.GPM.pdf"
+     }
+    ]
+   },
+   {
+    "producer_granule_id": "2A.GPM.DPR.V9-20211125.20140308-S234218-E011444.000145.V07A.HDF5",
+    "time_start": "2014-03-08T23:42:18.044Z",
+    "updated": "2021-12-20T16:59:21.000Z",
+    "dataset_id": "GPM DPR Precipitation Profile L2A 1.5 hours 5 km V07 (GPM_2ADPR) at GES DISC",
+    "data_center": "GES_DISC",
+    "title": "GPM_2ADPR.07:2A.GPM.DPR.V9-20211125.20140308-S234218-E011444.000145.V07A.HDF5",
+    "coordinate_system": "GEODETIC",
+    "day_night_flag": "UNSPECIFIED",
+    "time_end": "2014-03-09T01:14:45.226Z",
+    "id": "G2187436354-GES_DISC",
+    "original_format": "ECHO10",
+    "granule_size": "829.2487936019897",
+    "browse_flag": false,
+    "polygons": [
+     [
+      "-65.69525 136.4603 -61.99133 167.33159 -61.01652 166.23397 -64.58888 136.41484 -65.69525 136.4603"
+     ],
+     [
+      "-61.98778 167.34566 -53.08256 -172.36755 -52.32784 -173.70149 -61.02914 166.19003 -61.98778 167.34566"
+     ],
+     [
+      "-53.07795 -172.36305 -41.76932 -160.06112 -41.17867 -161.30218 -52.34745 -173.72417 -53.07795 -172.36305"
+     ],
+     [
+      "-41.76657 -160.06198 -29.39253 -151.85736 -28.90635 -152.98065 -41.19978 -161.31244 -41.76657 -160.06198"
+     ],
+     [
+      "-29.39334 -151.86038 -16.51851 -145.64881 -16.09327 -146.69194 -28.92597 -152.98513 -29.39334 -151.86038"
+     ],
+     [
+      "-16.52351 -145.65222 -3.43046 -140.31288 -3.03259 -141.32095 -16.1096 -146.69416 -16.52351 -145.65222"
+     ],
+     [
+      "-3.4404 -140.31509 9.6829 -135.11485 10.08416 -136.13494 -3.04446 -141.32377 -3.4404 -140.31509"
+     ],
+     [
+      "9.66815 -135.11595 22.64635 -129.38536 23.08368 -130.46635 10.07718 -136.13909 9.66815 -135.11595"
+     ],
+     [
+      "22.62776 -129.38772 35.23102 -122.24781 35.74404 -123.43723 23.08107 -130.47055 22.62776 -129.38772"
+     ],
+     [
+      "35.2098 -122.25412 47.0331 -112.20664 47.67678 -113.53146 35.74527 -123.4403 35.2098 -122.25412"
+     ],
+     [
+      "47.01167 -112.22191 57.17301 -96.46204 58.01903 -97.80585 47.68079 -113.53086 47.01167 -112.22191"
+     ],
+     [
+      "57.15562 -96.49496 63.66316 -71.23096 64.73187 -71.95187 58.02351 -97.79753 57.15562 -96.49496"
+     ],
+     [
+      "63.65615 -71.28607 63.66213 -39.55955 64.73992 -38.91346 64.73371 -71.9341 63.65615 -71.28607"
+     ],
+     [
+      "63.67009 -39.61395 57.1677 -14.32573 58.03438 -13.0257 64.7372 -38.89617 63.67009 -39.61395"
+     ],
+     [
+      "57.18636 -14.35619 47.02023 1.42215 47.6861 2.72456 58.02844 -13.01938 57.18636 -14.35619"
+     ],
+     [
+      "47.04233 1.40925 35.2082 11.46677 35.73932 12.64321 47.68088 2.7233 47.04233 1.40925"
+     ],
+     [
+      "35.22947 11.4624 22.61121 18.60913 23.0596 19.68011 35.73697 12.63889 35.22947 11.4624"
+     ],
+     [
+      "22.62958 18.60817 9.63407 24.345 10.03785 25.35489 23.06129 19.67511 22.62958 18.60817"
+     ],
+     [
+      "9.6484 24.3448 -3.49275 29.55249 -3.10231 30.54694 10.04402 25.35036 9.6484 24.3448"
+     ],
+     [
+      "-3.48366 29.55036 -16.5934 34.90061 -16.18489 35.92858 -3.09111 30.54466 -3.48366 29.55036"
+     ],
+     [
+      "-16.58937 34.89674 -29.47786 41.12589 -29.01565 42.23763 -16.16902 35.92744 -16.58937 34.89674"
+     ],
+     [
+      "-29.4781 41.12185 -41.85962 49.3577 -41.29738 50.59691 -28.99612 42.23477 -29.4781 41.12185"
+     ],
+     [
+      "-41.86354 49.35536 -53.16818 61.71681 -52.441 63.06883 -41.27595 50.58879 -41.86354 49.35536"
+     ],
+     [
+      "-53.17417 61.71947 -62.05152 82.11194 -61.0943 83.25777 -52.42054 63.04859 -53.17417 61.71947"
+     ],
+     [
+      "-62.05649 82.12444 -65.69636 112.97214 -64.59071 113.00807 -61.08034 83.2156 -62.05649 82.12444"
+     ]
+    ],
+    "collection_concept_id": "C2179081499-GES_DISC",
+    "online_access_flag": true,
+    "links": [
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/data#",
+      "title": "Download 2A.GPM.DPR.V9-20211125.20140308-S234218-E011444.000145.V07A.HDF5",
+      "hreflang": "en-US",
+      "href": "https://data.gesdisc.earthdata.nasa.gov/data/GPM_L2/GPM_2ADPR.07/2014/067/2A.GPM.DPR.V9-20211125.20140308-S234218-E011444.000145.V07A.HDF5"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/s3#",
+      "title": "This link provides direct download access via S3 to the granule",
+      "hreflang": "en-US",
+      "href": "s3://gesdisc-cumulus-prod-protected/GPM_L2/GPM_2ADPR.07/2014/067/2A.GPM.DPR.V9-20211125.20140308-S234218-E011444.000145.V07A.HDF5"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/metadata#",
+      "title": "api endpoint to retrieve temporary credentials valid for same-region direct s3 access (VIEW RELATED INFORMATION)",
+      "hreflang": "en-US",
+      "href": "https://data.gesdisc.earthdata.nasa.gov/s3credentials"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/service#",
+      "title": "OPeNDAP request URL (GET DATA : OPENDAP DATA)",
+      "hreflang": "en-US",
+      "href": "https://opendap.earthdata.nasa.gov/collections/C2179081499-GES_DISC/granules/GPM_2ADPR.07%3A2A.GPM.DPR.V9-20211125.20140308-S234218-E011444.000145.V07A.HDF5"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/metadata#",
+      "hreflang": "en-US",
+      "href": "https://disc.gsfc.nasa.gov/datacollection/GPM_2ADPR_07.html"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/data#",
+      "hreflang": "en-US",
+      "href": "https://cmr.earthdata.nasa.gov/virtual-directory/collections/C2179081499-GES_DISC/temporal"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/service#",
+      "hreflang": "en-US",
+      "href": "https://cmr.earthdata.nasa.gov/virtual-directory/collections/C2179081499-GES_DISC/temporal"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/data#",
+      "hreflang": "en-US",
+      "href": "https://search.earthdata.nasa.gov/search/granules?p=C2179081499-GES_DISC"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/metadata#",
+      "hreflang": "en-US",
+      "href": "https://gpm.nasa.gov"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://gpm1.gesdisc.eosdis.nasa.gov/data/GPM_L2/doc/README.GPM.pdf"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://arthurhou.pps.eosdis.nasa.gov/Documents/ATBD_DPR_V07A.pdf"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://gpmweb2https.pps.eosdis.nasa.gov/pub/GPMfilespec/new/filespec.GPM.V7.pdf"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://pps.gsfc.nasa.gov/Documents/ReleaseNote_DPRL2L3_productV07A_20211117.pdf"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://pps.gsfc.nasa.gov/Documents/DPR_L2_variables_20101128.xls"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://pps.gsfc.nasa.gov/gpminstruments.html"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://gpmweb2https.pps.eosdis.nasa.gov/tsdis/AB/docs/gpm_anomalous.html"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://journals.ametsoc.org/doi/10.1175/JTECH-D-17-0060.1"
+     },
+     {
+      "inherited": true,
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "ftp://gpmweb2.pps.eosdis.nasa.gov/pub/GPMfilespec/filespec.GPM.pdf"
+     }
+    ]
+   }
+  ]
+ }
+}

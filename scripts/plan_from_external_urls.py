@@ -77,7 +77,8 @@ def _parse_asset(spec: str) -> tuple[str, str, int, str | None]:
     parts = spec.split("|")
     if len(parts) < 3:
         raise SystemExit(
-            f"--asset 需要 '名称|URL|字节数[|sha256]' 四段中的至少三段，收到: {spec!r}")
+            f"--asset 需要 '名称|URL|字节数[|sha256]' 四段中的至少三段，收到: {spec!r}"
+        )
     name, url, size = parts[0].strip(), parts[1].strip(), parts[2].strip()
     checksum = parts[3].strip() if len(parts) > 3 and parts[3].strip() else None
     if not url.startswith(("http://", "https://")):
@@ -93,8 +94,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     """解析参数、建立重放计划并打印 plan/request id。"""
     parser = argparse.ArgumentParser(description="从既有产物 URL 建立 RDH 采集计划")
     parser.add_argument("--request", required=True, help="需求 YAML（复用其 request_id/元数据）")
-    parser.add_argument("--asset", action="append", required=True,
-                        help="名称|URL|字节数[|sha256]，可重复")
+    parser.add_argument(
+        "--asset", action="append", required=True, help="名称|URL|字节数[|sha256]，可重复"
+    )
     parser.add_argument("--source-id", default="ncar", help="资产归属的数据源 id（默认 ncar）")
     parser.add_argument("--note", default="", help="写进计划扩展的来源说明（审计用）")
     args = parser.parse_args(argv)
@@ -117,18 +119,20 @@ def main(argv: Sequence[str] | None = None) -> int:
                 "replay.note": args.note or "external asset replayed into RDH pipeline",
             },
         )
-        assets.append(SourceAsset(
-            asset_id=f"asset-replay-{abs(hash((name, url))) % 10**10}",
-            source_id=args.source_id,
-            dataset_id=request.dataset_id,
-            access_route=AccessRoute.HTTPS,
-            origin_uri=url,
-            file_name=name,
-            size_bytes=size_bytes,
-            checksum=Checksum(value=f"sha256:{checksum}") if checksum else None,
-            metadata=metadata,
-            discovered_at=datetime.now(UTC),
-        ))
+        assets.append(
+            SourceAsset(
+                asset_id=f"asset-replay-{abs(hash((name, url))) % 10**10}",
+                source_id=args.source_id,
+                dataset_id=request.dataset_id,
+                access_route=AccessRoute.HTTPS,
+                origin_uri=url,
+                file_name=name,
+                size_bytes=size_bytes,
+                checksum=Checksum(value=f"sha256:{checksum}") if checksum else None,
+                metadata=metadata,
+                discovered_at=datetime.now(UTC),
+            )
+        )
 
     context = load_context()
     with open_repository(context) as repository:

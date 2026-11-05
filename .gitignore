@@ -69,3 +69,7 @@ site/
 
 # M6 基准的临时下载目录（结果 JSON 入库，数据文件不入库）
 benchmarks/m6/*/work/
+
+# 测速基准的下载样本与工作目录（体积可达数百 MB，不提交；保留 results.json / summary.md）
+benchmarks/speed/*/data/
+benchmarks/speed/*/work/

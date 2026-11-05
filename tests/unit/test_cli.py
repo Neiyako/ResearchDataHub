@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -55,7 +56,15 @@ def test_version_exits_zero_and_prints_versions() -> None:
     code, output = invoke("version")
     assert code == 0
     assert "researchdatahub" in output
-    assert "0.1.0" in output
+    # 版本号从 pyproject 读取，避免每次发版都改测试（也避免读到过期硬编码值）
+    from pathlib import Path as _Path
+
+    _pyproject = _Path(__file__).resolve().parents[2] / "pyproject.toml"
+    _declared = re.search(
+        r'^version\s*=\s*"([^"]+)"', _pyproject.read_text(encoding="utf-8"), re.MULTILINE
+    )
+    assert _declared is not None
+    assert _declared.group(1) in output
     assert "1.0" in output, "version 应同时暴露模型契约版本"
 
 

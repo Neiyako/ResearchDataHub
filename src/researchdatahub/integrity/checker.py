@@ -40,11 +40,11 @@ import uuid
 import zlib
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from pathlib import Path
 from types import ModuleType
-from typing import Final
+from typing import Final, cast
 
 from researchdatahub.config.models import IntegrityConfig
 from researchdatahub.core.errors import IntegrityError
@@ -91,6 +91,7 @@ class CheckKind(StrEnum):
     FORMAT_SNIFF = "format_sniff"
     NETCDF_OPENABLE = "netcdf_openable"
     VARIABLE_PRESENT = "variable_present"
+    TIME_COVERAGE = "time_coverage"
     METADATA_CONSISTENT = "metadata_consistent"
 
 
@@ -144,6 +145,7 @@ _EXECUTION_ORDER: Final[tuple[CheckKind, ...]] = (
     CheckKind.FORMAT_SNIFF,
     CheckKind.NETCDF_OPENABLE,
     CheckKind.VARIABLE_PRESENT,
+    CheckKind.TIME_COVERAGE,
     CheckKind.METADATA_CONSISTENT,
 )
 
@@ -163,6 +165,7 @@ _ALIASES: Final[dict[str, CheckKind]] = {
     "netcdf": CheckKind.NETCDF_OPENABLE,
     "netcdf_openable": CheckKind.NETCDF_OPENABLE,
     "variable_present": CheckKind.VARIABLE_PRESENT,
+    "time_coverage": CheckKind.TIME_COVERAGE,
     "metadata": CheckKind.METADATA_CONSISTENT,
     "metadata_consistent": CheckKind.METADATA_CONSISTENT,
 }
@@ -173,6 +176,7 @@ _CORE_KIND: Final[dict[CheckKind, IntegrityCheckKind]] = {
     CheckKind.FORMAT_SNIFF: IntegrityCheckKind.FORMAT_SNIFF,
     CheckKind.NETCDF_OPENABLE: IntegrityCheckKind.NETCDF_OPENABLE,
     CheckKind.VARIABLE_PRESENT: IntegrityCheckKind.VARIABLE_PRESENT,
+    CheckKind.TIME_COVERAGE: IntegrityCheckKind.TIME_COVERAGE,
     CheckKind.METADATA_CONSISTENT: IntegrityCheckKind.METADATA_CONSISTENT,
 }
 
@@ -187,14 +191,16 @@ _LEVEL: Final[dict[CheckKind, CheckLevel]] = {
     CheckKind.NETCDF_OPENABLE: CheckLevel.FORMAT,
     CheckKind.VARIABLE_PRESENT: CheckLevel.SCIENTIFIC,
     CheckKind.METADATA_CONSISTENT: CheckLevel.SCIENTIFIC,
+    CheckKind.TIME_COVERAGE: CheckLevel.SCIENTIFIC,
 }
 
-_UNSUPPORTED_DECLARED: Final[dict[IntegrityCheckKind, str]] = {
-    IntegrityCheckKind.TIME_COVERAGE: (
-        "time_coverage check needs a decoded time axis and is not implemented in M5; "
-        "it is reported SKIPPED rather than PASSED"
-    ),
-}
+_UNSUPPORTED_DECLARED: Final[dict[IntegrityCheckKind, str]] = {}
+"""已声明但未实现的检查种类。当前为空：全部 ``IntegrityCheckKind`` 均已实现。
+
+保留该字典是为了让 :meth:`IntegrityChecker._resolve_kinds` 有一条**显式**的"拒绝而非
+静默忽略"的通道：将来若新增只有契约、没有实现的种类，在这里登记并在
+``docs/data-integrity.md`` 标注，而不是让它悄悄变成 SKIPPED。
+"""
 
 
 @dataclass(frozen=True)
@@ -205,6 +211,12 @@ class NetcdfSummary:
     data_model: str
     variables: tuple[str, ...]
     dimensions: tuple[str, ...]
+    time_range: tuple[str, str] | None = None
+    """``(start_iso, end_iso)``（UTC，闭开区间右端已含步长外的最后一个时刻）。
+
+    ``None`` 表示文件里找不到可解码的时间轴——此时 ``time_coverage`` 检查记 ``SKIPPED``
+    （不是 PASSED：没观测到的不能算通过）。
+    """
 
     def as_json(self) -> dict[str, JsonValue]:
         """JSON 友好表示。"""
@@ -213,6 +225,7 @@ class NetcdfSummary:
             "data_model": self.data_model,
             "variables": list(self.variables),
             "dimensions": list(self.dimensions),
+            "time_range": list(self.time_range) if self.time_range is not None else None,
         }
 
 
@@ -323,11 +336,13 @@ def probe_netcdf(path: Path) -> NetcdfSummary | None:
             variables = tuple(str(name) for name in dataset.variables)
             dimensions = tuple(str(name) for name in dataset.dimensions)
             data_model = str(getattr(dataset, "data_model", "unknown"))
+            time_range = _time_range_netcdf4(dataset)
         return NetcdfSummary(
             engine="netCDF4",
             data_model=data_model,
             variables=variables,
             dimensions=dimensions,
+            time_range=time_range,
         )
     xarray = _load_optional("xarray")
     if xarray is None:
@@ -335,12 +350,151 @@ def probe_netcdf(path: Path) -> NetcdfSummary | None:
     with xarray.open_dataset(path) as dataset:
         variables = tuple(str(name) for name in dataset.variables)
         dimensions = tuple(str(name) for name in dataset.dims)
+        time_range = _time_range_xarray(dataset)
     return NetcdfSummary(
         engine="xarray",
         data_model="unknown",
         variables=variables,
         dimensions=dimensions,
+        time_range=time_range,
     )
+
+
+def _decode_netcdf_time(values: object, units: object) -> tuple[str, str] | None:
+    """把 NetCDF 的 ``time`` 数值 + ``units``（``hours since 1900-01-01``）解成 ISO 区间。
+
+    只做**只读**解码，不依赖 ``cftime``/``xarray`` 的时间坐标处理；无法解码返回 ``None``
+    （调用方据此记 SKIPPED，绝不猜时间）。
+    """
+    try:
+        import numpy as np
+    except ImportError:  # pragma: no cover - numpy 随 sci 依赖安装
+        return None
+    if not isinstance(units, str) or " since " not in units:
+        return None
+    unit_part, _, epoch_part = units.partition(" since ")
+    unit = unit_part.strip().lower()
+    seconds = {
+        "seconds": 1.0,
+        "second": 1.0,
+        "minutes": 60.0,
+        "minute": 60.0,
+        "hours": 3600.0,
+        "hour": 3600.0,
+        "days": 86400.0,
+        "day": 86400.0,
+    }.get(unit)
+    if seconds is None:
+        return None
+    epoch_text = epoch_part.strip().replace("Z", "+00:00")
+    try:
+        epoch = datetime.fromisoformat(epoch_text)
+    except ValueError:
+        try:
+            epoch = datetime.strptime(epoch_text.split(".")[0], "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            return None
+    if epoch.tzinfo is None:
+        epoch = epoch.replace(tzinfo=UTC)
+    try:
+        array = np.asarray(values, dtype="float64").ravel()
+    except (TypeError, ValueError):
+        return None
+    array = array[np.isfinite(array)]
+    if array.size == 0:
+        return None
+    start = epoch + timedelta(seconds=float(array.min()) * seconds)
+    end = epoch + timedelta(seconds=float(array.max()) * seconds)
+    return start.astimezone(UTC).isoformat(), end.astimezone(UTC).isoformat()
+
+
+def _time_range_netcdf4(dataset: object) -> tuple[str, str] | None:
+    """从 ``netCDF4.Dataset`` 读取 ``time`` 变量的首尾时刻（不加载整个数组的其它变量）。"""
+    variables = getattr(dataset, "variables", {})
+    coordinate = None
+    for candidate in ("time", "valid_time"):
+        if candidate in variables:
+            coordinate = variables[candidate]
+            break
+    if coordinate is None:
+        return None
+    try:
+        units = getattr(coordinate, "units", None)
+        raw = coordinate[:]
+        return _decode_netcdf_time(raw, units)
+    except (OSError, TypeError, ValueError, IndexError):
+        return None
+
+
+def _time_range_xarray(dataset: object) -> tuple[str, str] | None:
+    """从 ``xarray.Dataset`` 读取时间坐标的首尾时刻（``open_dataset`` 已解码为 datetime64）。"""
+    for candidate in ("time", "valid_time"):
+        try:
+            coordinate = dataset[candidate]  # type: ignore[index]
+        except (KeyError, TypeError):
+            continue
+        try:
+            values = coordinate.values
+        except (AttributeError, ValueError):
+            continue
+        try:
+            import numpy as np
+
+            array = np.asarray(values).astype("datetime64[ns]")
+        except (TypeError, ValueError):
+            continue
+        if array.size == 0:
+            continue
+        start = np.datetime64(array.min(), "ns")
+        end = np.datetime64(array.max(), "ns")
+        return (
+            datetime.fromisoformat(str(start) + "+00:00").isoformat()
+            if "+" not in str(start)
+            else str(start),
+            datetime.fromisoformat(str(end) + "+00:00").isoformat()
+            if "+" not in str(end)
+            else str(end),
+        )
+    return None
+
+
+def _expected_temporal(
+    expected_metadata: Mapping[str, object] | None,
+) -> tuple[datetime, datetime] | None:
+    """从期望元数据里取出 ``(start, end)``（闭开区间）；缺失或格式不对返回 ``None``。
+
+    接受 ``Mapping``（``{"start": ..., "end": ...}``）或两元素序列；其余情况一律
+    返回 ``None`` 让检查记 SKIPPED —— 不猜，也不把解析失败当成通过。
+    """
+    if not expected_metadata:
+        return None
+    raw = expected_metadata.get("temporal_coverage")
+    if isinstance(raw, Mapping):
+        start_raw, end_raw = raw.get("start"), raw.get("end")
+    elif isinstance(raw, (list, tuple)) and len(raw) == 2:
+        start_raw, end_raw = raw[0], raw[1]
+    else:
+        return None
+    start = _coerce_utc(start_raw)
+    end = _coerce_utc(end_raw)
+    if start is None or end is None or start >= end:
+        return None
+    return start, end
+
+
+def _coerce_utc(value: object) -> datetime | None:
+    """把 ``datetime`` / ISO 字符串规整为 UTC；无法确定时区则返回 ``None``（不猜）。"""
+    if isinstance(value, datetime):
+        return value.astimezone(UTC) if value.tzinfo is not None else None
+    if isinstance(value, str):
+        text = value.strip()
+        iso = text[:-1] + "+00:00" if text.endswith("Z") else text
+        try:
+            parsed = datetime.fromisoformat(iso)
+        except ValueError:
+            return None
+        return parsed.astimezone(UTC) if parsed.tzinfo is not None else None
+    return None
 
 
 def _utc_now() -> datetime:
@@ -401,7 +555,11 @@ class IntegrityChecker:
             （报告为 UNKNOWN，而**不是** PASSED）。
         expected_metadata:
             科学元数据期望值，支持键 ``format`` / ``size_bytes`` / ``content_type`` /
-            ``variables`` / ``dimensions``。未知键判 FAILED，绝不静默忽略。
+            ``variables`` / ``dimensions`` / ``temporal_coverage``。未知键判 FAILED，绝不静默忽略。
+
+            为 ``None`` 时**从可信契约对象自动派生**（``file_record.dataset_id`` 对应的
+            ``DatasetMetadata`` 中登记的变量与时间覆盖）。这不是"猜"：数据来自本任务的
+            数据集契约，而不是远端声称的字节内容。仍然拿不到时才记 ``SKIPPED``。
 
         Returns
         -------
@@ -429,11 +587,16 @@ class IntegrityChecker:
             )
 
         origin, origin_problem = self._resolve_checksum_origin(file_record, task)
+        resolved_metadata = (
+            expected_metadata
+            if expected_metadata is not None
+            else self._derive_expected_metadata(task)
+        )
         state = _CheckState(
             path=path,
             expected_size=file_record.size_bytes,
             expected_checksum=file_record.checksum,
-            expected_metadata=expected_metadata,
+            expected_metadata=resolved_metadata,
             expected_format=self._expected_format(file_record, task),
             content_type=file_record.content_type,
             asset_size=task.asset.size_bytes,
@@ -651,6 +814,8 @@ class IntegrityChecker:
             return self._check_netcdf(kind, state)
         if kind is CheckKind.VARIABLE_PRESENT:
             return self._check_variables(kind, state)
+        if kind is CheckKind.TIME_COVERAGE:
+            return self._check_time_coverage(kind, state)
         if kind is CheckKind.METADATA_CONSISTENT:
             return self._check_metadata(kind, state)
         raise IntegrityError(  # pragma: no cover - 枚举已穷举
@@ -899,6 +1064,8 @@ class IntegrityChecker:
         )
 
     def _check_variables(self, kind: CheckKind, state: _CheckState) -> CheckResult:
+        # 契约里的变量名是**语义名**（``temperature``），文件里存的是**平台原生名**（``t``）。
+        # 二者由 ``provider_native`` 槽位或 ``native_names`` 显式桥接；没有桥接时按同名匹配。
         expected = _expected_string_list(state.expected_metadata, "variables")
         if expected is None:
             return _result(
@@ -917,7 +1084,12 @@ class IntegrityChecker:
         if probe_result.summary is None:  # pragma: no cover
             raise IntegrityError("netcdf probe returned neither summary nor reason")
         available = set(probe_result.summary.variables)
-        missing = [name for name in expected if name not in available]
+        aliases = _expected_native_aliases(state.expected_metadata)
+        missing = [
+            name
+            for name in expected
+            if name not in available and not (aliases.get(name, frozenset()) & available)
+        ]
         return _result(
             kind,
             CheckStatus.FAILED if missing else CheckStatus.PASSED,
@@ -928,6 +1100,87 @@ class IntegrityChecker:
                 if missing
                 else "all expected variables are present"
             ),
+        )
+
+    def _check_time_coverage(self, kind: CheckKind, state: _CheckState) -> CheckResult:
+        """校验文件里的时间轴是否覆盖请求声明的 ``[start, end)`` 区间。
+
+        语义（与 ADR-0012 一致）：
+
+        * 期望区间来自 ``expected_metadata["temporal_coverage"]``（闭开区间）。
+        * 文件时间轴由 :func:`probe_netcdf` 解出 ``(min, max)``。
+        * **覆盖判定**用"首尾都落在期望区间内"（首 >= start，尾 < end）。
+          不要求文件涵盖每一个时间步——分片文件天然只覆盖一段，按步完整性检查是
+          ``PARTIALLY_SUPPORTED`` 的职责，不是单文件校验的职责。
+        * 拿不到时间轴（无 time 坐标 / 无法解码）或没有期望区间 → ``SKIPPED``，
+          **绝不**报 PASSED（没观测到的不能算通过）。
+        """
+        expected = _expected_temporal(state.expected_metadata)
+        if expected is None:
+            return _result(
+                kind,
+                CheckStatus.SKIPPED,
+                None,
+                None,
+                "no expected temporal coverage supplied; refusing to report PASSED",
+            )
+        start_expected, end_expected = expected
+        probe_result = self._probe_netcdf(state)
+        expected_json: JsonValue = {
+            "start": start_expected.isoformat(),
+            "end": end_expected.isoformat(),
+        }
+        if probe_result.failure is not None:
+            return _result(kind, CheckStatus.FAILED, expected_json, None, probe_result.failure)
+        if probe_result.skipped is not None:
+            return _result(kind, CheckStatus.SKIPPED, expected_json, None, probe_result.skipped)
+        if probe_result.summary is None:  # pragma: no cover
+            raise IntegrityError("netcdf probe returned neither summary nor reason")
+        observed = probe_result.summary.time_range
+        if observed is None:
+            return _result(
+                kind,
+                CheckStatus.SKIPPED,
+                expected_json,
+                None,
+                "file has no decodable time axis; time coverage not verified",
+            )
+        try:
+            start_actual = datetime.fromisoformat(observed[0])
+            end_actual = datetime.fromisoformat(observed[1])
+        except ValueError:
+            return _result(
+                kind,
+                CheckStatus.SKIPPED,
+                expected_json,
+                list(observed),
+                "file time axis could not be parsed as ISO timestamps",
+            )
+        actual_json: JsonValue = {
+            "start": start_actual.isoformat(),
+            "end": end_actual.isoformat(),
+        }
+        problems: list[str] = []
+        if start_actual < start_expected:
+            problems.append(
+                f"file starts at {start_actual.isoformat()} before requested "
+                f"{start_expected.isoformat()}"
+            )
+        if end_actual >= end_expected:
+            problems.append(
+                f"file ends at {end_actual.isoformat()} at/after requested exclusive end "
+                f"{end_expected.isoformat()}"
+            )
+        if problems:
+            return _result(
+                kind, CheckStatus.FAILED, expected_json, actual_json, "; ".join(problems)
+            )
+        return _result(
+            kind,
+            CheckStatus.PASSED,
+            expected_json,
+            actual_json,
+            "file time axis is inside the requested interval",
         )
 
     def _check_metadata(self, kind: CheckKind, state: _CheckState) -> CheckResult:
@@ -1027,6 +1280,37 @@ class IntegrityChecker:
             return _ProbeOutcome(skipped=state.netcdf_skip_reason)
         state.netcdf_summary = summary
         return _ProbeOutcome(summary=summary)
+
+    @staticmethod
+    def _derive_expected_metadata(task: AcquisitionTask) -> Mapping[str, object] | None:
+        """从任务携带的数据集契约里派生科学期望值（变量清单 / 时间覆盖）。
+
+        来源是 :class:`~researchdatahub.core.models.DatasetMetadata`——本任务**要求获取**的
+        科学契约，不是远端字节的自述。因此用它判定"下载到的文件是否真的包含所请求的变量"
+        是正当的：它回答的是"交付是否与请求一致"。
+
+        Returns
+        -------
+        Mapping[str, object] | None
+            可用的期望值字典；契约缺失变量或时间覆盖时返回 ``None``
+            （调用方据此记 SKIPPED，而不是编造期望值）。
+        """
+        metadata = getattr(task.asset, "metadata", None)
+        dataset_metadata = getattr(metadata, "dataset_metadata", None)
+        if dataset_metadata is None:
+            # 资产的 SourceMetadata 不携带 DatasetMetadata；只有显式挂载时才派生。
+            return None
+        variables = [spec.name for spec in getattr(dataset_metadata, "variables", ()) if spec.name]
+        payload: dict[str, object] = {}
+        if variables:
+            payload["variables"] = variables
+        coverage = getattr(dataset_metadata, "temporal_coverage", None)
+        if coverage is not None:
+            payload["temporal_coverage"] = {
+                "start": coverage.start.isoformat(),
+                "end": coverage.end.isoformat(),
+            }
+        return payload or None
 
     @staticmethod
     def _expected_format(record: FileRecord, task: AcquisitionTask) -> str:
@@ -1248,6 +1532,28 @@ def _expected_string_list(
     return tuple(names)
 
 
+def _expected_native_aliases(metadata: Mapping[str, object] | None) -> dict[str, frozenset[str]]:
+    """取"语义变量名 → 平台原生变量名"的映射（来自 ``native_names`` 键）。
+
+    期望值是 ``{"temperature": ["t"], "cloud_liquid_water": ["clwc"]}`` 形状。
+    缺失或形状不对时返回空字典（退化为同名匹配），**不猜**任何映射。
+    """
+    if not metadata:
+        return {}
+    raw = metadata.get("native_names")
+    if not isinstance(raw, Mapping):
+        return {}
+    aliases: dict[str, frozenset[str]] = {}
+    for semantic, natives in raw.items():
+        if not isinstance(semantic, str):
+            continue
+        if isinstance(natives, str):
+            aliases[semantic] = frozenset({natives})
+        elif isinstance(natives, (list, tuple)):
+            aliases[semantic] = frozenset(str(item) for item in natives if str(item))
+    return aliases
+
+
 def _wants_netcdf_metadata(metadata: Mapping[str, object]) -> bool:
     return "variables" in metadata or "dimensions" in metadata
 
@@ -1255,11 +1561,41 @@ def _wants_netcdf_metadata(metadata: Mapping[str, object]) -> bool:
 def _compare_metadata(
     expected: Mapping[str, object], observed: Mapping[str, JsonValue]
 ) -> _MetadataComparison:
+    """逐项比对期望与观测元数据；``variables`` 允许通过 ``native_names`` 桥接匹配。"""
+    aliases = _expected_native_aliases(expected)
+    # ``temporal_coverage`` 由 time_coverage 检查负责，这里不重复判定（避免同一事实两套标准）。
     supported = {"format", "size_bytes", "content_type", "variables", "dimensions"}
     problems: list[str] = []
     for key in expected:
+        # ``temporal_coverage`` 由 time_coverage 检查负责，``native_names`` 是
+        # variable_present 的匹配桥接表（二者都不是"文件里的元数据字段"，不参与比对）。
+        if key in {"temporal_coverage", "native_names"}:
+            continue
         if key not in supported:
             problems.append(f"unsupported expected metadata key {key!r}")
+            continue
+        if key == "variables":
+            raw_vars = expected[key]
+            expected_vars = (
+                [str(item) for item in cast("Sequence[object]", raw_vars)]
+                if isinstance(raw_vars, (list, tuple))
+                else []
+            )
+            observed_raw = observed.get("variables")
+            observed_vars = (
+                {str(item) for item in observed_raw} if isinstance(observed_raw, list) else set()
+            )
+            unmatched = [
+                name
+                for name in expected_vars
+                if name not in observed_vars
+                and not (aliases.get(name, frozenset()) & observed_vars)
+            ]
+            if unmatched:
+                problems.append(
+                    "variables mismatch: expected "
+                    f"{sorted(expected_vars)}, observed {sorted(observed_vars)}"
+                )
             continue
         if key not in observed:
             problems.append(f"cannot observe expected key {key!r} from this file")

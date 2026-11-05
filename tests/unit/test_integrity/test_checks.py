@@ -112,16 +112,27 @@ def test_unreadable_file_fails_readable_and_skips_checksum(tmp_path: Path) -> No
     assert checks["checksum_match"]["status"] == CheckStatus.SKIPPED.value
 
 
-def test_unsupported_and_declared_unimplemented_kinds_raise(tmp_path: Path) -> None:
+def test_unsupported_kind_raises(tmp_path: Path) -> None:
+    """未知检查种类必须显式拒绝，不能静默忽略（吞掉校验等于没有校验）。"""
     path = write_bytes(tmp_path / "x.bin", b"bytes")
     record, task = make_context(path, content_type=None)
     checker = IntegrityChecker()
     with pytest.raises(IntegrityError) as excinfo:
         checker.check(record, task=task, kinds=["bogus_check"])
     assert "unsupported" in excinfo.value.message
-    with pytest.raises(IntegrityError) as excinfo:
-        checker.check(record, task=task, kinds=["time_coverage"])
-    assert "not implemented" in excinfo.value.message
+
+
+def test_time_coverage_is_now_implemented(tmp_path: Path) -> None:
+    """``time_coverage`` 已实现：不再抛"未实现"，而是按有无期望区间给出 PASSED/FAILED/SKIPPED。
+
+    没有期望时间区间时必须是 SKIPPED（不是 PASSED）——没观测到的不能算通过。
+    """
+    path = write_bytes(tmp_path / "x.bin", b"bytes")
+    record, task = make_context(path, content_type=None)
+    report = IntegrityChecker().check(record, task=task, kinds=["time_coverage"])
+    checks = {item["kind"]: item for item in report.observed["checks"]}
+    assert checks["time_coverage"]["status"] == CheckStatus.SKIPPED.value
+    assert "reported" not in str(checks["time_coverage"]["detail"])
 
 
 def test_empty_kinds_reports_unknown(tmp_path: Path) -> None:

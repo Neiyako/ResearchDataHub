@@ -39,6 +39,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
 from typing import Final, cast
+from urllib.parse import urlsplit
 
 from researchdatahub.config.models import PlannerConfig, RetryConfig
 from researchdatahub.core.errors import (
@@ -673,6 +674,31 @@ def _task_id(plan_stub: str, asset: SourceAsset) -> str:
     return f"task-{digest}"
 
 
+def _is_live_result_url(asset: SourceAsset) -> bool:
+    """判断资产是否已携带**可直接下载的真实结果地址**。
+
+    区分两种 ``cds_api`` 资产：
+
+    * **结果资产**：``CDSAdapter._discover_assets`` 已经走完 submit→poll→results，
+      ``origin_uri`` 是 CDS 返回的签名下载 URL，且 ``size_bytes`` 已知（> 0）。
+      这类资产**必须原样保留**——改写 ``origin_uri`` 会让传输层拿不到可下载地址。
+    * **请求模板**：调用方只给了"要什么"（时间范围/数据集），还没有提交任何请求。
+      这类资产需要在这里生成请求单元（``cds://`` + 生命周期扩展），由后续流程提交。
+
+    判别依据是"有没有真实的字节数"：结果地址必然带已知 ``size_bytes``，
+    模板资产的尺寸在请求提交前无从得知（``size_bytes == 0``）。
+
+    Returns
+    -------
+    bool
+        ``True`` 表示已有可直接 GET 的地址（不得再改写）。
+    """
+    parts = urlsplit(asset.origin_uri)
+    if parts.scheme not in {"http", "https"} or not parts.hostname:
+        return False
+    return asset.size_bytes > 0
+
+
 def _split_asset(
     asset: SourceAsset,
     start: datetime,
@@ -689,11 +715,26 @@ def _split_asset(
     * 生命周期/时间窗写进 ``metadata.extensions``（``SourceAsset`` 没有 extensions 字段，
       数据源特有的信息按契约只能放在命名空间化的 metadata.extensions 里）。
     """
+    # 已有签名结果 URL 的资产（数据源已完成 submit→poll→results）**必须原样保留**：
+    # 把它改写成 ``cds://`` 模板会让传输层拿不到可下载的地址，任务必然失败。
+    # 只有"尚未提交的模板资产"才需要在这里生成请求单元。
+    if asset.access_route is AccessRoute.CDS_API and _is_live_result_url(asset):
+        extensions: dict[str, JsonValue] = dict(asset.metadata.extensions)
+        extensions["planner.split_granularity"] = granularity.value
+        extensions["planner.time_window"] = {
+            "start": start.isoformat(),
+            "end": end.isoformat(),
+        }
+        metadata = asset.metadata.model_copy(update={"extensions": extensions})
+        return asset.model_copy(
+            update={"metadata": metadata, "time_slice": TemporalExtent(start=start, end=end)}
+        )
+
     suffix_start = f"{start.year:04d}{start.month:02d}{start.day:02d}"
     suffix_end = f"{end.year:04d}{end.month:02d}{end.day:02d}"
     scheme = "cds" if asset.access_route is AccessRoute.CDS_API else "generated"
     origin_uri = f"{scheme}://{asset.source_id}/{asset.dataset_id}/{suffix_start}-{suffix_end}"
-    extensions: dict[str, JsonValue] = dict(asset.metadata.extensions)
+    extensions = dict(asset.metadata.extensions)
     extensions["planner.split_granularity"] = granularity.value
     time_window: dict[str, JsonValue] = {
         "start": start.isoformat(),

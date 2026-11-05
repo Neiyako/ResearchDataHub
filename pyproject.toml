@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "researchdatahub"
-version = "0.1.0"
+version = "1.1.0"
 description = "Research Data Acquisition and Synchronization Hub — 面向气候与地球科学的多源科研数据采集基础设施"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -49,6 +49,9 @@ dependencies = [
 cds = ["cdsapi>=0.7"]
 # 科学数据检查（能力：NetCDF 可打开性、变量存在性、时间覆盖）需要 xarray 栈。
 sci = ["xarray>=2024.3", "netCDF4>=1.6"]
+# MCP Server（面向外部 AI Coding Agent 的唯一正式执行接口）使用官方 MCP Python SDK 的
+# stdio 传输。SDK 缺席时 server 模块仍可导入，调用会返回结构化 not_available。
+mcp = ["mcp>=1.2"]
 dev = [
   "pytest>=8,<10",
   "pytest-cov>=5,<8",
@@ -58,6 +61,7 @@ dev = [
 
 [project.scripts]
 rdh = "researchdatahub.cli.main:app"
+rdh-mcp = "researchdatahub.interfaces.mcp.server:main"
 
 [project.urls]
 Homepage = "https://github.com/Neiyako/ResearchDataHub"

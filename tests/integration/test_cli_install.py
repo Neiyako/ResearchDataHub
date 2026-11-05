@@ -7,6 +7,7 @@ CliRunner 覆盖不到。使用子进程调用真实 ``rdh``。
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -48,7 +49,7 @@ def test_real_process_help() -> None:
 def test_real_process_version() -> None:
     result = run("version")
     assert result.returncode == 0, result.stderr
-    assert "0.1.0" in result.stdout
+    assert _declared_version() in result.stdout
 
 
 @pytest.mark.integration
@@ -106,6 +107,14 @@ def test_real_process_command_group_without_subcommand_is_not_zero() -> None:
     assert "usage" in combined or "用法" in combined
 
 
+def _declared_version() -> str:
+    """从 ``pyproject.toml`` 读取本仓声明的版本号（避免测试里写死版本，每次发版都要改测试）。"""
+    text = (REPO / "pyproject.toml").read_text(encoding="utf-8")
+    match = re.search(r'^version\s*=\s*"([^"]+)"', text, re.MULTILINE)
+    assert match is not None, "pyproject.toml 缺少 version 字段"
+    return match.group(1)
+
+
 @pytest.mark.integration
 def test_installed_package_imports() -> None:
     """包元数据可读：确认 __version__ 来自已安装的 dist，而不是代码里的回退值。"""
@@ -113,6 +122,7 @@ def test_installed_package_imports() -> None:
 
     import researchdatahub
 
-    assert importlib.metadata.version("researchdatahub") == "0.1.0"
-    assert researchdatahub.__version__ == "0.1.0"
+    expected = _declared_version()
+    assert importlib.metadata.version("researchdatahub") == expected
+    assert researchdatahub.__version__ == expected
     assert researchdatahub.MODELS_VERSION == "1.0"

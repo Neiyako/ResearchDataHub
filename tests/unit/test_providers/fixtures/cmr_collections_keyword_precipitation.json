@@ -1,0 +1,3848 @@
+{
+ "feed": {
+  "updated": "2026-11-05T14:50:04.823Z",
+  "id": "https://cmr.earthdata.nasa.gov:443/search/collections.json?keyword=precipitation&page_size=3&provider=GES_DISC",
+  "title": "ECHO dataset metadata",
+  "entry": [
+   {
+    "processing_level_id": "2",
+    "cloud_hosted": true,
+    "boxes": [
+     "-70 -180 70 180"
+    ],
+    "has_combine": false,
+    "time_start": "2014-03-08T00:00:00.000Z",
+    "version_id": "07",
+    "updated": "2021-12-06T00:00:00.000Z",
+    "dataset_id": "GPM DPR Precipitation Profile L2A 1.5 hours 5 km V07 (GPM_2ADPR)",
+    "entry_id": "GPM_2ADPR_07",
+    "has_spatial_subsetting": true,
+    "has_transforms": false,
+    "associations": {
+     "variables": [
+      "V2758121925-GES_DISC",
+      "V2758120169-GES_DISC",
+      "V2758122685-GES_DISC",
+      "V2758120059-GES_DISC",
+      "V2756969460-GES_DISC",
+      "V2758122055-GES_DISC",
+      "V2758121160-GES_DISC",
+      "V2758122784-GES_DISC",
+      "V2758120472-GES_DISC",
+      "V2756976966-GES_DISC",
+      "V2758120380-GES_DISC",
+      "V2758122751-GES_DISC",
+      "V2758120419-GES_DISC",
+      "V2758120643-GES_DISC",
+      "V2758120568-GES_DISC",
+      "V2758119794-GES_DISC",
+      "V2758119925-GES_DISC",
+      "V2758122159-GES_DISC",
+      "V2758119721-GES_DISC",
+      "V2758120770-GES_DISC",
+      "V2756970316-GES_DISC",
+      "V2758122667-GES_DISC",
+      "V2756977769-GES_DISC",
+      "V2758119650-GES_DISC",
+      "V2758119682-GES_DISC",
+      "V2758120966-GES_DISC",
+      "V2758122132-GES_DISC",
+      "V2758120684-GES_DISC",
+      "V2756974558-GES_DISC",
+      "V2758120896-GES_DISC",
+      "V2758120686-GES_DISC",
+      "V2758120831-GES_DISC",
+      "V2758120614-GES_DISC",
+      "V2758121901-GES_DISC",
+      "V2758121815-GES_DISC",
+      "V2758122428-GES_DISC",
+      "V2758120620-GES_DISC",
+      "V2758119693-GES_DISC",
+      "V2758120143-GES_DISC",
+      "V2758122539-GES_DISC",
+      "V2756966958-GES_DISC",
+      "V2758121862-GES_DISC",
+      "V2758121865-GES_DISC",
+      "V2758119609-GES_DISC",
+      "V2758121182-GES_DISC",
+      "V2758122286-GES_DISC",
+      "V2758121565-GES_DISC",
+      "V2758120530-GES_DISC",
+      "V2756968508-GES_DISC",
+      "V2758120898-GES_DISC",
+      "V2758119907-GES_DISC",
+      "V2758120329-GES_DISC",
+      "V2758120082-GES_DISC",
+      "V2758121783-GES_DISC",
+      "V2758122725-GES_DISC",
+      "V2758122398-GES_DISC",
+      "V2758121375-GES_DISC",
+      "V2758121048-GES_DISC",
+      "V2758121927-GES_DISC",
+      "V2758122406-GES_DISC",
+      "V2758122319-GES_DISC",
+      "V2758122381-GES_DISC",
+      "V2758121177-GES_DISC",
+      "V2758119807-GES_DISC",
+      "V2758119601-GES_DISC",
+      "V2756969221-GES_DISC",
+      "V2758121966-GES_DISC",
+      "V2758119605-GES_DISC",
+      "V2758122173-GES_DISC",
+      "V2758121069-GES_DISC",
+      "V2758120522-GES_DISC",
+      "V2758122424-GES_DISC",
+      "V2758120215-GES_DISC",
+      "V2758120869-GES_DISC",
+      "V2758120340-GES_DISC",
+      "V2758120396-GES_DISC",
+      "V2758119664-GES_DISC",
+      "V2758120964-GES_DISC",
+      "V2758121072-GES_DISC",
+      "V2758120310-GES_DISC",
+      "V2756967016-GES_DISC",
+      "V2756978602-GES_DISC",
+      "V2758119836-GES_DISC",
+      "V2758120069-GES_DISC",
+      "V2756973744-GES_DISC",
+      "V2758121912-GES_DISC",
+      "V2758122376-GES_DISC",
+      "V2758122699-GES_DISC",
+      "V2758121978-GES_DISC",
+      "V2758120671-GES_DISC",
+      "V2758120099-GES_DISC",
+      "V2758119944-GES_DISC",
+      "V2758122119-GES_DISC",
+      "V2758119680-GES_DISC",
+      "V2758121693-GES_DISC",
+      "V2758122329-GES_DISC",
+      "V2758122049-GES_DISC",
+      "V2758121054-GES_DISC",
+      "V2758121833-GES_DISC",
+      "V2756977083-GES_DISC",
+      "V2758122306-GES_DISC",
+      "V2758120124-GES_DISC",
+      "V2758120416-GES_DISC",
+      "V2758122394-GES_DISC",
+      "V2758121957-GES_DISC",
+      "V2758122473-GES_DISC",
+      "V2758121324-GES_DISC",
+      "V2758122313-GES_DISC",
+      "V2756977452-GES_DISC",
+      "V2758120637-GES_DISC",
+      "V2758120818-GES_DISC",
+      "V2758120940-GES_DISC",
+      "V2758122710-GES_DISC",
+      "V2758120690-GES_DISC",
+      "V2758121737-GES_DISC",
+      "V2758119716-GES_DISC",
+      "V2758121896-GES_DISC",
+      "V2758119804-GES_DISC",
+      "V2758122412-GES_DISC",
+      "V2758121613-GES_DISC",
+      "V2758120968-GES_DISC",
+      "V2758119671-GES_DISC",
+      "V2758120430-GES_DISC",
+      "V2758119840-GES_DISC",
+      "V2758121318-GES_DISC",
+      "V2758120307-GES_DISC",
+      "V2758120854-GES_DISC",
+      "V2758122430-GES_DISC",
+      "V2758122083-GES_DISC",
+      "V2758121089-GES_DISC",
+      "V2758121333-GES_DISC",
+      "V2756970120-GES_DISC",
+      "V2756972110-GES_DISC",
+      "V2756968801-GES_DISC",
+      "V2758120948-GES_DISC",
+      "V2758121884-GES_DISC",
+      "V2758122336-GES_DISC",
+      "V2758120924-GES_DISC",
+      "V2758121120-GES_DISC",
+      "V2758121363-GES_DISC",
+      "V2756970139-GES_DISC",
+      "V2756971744-GES_DISC",
+      "V2758120423-GES_DISC",
+      "V2758120108-GES_DISC",
+      "V2756970242-GES_DISC",
+      "V2758122780-GES_DISC",
+      "V2758121644-GES_DISC",
+      "V2758121823-GES_DISC",
+      "V2758121303-GES_DISC",
+      "V2756969625-GES_DISC",
+      "V2758121284-GES_DISC",
+      "V2756969574-GES_DISC",
+      "V2758122189-GES_DISC",
+      "V2758120918-GES_DISC",
+      "V2758121172-GES_DISC",
+      "V2758119707-GES_DISC",
+      "V2758122468-GES_DISC",
+      "V2758120790-GES_DISC",
+      "V2758119642-GES_DISC",
+      "V2758121370-GES_DISC",
+      "V2758120238-GES_DISC",
+      "V2758121905-GES_DISC",
+      "V2758121954-GES_DISC",
+      "V2758120278-GES_DISC",
+      "V2758120351-GES_DISC",
+      "V2758120550-GES_DISC",
+      "V2758119783-GES_DISC",
+      "V2758120552-GES_DISC",
+      "V2758122455-GES_DISC",
+      "V2758120353-GES_DISC",
+      "V2758120842-GES_DISC",
+      "V2758122719-GES_DISC",
+      "V2758119678-GES_DISC",
+      "V2758121281-GES_DISC",
+      "V2758119823-GES_DISC",
+      "V2758122155-GES_DISC",
+      "V2758119607-GES_DISC",
+      "V2756974726-GES_DISC",
+      "V2758122374-GES_DISC",
+      "V2758122164-GES_DISC",
+      "V2758119799-GES_DISC",
+      "V2758120640-GES_DISC",
+      "V2756969006-GES_DISC",
+      "V2758121103-GES_DISC",
+      "V2758121264-GES_DISC",
+      "V2758120721-GES_DISC",
+      "V2758120545-GES_DISC",
+      "V2758121034-GES_DISC",
+      "V2756968751-GES_DISC",
+      "V2758121893-GES_DISC",
+      "V2758119577-GES_DISC",
+      "V2758121211-GES_DISC",
+      "V2758121776-GES_DISC",
+      "V2756977689-GES_DISC",
+      "V2756977565-GES_DISC",
+      "V2756971460-GES_DISC",
+      "V2758120488-GES_DISC",
+      "V2758121342-GES_DISC",
+      "V2758119842-GES_DISC",
+      "V2758120022-GES_DISC",
+      "V2758121256-GES_DISC",
+      "V2758119667-GES_DISC",
+      "V2758119757-GES_DISC",
+      "V2758119659-GES_DISC",
+      "V2758120861-GES_DISC",
+      "V2758122357-GES_DISC",
+      "V2758122157-GES_DISC",
+      "V2758121315-GES_DISC",
+      "V2756967097-GES_DISC",
+      "V2758120510-GES_DISC",
+      "V2758122296-GES_DISC",
+      "V2758120349-GES_DISC",
+      "V2756976647-GES_DISC",
+      "V2758121020-GES_DISC",
+      "V2758121931-GES_DISC",
+      "V2758119598-GES_DISC",
+      "V2756968010-GES_DISC",
+      "V2758120365-GES_DISC",
+      "V2758119871-GES_DISC",
+      "V2756970559-GES_DISC",
+      "V2756968532-GES_DISC",
+      "V2758122734-GES_DISC",
+      "V2758119810-GES_DISC",
+      "V2756971381-GES_DISC",
+      "V2758121131-GES_DISC",
+      "V2756973783-GES_DISC",
+      "V2758120454-GES_DISC",
+      "V2758120746-GES_DISC",
+      "V2758121059-GES_DISC",
+      "V2756976609-GES_DISC",
+      "V2758121976-GES_DISC",
+      "V2756967336-GES_DISC",
+      "V2756977429-GES_DISC",
+      "V2758122283-GES_DISC",
+      "V2758121929-GES_DISC",
+      "V2758120821-GES_DISC",
+      "V2758120970-GES_DISC",
+      "V2756969594-GES_DISC",
+      "V2758122004-GES_DISC",
+      "V2758120583-GES_DISC",
+      "V2758120273-GES_DISC",
+      "V2758122279-GES_DISC",
+      "V2758119696-GES_DISC",
+      "V2758120133-GES_DISC",
+      "V2758121408-GES_DISC",
+      "V2758121305-GES_DISC",
+      "V2758121402-GES_DISC",
+      "V2758119759-GES_DISC",
+      "V2758122742-GES_DISC",
+      "V2756973352-GES_DISC",
+      "V2758119630-GES_DISC",
+      "V2758120528-GES_DISC",
+      "V2758119862-GES_DISC",
+      "V2758119626-GES_DISC",
+      "V2758122606-GES_DISC",
+      "V2756974053-GES_DISC",
+      "V2756966750-GES_DISC",
+      "V2758121878-GES_DISC",
+      "V2758122077-GES_DISC",
+      "V2756973912-GES_DISC",
+      "V2758122309-GES_DISC",
+      "V2758120119-GES_DISC",
+      "V2758122161-GES_DISC",
+      "V2758122787-GES_DISC",
+      "V2758121619-GES_DISC",
+      "V2758122300-GES_DISC",
+      "V2758122362-GES_DISC",
+      "V2758122481-GES_DISC",
+      "V2758121002-GES_DISC",
+      "V2758122680-GES_DISC",
+      "V2756976866-GES_DISC",
+      "V2758120557-GES_DISC",
+      "V2758122414-GES_DISC",
+      "V2758121046-GES_DISC",
+      "V2758119957-GES_DISC",
+      "V2756976431-GES_DISC",
+      "V2758119894-GES_DISC",
+      "V2758120981-GES_DISC",
+      "V2758119572-GES_DISC",
+      "V2758121990-GES_DISC",
+      "V2758121164-GES_DISC"
+     ],
+     "services": [
+      "S2874702816-XYZ_PROV",
+      "S1962070864-POCLOUD",
+      "S3267470083-GES_DISC"
+     ],
+     "citations": [
+      "CIT3804233739-ESDIS",
+      "CIT4181364894-ESDIS",
+      "CIT4181368558-ESDIS",
+      "CIT3857564482-ESDIS",
+      "CIT3804167241-ESDIS",
+      "CIT3804262695-ESDIS",
+      "CIT3804352483-ESDIS",
+      "CIT3804374153-ESDIS",
+      "CIT3857574655-ESDIS",
+      "CIT3804284515-ESDIS",
+      "CIT4181335406-ESDIS",
+      "CIT4181377778-ESDIS",
+      "CIT4181360670-ESDIS",
+      "CIT4181361949-ESDIS",
+      "CIT3857568153-ESDIS",
+      "CIT4248443598-ESDIS",
+      "CIT3804224146-ESDIS",
+      "CIT3804288076-ESDIS",
+      "CIT3804352521-ESDIS",
+      "CIT3804287603-ESDIS",
+      "CIT4181378875-ESDIS",
+      "CIT3963295753-ESDIS",
+      "CIT4181372036-ESDIS",
+      "CIT4106697311-ESDIS",
+      "CIT4181337862-ESDIS",
+      "CIT4181370453-ESDIS",
+      "CIT3804230535-ESDIS",
+      "CIT3804183302-ESDIS",
+      "CIT3804141442-ESDIS",
+      "CIT3804192557-ESDIS",
+      "CIT4201246897-ESDIS",
+      "CIT4201248056-ESDIS",
+      "CIT3804200553-ESDIS",
+      "CIT4106687404-ESDIS",
+      "CIT3804190730-ESDIS",
+      "CIT4181352718-ESDIS",
+      "CIT3804045656-ESDIS",
+      "CIT3804147593-ESDIS",
+      "CIT4181376027-ESDIS",
+      "CIT3803955354-ESDIS",
+      "CIT3803974375-ESDIS",
+      "CIT4181366825-ESDIS",
+      "CIT4181382928-ESDIS",
+      "CIT4181383330-ESDIS",
+      "CIT4181326696-ESDIS",
+      "CIT4181374029-ESDIS",
+      "CIT4181354928-ESDIS",
+      "CIT4181375977-ESDIS",
+      "CIT3963288415-ESDIS",
+      "CIT4181366659-ESDIS",
+      "CIT4181368393-ESDIS",
+      "CIT4181361364-ESDIS",
+      "CIT4248445655-ESDIS",
+      "CIT3804201940-ESDIS",
+      "CIT4181351706-ESDIS",
+      "CIT3804021144-ESDIS",
+      "CIT4181369462-ESDIS",
+      "CIT4106686012-ESDIS",
+      "CIT4181338251-ESDIS",
+      "CIT3804123077-ESDIS",
+      "CIT4181371731-ESDIS",
+      "CIT4181324423-ESDIS",
+      "CIT4181325729-ESDIS",
+      "CIT4248446548-ESDIS",
+      "CIT4181345129-ESDIS",
+      "CIT3804134955-ESDIS",
+      "CIT4181362339-ESDIS",
+      "CIT3804152051-ESDIS",
+      "CIT4106694792-ESDIS",
+      "CIT4181333158-ESDIS",
+      "CIT3857556264-ESDIS",
+      "CIT4181375672-ESDIS",
+      "CIT4181368929-ESDIS",
+      "CIT3857566643-ESDIS",
+      "CIT3804260411-ESDIS",
+      "CIT3804162349-ESDIS",
+      "CIT3804284771-ESDIS",
+      "CIT4181374182-ESDIS",
+      "CIT3803978483-ESDIS",
+      "CIT3804227548-ESDIS",
+      "CIT3804196297-ESDIS",
+      "CIT3963288933-ESDIS",
+      "CIT3857574690-ESDIS",
+      "CIT4248451591-ESDIS",
+      "CIT3804193886-ESDIS",
+      "CIT3857559890-ESDIS",
+      "CIT4106697122-ESDIS",
+      "CIT3804315161-ESDIS",
+      "CIT4181361941-ESDIS",
+      "CIT4181372508-ESDIS",
+      "CIT3804233526-ESDIS",
+      "CIT3804255553-ESDIS",
+      "CIT4181326934-ESDIS",
+      "CIT3857573174-ESDIS",
+      "CIT3804199076-ESDIS",
+      "CIT4181342883-ESDIS",
+      "CIT3804315599-ESDIS",
+      "CIT4181326987-ESDIS",
+      "CIT4181371493-ESDIS",
+      "CIT4181382874-ESDIS",
+      "CIT3804034187-ESDIS",
+      "CIT4181316275-ESDIS",
+      "CIT4181381467-ESDIS",
+      "CIT4201251673-ESDIS",
+      "CIT4181382039-ESDIS",
+      "CIT4181382057-ESDIS",
+      "CIT4181375533-ESDIS",
+      "CIT3804054684-ESDIS",
+      "CIT3804241955-ESDIS",
+      "CIT4181378119-ESDIS",
+      "CIT4181378159-ESDIS",
+      "CIT4181360677-ESDIS",
+      "CIT3803956220-ESDIS",
+      "CIT3804314577-ESDIS",
+      "CIT4321026760-ESDIS",
+      "CIT3803944909-ESDIS",
+      "CIT3804214852-ESDIS",
+      "CIT3804333675-ESDIS",
+      "CIT3804033239-ESDIS",
+      "CIT4181332677-ESDIS",
+      "CIT4181332976-ESDIS",
+      "CIT3804094546-ESDIS",
+      "CIT4181352045-ESDIS",
+      "CIT4181376484-ESDIS",
+      "CIT4248443213-ESDIS",
+      "CIT4321029289-ESDIS",
+      "CIT3804171555-ESDIS",
+      "CIT4181365750-ESDIS",
+      "CIT3803959795-ESDIS",
+      "CIT4181374437-ESDIS",
+      "CIT4181313684-ESDIS",
+      "CIT4201246903-ESDIS",
+      "CIT3804040971-ESDIS",
+      "CIT4321022470-ESDIS",
+      "CIT4181381365-ESDIS",
+      "CIT3804186068-ESDIS",
+      "CIT4181370252-ESDIS",
+      "CIT3804012836-ESDIS",
+      "CIT3804178417-ESDIS",
+      "CIT4201249480-ESDIS",
+      "CIT3804210086-ESDIS"
+     ]
+    },
+    "has_variables": true,
+    "data_center": "GES_DISC",
+    "short_name": "GPM_2ADPR",
+    "organizations": [
+     "NASA/GSFC/SED/ESD/TISL/GESDISC"
+    ],
+    "title": "GPM DPR Precipitation Profile L2A 1.5 hours 5 km V07 (GPM_2ADPR)",
+    "coordinate_system": "GEODETIC",
+    "summary": "Version 07 is the current version of the data set. Older versions will no longer be available and have been superseded by Version 07.\n.\n\n2ADPR provides single- and dual-frequency-derived precipitation estimates from the Ku and Ka radars of the Dual-Frequency Precipitation Radar (DPR) on the core GPM spacecraft. The output consists of three main classes of precipitation products: those derived from the Ku-band frequency over a wide swath (245 km), those derived from the Ka-band frequency over a narrow swath (125 km), and those derived from the dual-frequency data over the narrow swath. The Ka-band results are further divided into the standard and high-sensitivity estimates. In the standard sensitivity mode, the fields of view within the inner swath are matched to those of the Ku-band. Data from these matched-beam Ku- and Ka-band fields of view are used to derive the dual-frequency precipitation products. The retrievals are performed at each radar range bin along the slant path of the radar instrument field of view (IFOV).",
+    "time_end": "2026-03-01T23:59:59.999Z",
+    "service_features": {
+     "harmony": {
+      "has_formats": true,
+      "has_variables": true,
+      "has_transforms": false,
+      "has_combine": false,
+      "has_spatial_subsetting": true,
+      "has_temporal_subsetting": true
+     },
+     "opendap": {
+      "has_formats": false,
+      "has_variables": false,
+      "has_transforms": false,
+      "has_combine": false,
+      "has_spatial_subsetting": false,
+      "has_temporal_subsetting": false
+     },
+     "esi": {
+      "has_formats": false,
+      "has_variables": false,
+      "has_transforms": false,
+      "has_combine": false,
+      "has_spatial_subsetting": false,
+      "has_temporal_subsetting": false
+     }
+    },
+    "orbit_parameters": {},
+    "id": "C2179081499-GES_DISC",
+    "has_formats": true,
+    "score": 2.0592,
+    "consortiums": [
+     "EOSDIS",
+     "GEOSS"
+    ],
+    "original_format": "UMM_JSON",
+    "archive_center": "NASA/GSFC/SED/ESD/TISL/GESDISC",
+    "has_temporal_subsetting": true,
+    "browse_flag": true,
+    "platforms": [
+     "GPM"
+    ],
+    "association_details": {
+     "variables": [
+      {
+       "concept_id": "V2758121925-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120169-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122685-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120059-GES_DISC"
+      },
+      {
+       "concept_id": "V2756969460-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122055-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121160-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122784-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120472-GES_DISC"
+      },
+      {
+       "concept_id": "V2756976966-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120380-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122751-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120419-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120643-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120568-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119794-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119925-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122159-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119721-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120770-GES_DISC"
+      },
+      {
+       "concept_id": "V2756970316-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122667-GES_DISC"
+      },
+      {
+       "concept_id": "V2756977769-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119650-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119682-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120966-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122132-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120684-GES_DISC"
+      },
+      {
+       "concept_id": "V2756974558-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120896-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120686-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120831-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120614-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121901-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121815-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122428-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120620-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119693-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120143-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122539-GES_DISC"
+      },
+      {
+       "concept_id": "V2756966958-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121862-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121865-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119609-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121182-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122286-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121565-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120530-GES_DISC"
+      },
+      {
+       "concept_id": "V2756968508-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120898-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119907-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120329-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120082-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121783-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122725-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122398-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121375-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121048-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121927-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122406-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122319-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122381-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121177-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119807-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119601-GES_DISC"
+      },
+      {
+       "concept_id": "V2756969221-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121966-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119605-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122173-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121069-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120522-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122424-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120215-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120869-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120340-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120396-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119664-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120964-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121072-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120310-GES_DISC"
+      },
+      {
+       "concept_id": "V2756967016-GES_DISC"
+      },
+      {
+       "concept_id": "V2756978602-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119836-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120069-GES_DISC"
+      },
+      {
+       "concept_id": "V2756973744-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121912-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122376-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122699-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121978-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120671-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120099-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119944-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122119-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119680-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121693-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122329-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122049-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121054-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121833-GES_DISC"
+      },
+      {
+       "concept_id": "V2756977083-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122306-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120124-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120416-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122394-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121957-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122473-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121324-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122313-GES_DISC"
+      },
+      {
+       "concept_id": "V2756977452-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120637-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120818-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120940-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122710-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120690-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121737-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119716-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121896-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119804-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122412-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121613-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120968-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119671-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120430-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119840-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121318-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120307-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120854-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122430-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122083-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121089-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121333-GES_DISC"
+      },
+      {
+       "concept_id": "V2756970120-GES_DISC"
+      },
+      {
+       "concept_id": "V2756972110-GES_DISC"
+      },
+      {
+       "concept_id": "V2756968801-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120948-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121884-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122336-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120924-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121120-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121363-GES_DISC"
+      },
+      {
+       "concept_id": "V2756970139-GES_DISC"
+      },
+      {
+       "concept_id": "V2756971744-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120423-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120108-GES_DISC"
+      },
+      {
+       "concept_id": "V2756970242-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122780-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121644-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121823-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121303-GES_DISC"
+      },
+      {
+       "concept_id": "V2756969625-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121284-GES_DISC"
+      },
+      {
+       "concept_id": "V2756969574-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122189-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120918-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121172-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119707-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122468-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120790-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119642-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121370-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120238-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121905-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121954-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120278-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120351-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120550-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119783-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120552-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122455-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120353-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120842-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122719-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119678-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121281-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119823-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122155-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119607-GES_DISC"
+      },
+      {
+       "concept_id": "V2756974726-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122374-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122164-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119799-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120640-GES_DISC"
+      },
+      {
+       "concept_id": "V2756969006-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121103-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121264-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120721-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120545-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121034-GES_DISC"
+      },
+      {
+       "concept_id": "V2756968751-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121893-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119577-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121211-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121776-GES_DISC"
+      },
+      {
+       "concept_id": "V2756977689-GES_DISC"
+      },
+      {
+       "concept_id": "V2756977565-GES_DISC"
+      },
+      {
+       "concept_id": "V2756971460-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120488-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121342-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119842-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120022-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121256-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119667-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119757-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119659-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120861-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122357-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122157-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121315-GES_DISC"
+      },
+      {
+       "concept_id": "V2756967097-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120510-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122296-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120349-GES_DISC"
+      },
+      {
+       "concept_id": "V2756976647-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121020-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121931-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119598-GES_DISC"
+      },
+      {
+       "concept_id": "V2756968010-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120365-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119871-GES_DISC"
+      },
+      {
+       "concept_id": "V2756970559-GES_DISC"
+      },
+      {
+       "concept_id": "V2756968532-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122734-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119810-GES_DISC"
+      },
+      {
+       "concept_id": "V2756971381-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121131-GES_DISC"
+      },
+      {
+       "concept_id": "V2756973783-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120454-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120746-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121059-GES_DISC"
+      },
+      {
+       "concept_id": "V2756976609-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121976-GES_DISC"
+      },
+      {
+       "concept_id": "V2756967336-GES_DISC"
+      },
+      {
+       "concept_id": "V2756977429-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122283-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121929-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120821-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120970-GES_DISC"
+      },
+      {
+       "concept_id": "V2756969594-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122004-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120583-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120273-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122279-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119696-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120133-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121408-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121305-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121402-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119759-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122742-GES_DISC"
+      },
+      {
+       "concept_id": "V2756973352-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119630-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120528-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119862-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119626-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122606-GES_DISC"
+      },
+      {
+       "concept_id": "V2756974053-GES_DISC"
+      },
+      {
+       "concept_id": "V2756966750-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121878-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122077-GES_DISC"
+      },
+      {
+       "concept_id": "V2756973912-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122309-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120119-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122161-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122787-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121619-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122300-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122362-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122481-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121002-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122680-GES_DISC"
+      },
+      {
+       "concept_id": "V2756976866-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120557-GES_DISC"
+      },
+      {
+       "concept_id": "V2758122414-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121046-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119957-GES_DISC"
+      },
+      {
+       "concept_id": "V2756976431-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119894-GES_DISC"
+      },
+      {
+       "concept_id": "V2758120981-GES_DISC"
+      },
+      {
+       "concept_id": "V2758119572-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121990-GES_DISC"
+      },
+      {
+       "concept_id": "V2758121164-GES_DISC"
+      }
+     ],
+     "services": [
+      {
+       "concept_id": "S2874702816-XYZ_PROV"
+      },
+      {
+       "concept_id": "S1962070864-POCLOUD"
+      },
+      {
+       "concept_id": "S3267470083-GES_DISC"
+      }
+     ],
+     "citations": [
+      {
+       "concept_id": "CIT3804233739-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181364894-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181368558-ESDIS"
+      },
+      {
+       "concept_id": "CIT3857564482-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804167241-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804262695-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804352483-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804374153-ESDIS"
+      },
+      {
+       "concept_id": "CIT3857574655-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804284515-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181335406-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181377778-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181360670-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181361949-ESDIS"
+      },
+      {
+       "concept_id": "CIT3857568153-ESDIS"
+      },
+      {
+       "concept_id": "CIT4248443598-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804224146-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804288076-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804352521-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804287603-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181378875-ESDIS"
+      },
+      {
+       "concept_id": "CIT3963295753-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181372036-ESDIS"
+      },
+      {
+       "concept_id": "CIT4106697311-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181337862-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181370453-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804230535-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804183302-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804141442-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804192557-ESDIS"
+      },
+      {
+       "concept_id": "CIT4201246897-ESDIS"
+      },
+      {
+       "concept_id": "CIT4201248056-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804200553-ESDIS"
+      },
+      {
+       "concept_id": "CIT4106687404-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804190730-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181352718-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804045656-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804147593-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181376027-ESDIS"
+      },
+      {
+       "concept_id": "CIT3803955354-ESDIS"
+      },
+      {
+       "concept_id": "CIT3803974375-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181366825-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181382928-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181383330-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181326696-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181374029-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181354928-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181375977-ESDIS"
+      },
+      {
+       "concept_id": "CIT3963288415-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181366659-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181368393-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181361364-ESDIS"
+      },
+      {
+       "concept_id": "CIT4248445655-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804201940-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181351706-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804021144-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181369462-ESDIS"
+      },
+      {
+       "concept_id": "CIT4106686012-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181338251-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804123077-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181371731-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181324423-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181325729-ESDIS"
+      },
+      {
+       "concept_id": "CIT4248446548-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181345129-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804134955-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181362339-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804152051-ESDIS"
+      },
+      {
+       "concept_id": "CIT4106694792-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181333158-ESDIS"
+      },
+      {
+       "concept_id": "CIT3857556264-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181375672-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181368929-ESDIS"
+      },
+      {
+       "concept_id": "CIT3857566643-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804260411-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804162349-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804284771-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181374182-ESDIS"
+      },
+      {
+       "concept_id": "CIT3803978483-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804227548-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804196297-ESDIS"
+      },
+      {
+       "concept_id": "CIT3963288933-ESDIS"
+      },
+      {
+       "concept_id": "CIT3857574690-ESDIS"
+      },
+      {
+       "concept_id": "CIT4248451591-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804193886-ESDIS"
+      },
+      {
+       "concept_id": "CIT3857559890-ESDIS"
+      },
+      {
+       "concept_id": "CIT4106697122-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804315161-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181361941-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181372508-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804233526-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804255553-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181326934-ESDIS"
+      },
+      {
+       "concept_id": "CIT3857573174-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804199076-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181342883-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804315599-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181326987-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181371493-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181382874-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804034187-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181316275-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181381467-ESDIS"
+      },
+      {
+       "concept_id": "CIT4201251673-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181382039-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181382057-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181375533-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804054684-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804241955-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181378119-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181378159-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181360677-ESDIS"
+      },
+      {
+       "concept_id": "CIT3803956220-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804314577-ESDIS"
+      },
+      {
+       "concept_id": "CIT4321026760-ESDIS"
+      },
+      {
+       "concept_id": "CIT3803944909-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804214852-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804333675-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804033239-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181332677-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181332976-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804094546-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181352045-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181376484-ESDIS"
+      },
+      {
+       "concept_id": "CIT4248443213-ESDIS"
+      },
+      {
+       "concept_id": "CIT4321029289-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804171555-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181365750-ESDIS"
+      },
+      {
+       "concept_id": "CIT3803959795-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181374437-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181313684-ESDIS"
+      },
+      {
+       "concept_id": "CIT4201246903-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804040971-ESDIS"
+      },
+      {
+       "concept_id": "CIT4321022470-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181381365-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804186068-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181370252-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804012836-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804178417-ESDIS"
+      },
+      {
+       "concept_id": "CIT4201249480-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804210086-ESDIS"
+      }
+     ]
+    },
+    "online_access_flag": true,
+    "links": [
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/browse#",
+      "hreflang": "en-US",
+      "href": "https://docserver.gesdisc.eosdis.nasa.gov/public/project/GPM/browse/GPM_2ADPR.png"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/metadata#",
+      "hreflang": "en-US",
+      "href": "https://disc.gsfc.nasa.gov/datacollection/GPM_2ADPR_07.html"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/data#",
+      "hreflang": "en-US",
+      "href": "https://cmr.earthdata.nasa.gov/virtual-directory/collections/C2179081499-GES_DISC/temporal"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/service#",
+      "hreflang": "en-US",
+      "href": "https://cmr.earthdata.nasa.gov/virtual-directory/collections/C2179081499-GES_DISC/temporal"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/data#",
+      "hreflang": "en-US",
+      "href": "https://search.earthdata.nasa.gov/search/granules?p=C2179081499-GES_DISC"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/metadata#",
+      "hreflang": "en-US",
+      "href": "https://gpm.nasa.gov"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://gpm1.gesdisc.eosdis.nasa.gov/data/GPM_L2/doc/README.GPM.pdf"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://arthurhou.pps.eosdis.nasa.gov/Documents/ATBD_DPR_V07A.pdf"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://gpmweb2https.pps.eosdis.nasa.gov/pub/GPMfilespec/new/filespec.GPM.V7.pdf"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://pps.gsfc.nasa.gov/Documents/ReleaseNote_DPRL2L3_productV07A_20211117.pdf"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://pps.gsfc.nasa.gov/Documents/DPR_L2_variables_20101128.xls"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://pps.gsfc.nasa.gov/gpminstruments.html"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://gpmweb2https.pps.eosdis.nasa.gov/tsdis/AB/docs/gpm_anomalous.html"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://journals.ametsoc.org/doi/10.1175/JTECH-D-17-0060.1"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "ftp://gpmweb2.pps.eosdis.nasa.gov/pub/GPMfilespec/filespec.GPM.pdf"
+     }
+    ]
+   },
+   {
+    "processing_level_id": "2",
+    "cloud_hosted": true,
+    "boxes": [
+     "-70 -180 70 180"
+    ],
+    "has_combine": false,
+    "time_start": "2014-03-08T00:00:00.000Z",
+    "version_id": "08",
+    "updated": "2026-03-10T00:00:00.000Z",
+    "dataset_id": "GPM DPR Precipitation Profile L2A 1.5 hours 5 km V08 (GPM_2ADPR)",
+    "entry_id": "GPM_2ADPR_08",
+    "has_spatial_subsetting": true,
+    "has_transforms": false,
+    "associations": {
+     "variables": [
+      "V4128767736-GES_DISC",
+      "V4128771018-GES_DISC",
+      "V4128799184-GES_DISC",
+      "V4128799125-GES_DISC",
+      "V4128769398-GES_DISC",
+      "V4128817282-GES_DISC",
+      "V4128807649-GES_DISC",
+      "V4128787577-GES_DISC",
+      "V4128773984-GES_DISC",
+      "V4128773494-GES_DISC",
+      "V4128797256-GES_DISC",
+      "V4128774396-GES_DISC",
+      "V4128775675-GES_DISC",
+      "V4128776833-GES_DISC",
+      "V4128796924-GES_DISC",
+      "V4128785029-GES_DISC",
+      "V4128808765-GES_DISC",
+      "V4128789936-GES_DISC",
+      "V4128807812-GES_DISC",
+      "V4128775447-GES_DISC",
+      "V4128805714-GES_DISC",
+      "V4128787297-GES_DISC",
+      "V4128785238-GES_DISC",
+      "V4128816519-GES_DISC",
+      "V4128776821-GES_DISC",
+      "V4128780835-GES_DISC",
+      "V4128817746-GES_DISC",
+      "V4128772008-GES_DISC",
+      "V4128801545-GES_DISC",
+      "V4128769719-GES_DISC",
+      "V4128785113-GES_DISC",
+      "V4128802367-GES_DISC",
+      "V4128803087-GES_DISC",
+      "V4128790221-GES_DISC",
+      "V4128803004-GES_DISC",
+      "V4128788598-GES_DISC",
+      "V4128776723-GES_DISC",
+      "V4128789054-GES_DISC",
+      "V4128805694-GES_DISC",
+      "V4128816429-GES_DISC",
+      "V4128776268-GES_DISC",
+      "V4128771054-GES_DISC",
+      "V4128807395-GES_DISC",
+      "V4128769808-GES_DISC",
+      "V4128776711-GES_DISC",
+      "V4128817697-GES_DISC",
+      "V4128772741-GES_DISC",
+      "V4128781661-GES_DISC",
+      "V4128775517-GES_DISC",
+      "V4128777998-GES_DISC",
+      "V4128789427-GES_DISC",
+      "V4128771187-GES_DISC",
+      "V4128814612-GES_DISC",
+      "V4128812917-GES_DISC",
+      "V4128779564-GES_DISC",
+      "V4128782049-GES_DISC",
+      "V4128800776-GES_DISC",
+      "V4128790183-GES_DISC",
+      "V4128803608-GES_DISC",
+      "V4128808682-GES_DISC",
+      "V4128788936-GES_DISC",
+      "V4128820702-GES_DISC",
+      "V4128786432-GES_DISC",
+      "V4128813335-GES_DISC",
+      "V4128792060-GES_DISC",
+      "V4128820901-GES_DISC",
+      "V4128812138-GES_DISC",
+      "V4128785675-GES_DISC",
+      "V4128786216-GES_DISC",
+      "V4128787940-GES_DISC",
+      "V4128791559-GES_DISC",
+      "V4128804683-GES_DISC",
+      "V4128811821-GES_DISC",
+      "V4128777805-GES_DISC",
+      "V4128810575-GES_DISC",
+      "V4128799077-GES_DISC",
+      "V4128803042-GES_DISC",
+      "V4128795957-GES_DISC",
+      "V4128808386-GES_DISC",
+      "V4128772353-GES_DISC",
+      "V4128778227-GES_DISC",
+      "V4128812374-GES_DISC",
+      "V4128801790-GES_DISC",
+      "V4128773593-GES_DISC",
+      "V4128789239-GES_DISC",
+      "V4128813303-GES_DISC",
+      "V4128808664-GES_DISC",
+      "V4128816947-GES_DISC",
+      "V4128801815-GES_DISC",
+      "V4128808958-GES_DISC",
+      "V4128770214-GES_DISC",
+      "V4128805763-GES_DISC",
+      "V4128778343-GES_DISC",
+      "V4128797847-GES_DISC",
+      "V4128804903-GES_DISC",
+      "V4128780254-GES_DISC",
+      "V4128792923-GES_DISC",
+      "V4128786307-GES_DISC",
+      "V4128803130-GES_DISC",
+      "V4128813577-GES_DISC",
+      "V4128816025-GES_DISC",
+      "V4128777167-GES_DISC",
+      "V4128800589-GES_DISC",
+      "V4128820666-GES_DISC",
+      "V4128819208-GES_DISC",
+      "V4128771395-GES_DISC",
+      "V4128796523-GES_DISC",
+      "V4128795770-GES_DISC",
+      "V4128767338-GES_DISC",
+      "V4128779774-GES_DISC",
+      "V4128774764-GES_DISC",
+      "V4128773029-GES_DISC",
+      "V4128770648-GES_DISC",
+      "V4128782474-GES_DISC",
+      "V4128775490-GES_DISC",
+      "V4128810170-GES_DISC",
+      "V4128793318-GES_DISC",
+      "V4128781294-GES_DISC",
+      "V4128782727-GES_DISC",
+      "V4128785442-GES_DISC",
+      "V4128767589-GES_DISC",
+      "V4128809168-GES_DISC",
+      "V4128804273-GES_DISC",
+      "V4128790387-GES_DISC",
+      "V4128783915-GES_DISC",
+      "V4128780368-GES_DISC",
+      "V4128792787-GES_DISC",
+      "V4128817814-GES_DISC",
+      "V4128780380-GES_DISC",
+      "V4128779129-GES_DISC",
+      "V4128783746-GES_DISC",
+      "V4128779281-GES_DISC",
+      "V4128782846-GES_DISC",
+      "V4128768539-GES_DISC",
+      "V4128792862-GES_DISC",
+      "V4128811558-GES_DISC",
+      "V4128818805-GES_DISC",
+      "V4128775399-GES_DISC",
+      "V4128819485-GES_DISC",
+      "V4128768951-GES_DISC",
+      "V4128786248-GES_DISC",
+      "V4128798295-GES_DISC",
+      "V4128786738-GES_DISC",
+      "V4128776924-GES_DISC",
+      "V4128768784-GES_DISC",
+      "V4128802090-GES_DISC",
+      "V4128773577-GES_DISC",
+      "V4128820743-GES_DISC",
+      "V4128801281-GES_DISC",
+      "V4128819122-GES_DISC",
+      "V4128773522-GES_DISC",
+      "V4128818292-GES_DISC",
+      "V4128794120-GES_DISC",
+      "V4128768527-GES_DISC",
+      "V4128810017-GES_DISC",
+      "V4128769726-GES_DISC",
+      "V4128807276-GES_DISC",
+      "V4128771552-GES_DISC",
+      "V4128809954-GES_DISC",
+      "V4128794235-GES_DISC",
+      "V4128783074-GES_DISC",
+      "V4128800283-GES_DISC",
+      "V4128795494-GES_DISC",
+      "V4128772402-GES_DISC",
+      "V4128813402-GES_DISC",
+      "V4128816689-GES_DISC",
+      "V4128781550-GES_DISC",
+      "V4128768482-GES_DISC",
+      "V4128780455-GES_DISC",
+      "V4128801685-GES_DISC",
+      "V4128799231-GES_DISC",
+      "V4128811009-GES_DISC",
+      "V4128779185-GES_DISC",
+      "V4128781795-GES_DISC",
+      "V4128800058-GES_DISC",
+      "V4128815503-GES_DISC",
+      "V4128788986-GES_DISC",
+      "V4128788121-GES_DISC",
+      "V4128790649-GES_DISC",
+      "V4128797917-GES_DISC",
+      "V4128806805-GES_DISC",
+      "V4128773361-GES_DISC",
+      "V4128768666-GES_DISC",
+      "V4128819064-GES_DISC",
+      "V4128804358-GES_DISC",
+      "V4128796850-GES_DISC",
+      "V4128791739-GES_DISC",
+      "V4128774713-GES_DISC",
+      "V4128783792-GES_DISC",
+      "V4128819811-GES_DISC",
+      "V4128799198-GES_DISC",
+      "V4128781577-GES_DISC",
+      "V4128801618-GES_DISC",
+      "V4128809722-GES_DISC",
+      "V4128813427-GES_DISC",
+      "V4128778550-GES_DISC",
+      "V4128806038-GES_DISC",
+      "V4128791543-GES_DISC",
+      "V4128784906-GES_DISC",
+      "V4128804082-GES_DISC",
+      "V4128816598-GES_DISC",
+      "V4128790367-GES_DISC",
+      "V4128814705-GES_DISC",
+      "V4128815015-GES_DISC",
+      "V4128771076-GES_DISC",
+      "V4128787700-GES_DISC",
+      "V4128809884-GES_DISC",
+      "V4128813883-GES_DISC",
+      "V4128783706-GES_DISC",
+      "V4128775441-GES_DISC",
+      "V4128787632-GES_DISC",
+      "V4128818057-GES_DISC",
+      "V4128800393-GES_DISC",
+      "V4128794718-GES_DISC",
+      "V4128791609-GES_DISC",
+      "V4128773784-GES_DISC",
+      "V4128817843-GES_DISC",
+      "V4128797990-GES_DISC",
+      "V4128781679-GES_DISC",
+      "V4128769857-GES_DISC",
+      "V4128779374-GES_DISC",
+      "V4128790531-GES_DISC",
+      "V4128803344-GES_DISC",
+      "V4128782585-GES_DISC",
+      "V4128772608-GES_DISC",
+      "V4128820405-GES_DISC",
+      "V4128775912-GES_DISC",
+      "V4128768478-GES_DISC",
+      "V4128814408-GES_DISC",
+      "V4128811930-GES_DISC",
+      "V4128794219-GES_DISC",
+      "V4128811682-GES_DISC",
+      "V4128771137-GES_DISC",
+      "V4128791458-GES_DISC",
+      "V4128783679-GES_DISC",
+      "V4128807137-GES_DISC",
+      "V4128774670-GES_DISC",
+      "V4128805403-GES_DISC",
+      "V4128772330-GES_DISC",
+      "V4128782607-GES_DISC",
+      "V4128768029-GES_DISC",
+      "V4128774656-GES_DISC",
+      "V4128779025-GES_DISC",
+      "V4128808725-GES_DISC",
+      "V4128777393-GES_DISC",
+      "V4128806270-GES_DISC",
+      "V4128790950-GES_DISC",
+      "V4128800339-GES_DISC",
+      "V4128774728-GES_DISC",
+      "V4128774646-GES_DISC",
+      "V4128819233-GES_DISC",
+      "V4128772411-GES_DISC",
+      "V4128774935-GES_DISC",
+      "V4128804326-GES_DISC",
+      "V4128782701-GES_DISC",
+      "V4128780484-GES_DISC",
+      "V4128805789-GES_DISC",
+      "V4128781631-GES_DISC",
+      "V4128807359-GES_DISC",
+      "V4128770055-GES_DISC",
+      "V4128784020-GES_DISC",
+      "V4128796791-GES_DISC",
+      "V4128814852-GES_DISC",
+      "V4128789040-GES_DISC",
+      "V4128804252-GES_DISC",
+      "V4128778063-GES_DISC",
+      "V4128798946-GES_DISC",
+      "V4128786579-GES_DISC",
+      "V4128799511-GES_DISC",
+      "V4128780655-GES_DISC",
+      "V4128777913-GES_DISC",
+      "V4128784983-GES_DISC",
+      "V4128794161-GES_DISC",
+      "V4128800246-GES_DISC",
+      "V4128795411-GES_DISC",
+      "V4128796708-GES_DISC",
+      "V4128777937-GES_DISC",
+      "V4128786322-GES_DISC",
+      "V4128796734-GES_DISC",
+      "V4128815265-GES_DISC",
+      "V4128784356-GES_DISC"
+     ],
+     "services": [
+      "S1962070864-POCLOUD",
+      "S2874702816-XYZ_PROV"
+     ],
+     "citations": [
+      "CIT4181325729-ESDIS",
+      "CIT3804352483-ESDIS",
+      "CIT4106694792-ESDIS",
+      "CIT4181351706-ESDIS",
+      "CIT4181352718-ESDIS",
+      "CIT3963288415-ESDIS",
+      "CIT3804033239-ESDIS",
+      "CIT3804183302-ESDIS",
+      "CIT3804186068-ESDIS",
+      "CIT3803978483-ESDIS",
+      "CIT3804233526-ESDIS",
+      "CIT3857568153-ESDIS",
+      "CIT4181382039-ESDIS",
+      "CIT3804227548-ESDIS",
+      "CIT3804162349-ESDIS",
+      "CIT4181361949-ESDIS",
+      "CIT4181371493-ESDIS",
+      "CIT3804152051-ESDIS",
+      "CIT4321022470-ESDIS",
+      "CIT3803956220-ESDIS",
+      "CIT3804190730-ESDIS",
+      "CIT3857556264-ESDIS",
+      "CIT3804260411-ESDIS",
+      "CIT4181337862-ESDIS",
+      "CIT4181360677-ESDIS",
+      "CIT4181368393-ESDIS",
+      "CIT3804141442-ESDIS",
+      "CIT3804352521-ESDIS",
+      "CIT3804200553-ESDIS",
+      "CIT3804201940-ESDIS",
+      "CIT3804193886-ESDIS",
+      "CIT4181366659-ESDIS",
+      "CIT4201248056-ESDIS",
+      "CIT4321026760-ESDIS",
+      "CIT4181377778-ESDIS",
+      "CIT4181362339-ESDIS",
+      "CIT4248443598-ESDIS",
+      "CIT4181364894-ESDIS",
+      "CIT3804230535-ESDIS",
+      "CIT3804333675-ESDIS",
+      "CIT4181368929-ESDIS",
+      "CIT4201249480-ESDIS",
+      "CIT3804040971-ESDIS",
+      "CIT3804054684-ESDIS",
+      "CIT4181375672-ESDIS",
+      "CIT4106687404-ESDIS",
+      "CIT3804288076-ESDIS",
+      "CIT3857564482-ESDIS",
+      "CIT3804196297-ESDIS",
+      "CIT3857574655-ESDIS",
+      "CIT4181376027-ESDIS",
+      "CIT3804167241-ESDIS",
+      "CIT4248451591-ESDIS",
+      "CIT4181381365-ESDIS",
+      "CIT4181342883-ESDIS",
+      "CIT3803955354-ESDIS",
+      "CIT4181378119-ESDIS",
+      "CIT4181369462-ESDIS",
+      "CIT4248446548-ESDIS",
+      "CIT4181383330-ESDIS",
+      "CIT3804199076-ESDIS",
+      "CIT4181352045-ESDIS",
+      "CIT4106686012-ESDIS",
+      "CIT3804012836-ESDIS",
+      "CIT4181370453-ESDIS",
+      "CIT3963295753-ESDIS",
+      "CIT4181333158-ESDIS",
+      "CIT3804284515-ESDIS",
+      "CIT4181378875-ESDIS",
+      "CIT4181360670-ESDIS",
+      "CIT4106697122-ESDIS",
+      "CIT4181332677-ESDIS",
+      "CIT4181375977-ESDIS",
+      "CIT4181361941-ESDIS",
+      "CIT4181375533-ESDIS",
+      "CIT3804021144-ESDIS",
+      "CIT3857566643-ESDIS",
+      "CIT3804034187-ESDIS",
+      "CIT4181361364-ESDIS",
+      "CIT4248445655-ESDIS",
+      "CIT4181381467-ESDIS",
+      "CIT4181324423-ESDIS",
+      "CIT4181382928-ESDIS",
+      "CIT3804094546-ESDIS",
+      "CIT4248443213-ESDIS",
+      "CIT3804192557-ESDIS",
+      "CIT4181345129-ESDIS",
+      "CIT4181378159-ESDIS",
+      "CIT4181335406-ESDIS",
+      "CIT3804147593-ESDIS",
+      "CIT3803944909-ESDIS",
+      "CIT3804315161-ESDIS",
+      "CIT3963288933-ESDIS",
+      "CIT3804255553-ESDIS",
+      "CIT4181354928-ESDIS",
+      "CIT4181326934-ESDIS",
+      "CIT4181365750-ESDIS",
+      "CIT3804262695-ESDIS",
+      "CIT4181326696-ESDIS",
+      "CIT3803959795-ESDIS",
+      "CIT4181374182-ESDIS",
+      "CIT4181376484-ESDIS",
+      "CIT4321029289-ESDIS",
+      "CIT4181316275-ESDIS",
+      "CIT3804374153-ESDIS",
+      "CIT3857573174-ESDIS",
+      "CIT4181372508-ESDIS",
+      "CIT4201246903-ESDIS",
+      "CIT4201246897-ESDIS",
+      "CIT3804171555-ESDIS",
+      "CIT3804233739-ESDIS",
+      "CIT3804287603-ESDIS",
+      "CIT4181374437-ESDIS",
+      "CIT4181372036-ESDIS",
+      "CIT3804314577-ESDIS",
+      "CIT3804178417-ESDIS",
+      "CIT3804241955-ESDIS",
+      "CIT3804134955-ESDIS",
+      "CIT3857559890-ESDIS",
+      "CIT4181326987-ESDIS",
+      "CIT3804224146-ESDIS",
+      "CIT4181332976-ESDIS",
+      "CIT4181382057-ESDIS",
+      "CIT3804315599-ESDIS",
+      "CIT4181374029-ESDIS",
+      "CIT4181313684-ESDIS",
+      "CIT3804045656-ESDIS",
+      "CIT4181370252-ESDIS",
+      "CIT3804284771-ESDIS",
+      "CIT4181368558-ESDIS",
+      "CIT3804123077-ESDIS",
+      "CIT4181338251-ESDIS",
+      "CIT3803974375-ESDIS",
+      "CIT4181366825-ESDIS",
+      "CIT4181382874-ESDIS",
+      "CIT4201251673-ESDIS",
+      "CIT3857574690-ESDIS",
+      "CIT4106697311-ESDIS",
+      "CIT4181371731-ESDIS",
+      "CIT3804210086-ESDIS",
+      "CIT3804214852-ESDIS"
+     ]
+    },
+    "has_variables": true,
+    "data_center": "GES_DISC",
+    "short_name": "GPM_2ADPR",
+    "organizations": [
+     "NASA/GSFC/SED/ESD/TISL/GESDISC"
+    ],
+    "title": "GPM DPR Precipitation Profile L2A 1.5 hours 5 km V08 (GPM_2ADPR)",
+    "coordinate_system": "GEODETIC",
+    "summary": "Version 08 is the current version of the data set. Older versions will no longer be available and have been superseded by Version 08.\n.\n\n2ADPR provides single- and dual-frequency-derived precipitation estimates from the Ku and Ka radars of the Dual-Frequency Precipitation Radar (DPR) on the core GPM spacecraft. The output consists of three main classes of precipitation products: those derived from the Ku-band frequency over a wide swath (245 km), those derived from the Ka-band frequency over a narrow swath (125 km), and those derived from the dual-frequency data over the narrow swath. The Ka-band results are further divided into the standard and high-sensitivity estimates. In the standard sensitivity mode, the fields of view within the inner swath are matched to those of the Ku-band. Data from these matched-beam Ku- and Ka-band fields of view are used to derive the dual-frequency precipitation products. The retrievals are performed at each radar range bin along the slant path of the radar instrument field of view (IFOV).",
+    "service_features": {
+     "harmony": {
+      "has_formats": true,
+      "has_variables": true,
+      "has_transforms": false,
+      "has_combine": false,
+      "has_spatial_subsetting": true,
+      "has_temporal_subsetting": true
+     },
+     "opendap": {
+      "has_formats": false,
+      "has_variables": false,
+      "has_transforms": false,
+      "has_combine": false,
+      "has_spatial_subsetting": false,
+      "has_temporal_subsetting": false
+     },
+     "esi": {
+      "has_formats": false,
+      "has_variables": false,
+      "has_transforms": false,
+      "has_combine": false,
+      "has_spatial_subsetting": false,
+      "has_temporal_subsetting": false
+     }
+    },
+    "orbit_parameters": {},
+    "id": "C4054954501-GES_DISC",
+    "has_formats": true,
+    "score": 2.0592,
+    "consortiums": [
+     "EOSDIS",
+     "GEOSS"
+    ],
+    "original_format": "UMM_JSON",
+    "archive_center": "NASA/GSFC/SED/ESD/TISL/GESDISC",
+    "has_temporal_subsetting": true,
+    "browse_flag": true,
+    "platforms": [
+     "GPM"
+    ],
+    "association_details": {
+     "variables": [
+      {
+       "concept_id": "V4128767736-GES_DISC"
+      },
+      {
+       "concept_id": "V4128771018-GES_DISC"
+      },
+      {
+       "concept_id": "V4128799184-GES_DISC"
+      },
+      {
+       "concept_id": "V4128799125-GES_DISC"
+      },
+      {
+       "concept_id": "V4128769398-GES_DISC"
+      },
+      {
+       "concept_id": "V4128817282-GES_DISC"
+      },
+      {
+       "concept_id": "V4128807649-GES_DISC"
+      },
+      {
+       "concept_id": "V4128787577-GES_DISC"
+      },
+      {
+       "concept_id": "V4128773984-GES_DISC"
+      },
+      {
+       "concept_id": "V4128773494-GES_DISC"
+      },
+      {
+       "concept_id": "V4128797256-GES_DISC"
+      },
+      {
+       "concept_id": "V4128774396-GES_DISC"
+      },
+      {
+       "concept_id": "V4128775675-GES_DISC"
+      },
+      {
+       "concept_id": "V4128776833-GES_DISC"
+      },
+      {
+       "concept_id": "V4128796924-GES_DISC"
+      },
+      {
+       "concept_id": "V4128785029-GES_DISC"
+      },
+      {
+       "concept_id": "V4128808765-GES_DISC"
+      },
+      {
+       "concept_id": "V4128789936-GES_DISC"
+      },
+      {
+       "concept_id": "V4128807812-GES_DISC"
+      },
+      {
+       "concept_id": "V4128775447-GES_DISC"
+      },
+      {
+       "concept_id": "V4128805714-GES_DISC"
+      },
+      {
+       "concept_id": "V4128787297-GES_DISC"
+      },
+      {
+       "concept_id": "V4128785238-GES_DISC"
+      },
+      {
+       "concept_id": "V4128816519-GES_DISC"
+      },
+      {
+       "concept_id": "V4128776821-GES_DISC"
+      },
+      {
+       "concept_id": "V4128780835-GES_DISC"
+      },
+      {
+       "concept_id": "V4128817746-GES_DISC"
+      },
+      {
+       "concept_id": "V4128772008-GES_DISC"
+      },
+      {
+       "concept_id": "V4128801545-GES_DISC"
+      },
+      {
+       "concept_id": "V4128769719-GES_DISC"
+      },
+      {
+       "concept_id": "V4128785113-GES_DISC"
+      },
+      {
+       "concept_id": "V4128802367-GES_DISC"
+      },
+      {
+       "concept_id": "V4128803087-GES_DISC"
+      },
+      {
+       "concept_id": "V4128790221-GES_DISC"
+      },
+      {
+       "concept_id": "V4128803004-GES_DISC"
+      },
+      {
+       "concept_id": "V4128788598-GES_DISC"
+      },
+      {
+       "concept_id": "V4128776723-GES_DISC"
+      },
+      {
+       "concept_id": "V4128789054-GES_DISC"
+      },
+      {
+       "concept_id": "V4128805694-GES_DISC"
+      },
+      {
+       "concept_id": "V4128816429-GES_DISC"
+      },
+      {
+       "concept_id": "V4128776268-GES_DISC"
+      },
+      {
+       "concept_id": "V4128771054-GES_DISC"
+      },
+      {
+       "concept_id": "V4128807395-GES_DISC"
+      },
+      {
+       "concept_id": "V4128769808-GES_DISC"
+      },
+      {
+       "concept_id": "V4128776711-GES_DISC"
+      },
+      {
+       "concept_id": "V4128817697-GES_DISC"
+      },
+      {
+       "concept_id": "V4128772741-GES_DISC"
+      },
+      {
+       "concept_id": "V4128781661-GES_DISC"
+      },
+      {
+       "concept_id": "V4128775517-GES_DISC"
+      },
+      {
+       "concept_id": "V4128777998-GES_DISC"
+      },
+      {
+       "concept_id": "V4128789427-GES_DISC"
+      },
+      {
+       "concept_id": "V4128771187-GES_DISC"
+      },
+      {
+       "concept_id": "V4128814612-GES_DISC"
+      },
+      {
+       "concept_id": "V4128812917-GES_DISC"
+      },
+      {
+       "concept_id": "V4128779564-GES_DISC"
+      },
+      {
+       "concept_id": "V4128782049-GES_DISC"
+      },
+      {
+       "concept_id": "V4128800776-GES_DISC"
+      },
+      {
+       "concept_id": "V4128790183-GES_DISC"
+      },
+      {
+       "concept_id": "V4128803608-GES_DISC"
+      },
+      {
+       "concept_id": "V4128808682-GES_DISC"
+      },
+      {
+       "concept_id": "V4128788936-GES_DISC"
+      },
+      {
+       "concept_id": "V4128820702-GES_DISC"
+      },
+      {
+       "concept_id": "V4128786432-GES_DISC"
+      },
+      {
+       "concept_id": "V4128813335-GES_DISC"
+      },
+      {
+       "concept_id": "V4128792060-GES_DISC"
+      },
+      {
+       "concept_id": "V4128820901-GES_DISC"
+      },
+      {
+       "concept_id": "V4128812138-GES_DISC"
+      },
+      {
+       "concept_id": "V4128785675-GES_DISC"
+      },
+      {
+       "concept_id": "V4128786216-GES_DISC"
+      },
+      {
+       "concept_id": "V4128787940-GES_DISC"
+      },
+      {
+       "concept_id": "V4128791559-GES_DISC"
+      },
+      {
+       "concept_id": "V4128804683-GES_DISC"
+      },
+      {
+       "concept_id": "V4128811821-GES_DISC"
+      },
+      {
+       "concept_id": "V4128777805-GES_DISC"
+      },
+      {
+       "concept_id": "V4128810575-GES_DISC"
+      },
+      {
+       "concept_id": "V4128799077-GES_DISC"
+      },
+      {
+       "concept_id": "V4128803042-GES_DISC"
+      },
+      {
+       "concept_id": "V4128795957-GES_DISC"
+      },
+      {
+       "concept_id": "V4128808386-GES_DISC"
+      },
+      {
+       "concept_id": "V4128772353-GES_DISC"
+      },
+      {
+       "concept_id": "V4128778227-GES_DISC"
+      },
+      {
+       "concept_id": "V4128812374-GES_DISC"
+      },
+      {
+       "concept_id": "V4128801790-GES_DISC"
+      },
+      {
+       "concept_id": "V4128773593-GES_DISC"
+      },
+      {
+       "concept_id": "V4128789239-GES_DISC"
+      },
+      {
+       "concept_id": "V4128813303-GES_DISC"
+      },
+      {
+       "concept_id": "V4128808664-GES_DISC"
+      },
+      {
+       "concept_id": "V4128816947-GES_DISC"
+      },
+      {
+       "concept_id": "V4128801815-GES_DISC"
+      },
+      {
+       "concept_id": "V4128808958-GES_DISC"
+      },
+      {
+       "concept_id": "V4128770214-GES_DISC"
+      },
+      {
+       "concept_id": "V4128805763-GES_DISC"
+      },
+      {
+       "concept_id": "V4128778343-GES_DISC"
+      },
+      {
+       "concept_id": "V4128797847-GES_DISC"
+      },
+      {
+       "concept_id": "V4128804903-GES_DISC"
+      },
+      {
+       "concept_id": "V4128780254-GES_DISC"
+      },
+      {
+       "concept_id": "V4128792923-GES_DISC"
+      },
+      {
+       "concept_id": "V4128786307-GES_DISC"
+      },
+      {
+       "concept_id": "V4128803130-GES_DISC"
+      },
+      {
+       "concept_id": "V4128813577-GES_DISC"
+      },
+      {
+       "concept_id": "V4128816025-GES_DISC"
+      },
+      {
+       "concept_id": "V4128777167-GES_DISC"
+      },
+      {
+       "concept_id": "V4128800589-GES_DISC"
+      },
+      {
+       "concept_id": "V4128820666-GES_DISC"
+      },
+      {
+       "concept_id": "V4128819208-GES_DISC"
+      },
+      {
+       "concept_id": "V4128771395-GES_DISC"
+      },
+      {
+       "concept_id": "V4128796523-GES_DISC"
+      },
+      {
+       "concept_id": "V4128795770-GES_DISC"
+      },
+      {
+       "concept_id": "V4128767338-GES_DISC"
+      },
+      {
+       "concept_id": "V4128779774-GES_DISC"
+      },
+      {
+       "concept_id": "V4128774764-GES_DISC"
+      },
+      {
+       "concept_id": "V4128773029-GES_DISC"
+      },
+      {
+       "concept_id": "V4128770648-GES_DISC"
+      },
+      {
+       "concept_id": "V4128782474-GES_DISC"
+      },
+      {
+       "concept_id": "V4128775490-GES_DISC"
+      },
+      {
+       "concept_id": "V4128810170-GES_DISC"
+      },
+      {
+       "concept_id": "V4128793318-GES_DISC"
+      },
+      {
+       "concept_id": "V4128781294-GES_DISC"
+      },
+      {
+       "concept_id": "V4128782727-GES_DISC"
+      },
+      {
+       "concept_id": "V4128785442-GES_DISC"
+      },
+      {
+       "concept_id": "V4128767589-GES_DISC"
+      },
+      {
+       "concept_id": "V4128809168-GES_DISC"
+      },
+      {
+       "concept_id": "V4128804273-GES_DISC"
+      },
+      {
+       "concept_id": "V4128790387-GES_DISC"
+      },
+      {
+       "concept_id": "V4128783915-GES_DISC"
+      },
+      {
+       "concept_id": "V4128780368-GES_DISC"
+      },
+      {
+       "concept_id": "V4128792787-GES_DISC"
+      },
+      {
+       "concept_id": "V4128817814-GES_DISC"
+      },
+      {
+       "concept_id": "V4128780380-GES_DISC"
+      },
+      {
+       "concept_id": "V4128779129-GES_DISC"
+      },
+      {
+       "concept_id": "V4128783746-GES_DISC"
+      },
+      {
+       "concept_id": "V4128779281-GES_DISC"
+      },
+      {
+       "concept_id": "V4128782846-GES_DISC"
+      },
+      {
+       "concept_id": "V4128768539-GES_DISC"
+      },
+      {
+       "concept_id": "V4128792862-GES_DISC"
+      },
+      {
+       "concept_id": "V4128811558-GES_DISC"
+      },
+      {
+       "concept_id": "V4128818805-GES_DISC"
+      },
+      {
+       "concept_id": "V4128775399-GES_DISC"
+      },
+      {
+       "concept_id": "V4128819485-GES_DISC"
+      },
+      {
+       "concept_id": "V4128768951-GES_DISC"
+      },
+      {
+       "concept_id": "V4128786248-GES_DISC"
+      },
+      {
+       "concept_id": "V4128798295-GES_DISC"
+      },
+      {
+       "concept_id": "V4128786738-GES_DISC"
+      },
+      {
+       "concept_id": "V4128776924-GES_DISC"
+      },
+      {
+       "concept_id": "V4128768784-GES_DISC"
+      },
+      {
+       "concept_id": "V4128802090-GES_DISC"
+      },
+      {
+       "concept_id": "V4128773577-GES_DISC"
+      },
+      {
+       "concept_id": "V4128820743-GES_DISC"
+      },
+      {
+       "concept_id": "V4128801281-GES_DISC"
+      },
+      {
+       "concept_id": "V4128819122-GES_DISC"
+      },
+      {
+       "concept_id": "V4128773522-GES_DISC"
+      },
+      {
+       "concept_id": "V4128818292-GES_DISC"
+      },
+      {
+       "concept_id": "V4128794120-GES_DISC"
+      },
+      {
+       "concept_id": "V4128768527-GES_DISC"
+      },
+      {
+       "concept_id": "V4128810017-GES_DISC"
+      },
+      {
+       "concept_id": "V4128769726-GES_DISC"
+      },
+      {
+       "concept_id": "V4128807276-GES_DISC"
+      },
+      {
+       "concept_id": "V4128771552-GES_DISC"
+      },
+      {
+       "concept_id": "V4128809954-GES_DISC"
+      },
+      {
+       "concept_id": "V4128794235-GES_DISC"
+      },
+      {
+       "concept_id": "V4128783074-GES_DISC"
+      },
+      {
+       "concept_id": "V4128800283-GES_DISC"
+      },
+      {
+       "concept_id": "V4128795494-GES_DISC"
+      },
+      {
+       "concept_id": "V4128772402-GES_DISC"
+      },
+      {
+       "concept_id": "V4128813402-GES_DISC"
+      },
+      {
+       "concept_id": "V4128816689-GES_DISC"
+      },
+      {
+       "concept_id": "V4128781550-GES_DISC"
+      },
+      {
+       "concept_id": "V4128768482-GES_DISC"
+      },
+      {
+       "concept_id": "V4128780455-GES_DISC"
+      },
+      {
+       "concept_id": "V4128801685-GES_DISC"
+      },
+      {
+       "concept_id": "V4128799231-GES_DISC"
+      },
+      {
+       "concept_id": "V4128811009-GES_DISC"
+      },
+      {
+       "concept_id": "V4128779185-GES_DISC"
+      },
+      {
+       "concept_id": "V4128781795-GES_DISC"
+      },
+      {
+       "concept_id": "V4128800058-GES_DISC"
+      },
+      {
+       "concept_id": "V4128815503-GES_DISC"
+      },
+      {
+       "concept_id": "V4128788986-GES_DISC"
+      },
+      {
+       "concept_id": "V4128788121-GES_DISC"
+      },
+      {
+       "concept_id": "V4128790649-GES_DISC"
+      },
+      {
+       "concept_id": "V4128797917-GES_DISC"
+      },
+      {
+       "concept_id": "V4128806805-GES_DISC"
+      },
+      {
+       "concept_id": "V4128773361-GES_DISC"
+      },
+      {
+       "concept_id": "V4128768666-GES_DISC"
+      },
+      {
+       "concept_id": "V4128819064-GES_DISC"
+      },
+      {
+       "concept_id": "V4128804358-GES_DISC"
+      },
+      {
+       "concept_id": "V4128796850-GES_DISC"
+      },
+      {
+       "concept_id": "V4128791739-GES_DISC"
+      },
+      {
+       "concept_id": "V4128774713-GES_DISC"
+      },
+      {
+       "concept_id": "V4128783792-GES_DISC"
+      },
+      {
+       "concept_id": "V4128819811-GES_DISC"
+      },
+      {
+       "concept_id": "V4128799198-GES_DISC"
+      },
+      {
+       "concept_id": "V4128781577-GES_DISC"
+      },
+      {
+       "concept_id": "V4128801618-GES_DISC"
+      },
+      {
+       "concept_id": "V4128809722-GES_DISC"
+      },
+      {
+       "concept_id": "V4128813427-GES_DISC"
+      },
+      {
+       "concept_id": "V4128778550-GES_DISC"
+      },
+      {
+       "concept_id": "V4128806038-GES_DISC"
+      },
+      {
+       "concept_id": "V4128791543-GES_DISC"
+      },
+      {
+       "concept_id": "V4128784906-GES_DISC"
+      },
+      {
+       "concept_id": "V4128804082-GES_DISC"
+      },
+      {
+       "concept_id": "V4128816598-GES_DISC"
+      },
+      {
+       "concept_id": "V4128790367-GES_DISC"
+      },
+      {
+       "concept_id": "V4128814705-GES_DISC"
+      },
+      {
+       "concept_id": "V4128815015-GES_DISC"
+      },
+      {
+       "concept_id": "V4128771076-GES_DISC"
+      },
+      {
+       "concept_id": "V4128787700-GES_DISC"
+      },
+      {
+       "concept_id": "V4128809884-GES_DISC"
+      },
+      {
+       "concept_id": "V4128813883-GES_DISC"
+      },
+      {
+       "concept_id": "V4128783706-GES_DISC"
+      },
+      {
+       "concept_id": "V4128775441-GES_DISC"
+      },
+      {
+       "concept_id": "V4128787632-GES_DISC"
+      },
+      {
+       "concept_id": "V4128818057-GES_DISC"
+      },
+      {
+       "concept_id": "V4128800393-GES_DISC"
+      },
+      {
+       "concept_id": "V4128794718-GES_DISC"
+      },
+      {
+       "concept_id": "V4128791609-GES_DISC"
+      },
+      {
+       "concept_id": "V4128773784-GES_DISC"
+      },
+      {
+       "concept_id": "V4128817843-GES_DISC"
+      },
+      {
+       "concept_id": "V4128797990-GES_DISC"
+      },
+      {
+       "concept_id": "V4128781679-GES_DISC"
+      },
+      {
+       "concept_id": "V4128769857-GES_DISC"
+      },
+      {
+       "concept_id": "V4128779374-GES_DISC"
+      },
+      {
+       "concept_id": "V4128790531-GES_DISC"
+      },
+      {
+       "concept_id": "V4128803344-GES_DISC"
+      },
+      {
+       "concept_id": "V4128782585-GES_DISC"
+      },
+      {
+       "concept_id": "V4128772608-GES_DISC"
+      },
+      {
+       "concept_id": "V4128820405-GES_DISC"
+      },
+      {
+       "concept_id": "V4128775912-GES_DISC"
+      },
+      {
+       "concept_id": "V4128768478-GES_DISC"
+      },
+      {
+       "concept_id": "V4128814408-GES_DISC"
+      },
+      {
+       "concept_id": "V4128811930-GES_DISC"
+      },
+      {
+       "concept_id": "V4128794219-GES_DISC"
+      },
+      {
+       "concept_id": "V4128811682-GES_DISC"
+      },
+      {
+       "concept_id": "V4128771137-GES_DISC"
+      },
+      {
+       "concept_id": "V4128791458-GES_DISC"
+      },
+      {
+       "concept_id": "V4128783679-GES_DISC"
+      },
+      {
+       "concept_id": "V4128807137-GES_DISC"
+      },
+      {
+       "concept_id": "V4128774670-GES_DISC"
+      },
+      {
+       "concept_id": "V4128805403-GES_DISC"
+      },
+      {
+       "concept_id": "V4128772330-GES_DISC"
+      },
+      {
+       "concept_id": "V4128782607-GES_DISC"
+      },
+      {
+       "concept_id": "V4128768029-GES_DISC"
+      },
+      {
+       "concept_id": "V4128774656-GES_DISC"
+      },
+      {
+       "concept_id": "V4128779025-GES_DISC"
+      },
+      {
+       "concept_id": "V4128808725-GES_DISC"
+      },
+      {
+       "concept_id": "V4128777393-GES_DISC"
+      },
+      {
+       "concept_id": "V4128806270-GES_DISC"
+      },
+      {
+       "concept_id": "V4128790950-GES_DISC"
+      },
+      {
+       "concept_id": "V4128800339-GES_DISC"
+      },
+      {
+       "concept_id": "V4128774728-GES_DISC"
+      },
+      {
+       "concept_id": "V4128774646-GES_DISC"
+      },
+      {
+       "concept_id": "V4128819233-GES_DISC"
+      },
+      {
+       "concept_id": "V4128772411-GES_DISC"
+      },
+      {
+       "concept_id": "V4128774935-GES_DISC"
+      },
+      {
+       "concept_id": "V4128804326-GES_DISC"
+      },
+      {
+       "concept_id": "V4128782701-GES_DISC"
+      },
+      {
+       "concept_id": "V4128780484-GES_DISC"
+      },
+      {
+       "concept_id": "V4128805789-GES_DISC"
+      },
+      {
+       "concept_id": "V4128781631-GES_DISC"
+      },
+      {
+       "concept_id": "V4128807359-GES_DISC"
+      },
+      {
+       "concept_id": "V4128770055-GES_DISC"
+      },
+      {
+       "concept_id": "V4128784020-GES_DISC"
+      },
+      {
+       "concept_id": "V4128796791-GES_DISC"
+      },
+      {
+       "concept_id": "V4128814852-GES_DISC"
+      },
+      {
+       "concept_id": "V4128789040-GES_DISC"
+      },
+      {
+       "concept_id": "V4128804252-GES_DISC"
+      },
+      {
+       "concept_id": "V4128778063-GES_DISC"
+      },
+      {
+       "concept_id": "V4128798946-GES_DISC"
+      },
+      {
+       "concept_id": "V4128786579-GES_DISC"
+      },
+      {
+       "concept_id": "V4128799511-GES_DISC"
+      },
+      {
+       "concept_id": "V4128780655-GES_DISC"
+      },
+      {
+       "concept_id": "V4128777913-GES_DISC"
+      },
+      {
+       "concept_id": "V4128784983-GES_DISC"
+      },
+      {
+       "concept_id": "V4128794161-GES_DISC"
+      },
+      {
+       "concept_id": "V4128800246-GES_DISC"
+      },
+      {
+       "concept_id": "V4128795411-GES_DISC"
+      },
+      {
+       "concept_id": "V4128796708-GES_DISC"
+      },
+      {
+       "concept_id": "V4128777937-GES_DISC"
+      },
+      {
+       "concept_id": "V4128786322-GES_DISC"
+      },
+      {
+       "concept_id": "V4128796734-GES_DISC"
+      },
+      {
+       "concept_id": "V4128815265-GES_DISC"
+      },
+      {
+       "concept_id": "V4128784356-GES_DISC"
+      }
+     ],
+     "services": [
+      {
+       "concept_id": "S1962070864-POCLOUD"
+      },
+      {
+       "concept_id": "S2874702816-XYZ_PROV"
+      }
+     ],
+     "citations": [
+      {
+       "concept_id": "CIT4181325729-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804352483-ESDIS"
+      },
+      {
+       "concept_id": "CIT4106694792-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181351706-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181352718-ESDIS"
+      },
+      {
+       "concept_id": "CIT3963288415-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804033239-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804183302-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804186068-ESDIS"
+      },
+      {
+       "concept_id": "CIT3803978483-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804233526-ESDIS"
+      },
+      {
+       "concept_id": "CIT3857568153-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181382039-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804227548-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804162349-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181361949-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181371493-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804152051-ESDIS"
+      },
+      {
+       "concept_id": "CIT4321022470-ESDIS"
+      },
+      {
+       "concept_id": "CIT3803956220-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804190730-ESDIS"
+      },
+      {
+       "concept_id": "CIT3857556264-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804260411-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181337862-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181360677-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181368393-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804141442-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804352521-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804200553-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804201940-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804193886-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181366659-ESDIS"
+      },
+      {
+       "concept_id": "CIT4201248056-ESDIS"
+      },
+      {
+       "concept_id": "CIT4321026760-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181377778-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181362339-ESDIS"
+      },
+      {
+       "concept_id": "CIT4248443598-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181364894-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804230535-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804333675-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181368929-ESDIS"
+      },
+      {
+       "concept_id": "CIT4201249480-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804040971-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804054684-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181375672-ESDIS"
+      },
+      {
+       "concept_id": "CIT4106687404-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804288076-ESDIS"
+      },
+      {
+       "concept_id": "CIT3857564482-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804196297-ESDIS"
+      },
+      {
+       "concept_id": "CIT3857574655-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181376027-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804167241-ESDIS"
+      },
+      {
+       "concept_id": "CIT4248451591-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181381365-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181342883-ESDIS"
+      },
+      {
+       "concept_id": "CIT3803955354-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181378119-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181369462-ESDIS"
+      },
+      {
+       "concept_id": "CIT4248446548-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181383330-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804199076-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181352045-ESDIS"
+      },
+      {
+       "concept_id": "CIT4106686012-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804012836-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181370453-ESDIS"
+      },
+      {
+       "concept_id": "CIT3963295753-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181333158-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804284515-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181378875-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181360670-ESDIS"
+      },
+      {
+       "concept_id": "CIT4106697122-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181332677-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181375977-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181361941-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181375533-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804021144-ESDIS"
+      },
+      {
+       "concept_id": "CIT3857566643-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804034187-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181361364-ESDIS"
+      },
+      {
+       "concept_id": "CIT4248445655-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181381467-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181324423-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181382928-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804094546-ESDIS"
+      },
+      {
+       "concept_id": "CIT4248443213-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804192557-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181345129-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181378159-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181335406-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804147593-ESDIS"
+      },
+      {
+       "concept_id": "CIT3803944909-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804315161-ESDIS"
+      },
+      {
+       "concept_id": "CIT3963288933-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804255553-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181354928-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181326934-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181365750-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804262695-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181326696-ESDIS"
+      },
+      {
+       "concept_id": "CIT3803959795-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181374182-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181376484-ESDIS"
+      },
+      {
+       "concept_id": "CIT4321029289-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181316275-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804374153-ESDIS"
+      },
+      {
+       "concept_id": "CIT3857573174-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181372508-ESDIS"
+      },
+      {
+       "concept_id": "CIT4201246903-ESDIS"
+      },
+      {
+       "concept_id": "CIT4201246897-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804171555-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804233739-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804287603-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181374437-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181372036-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804314577-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804178417-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804241955-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804134955-ESDIS"
+      },
+      {
+       "concept_id": "CIT3857559890-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181326987-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804224146-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181332976-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181382057-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804315599-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181374029-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181313684-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804045656-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181370252-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804284771-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181368558-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804123077-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181338251-ESDIS"
+      },
+      {
+       "concept_id": "CIT3803974375-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181366825-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181382874-ESDIS"
+      },
+      {
+       "concept_id": "CIT4201251673-ESDIS"
+      },
+      {
+       "concept_id": "CIT3857574690-ESDIS"
+      },
+      {
+       "concept_id": "CIT4106697311-ESDIS"
+      },
+      {
+       "concept_id": "CIT4181371731-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804210086-ESDIS"
+      },
+      {
+       "concept_id": "CIT3804214852-ESDIS"
+      }
+     ]
+    },
+    "online_access_flag": true,
+    "links": [
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/browse#",
+      "hreflang": "en-US",
+      "href": "https://docserver.gesdisc.eosdis.nasa.gov/public/project/GPM/browse/GPM_2ADPR.png"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/metadata#",
+      "hreflang": "en-US",
+      "href": "https://disc.gsfc.nasa.gov/datacollection/GPM_2ADPR_08.html"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/data#",
+      "hreflang": "en-US",
+      "href": "https://cmr.earthdata.nasa.gov/virtual-directory/collections/C4054954501-GES_DISC"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/data#",
+      "hreflang": "en-US",
+      "href": "https://search.earthdata.nasa.gov/search/granules?p=C4054954501-GES_DISC&q=GPM_2ADPR_08"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/metadata#",
+      "hreflang": "en-US",
+      "href": "https://gpm.nasa.gov"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://docserver.gesdisc.eosdis.nasa.gov/public/project/GPM/README.GPM.pdf"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://arthurhou.pps.eosdis.nasa.gov/Documents/ATBD_DPR_L2_V08A.pdf"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://gpmweb2https.pps.eosdis.nasa.gov/pub/GPMfilespec/filespec.GPM.pdf"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://pps.gsfc.nasa.gov/Documents/ReleaseNote_DPRL2L3_productV08A.pdf"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://pps.gsfc.nasa.gov/Documents/DPR_L2_variables_20101128.xls"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://pps.gsfc.nasa.gov/gpminstruments.html"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://gpmweb2https.pps.eosdis.nasa.gov/tsdis/AB/docs/gpm_anomalous.html"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/service#",
+      "hreflang": "en-US",
+      "href": "https://cmr.earthdata.nasa.gov/virtual-directory/collections/C4054954501-GES_DISC/temporal"
+     }
+    ]
+   },
+   {
+    "processing_level_id": "2",
+    "cloud_hosted": true,
+    "boxes": [
+     "-90 -180 90 180"
+    ],
+    "has_combine": false,
+    "time_start": "2014-03-04T17:59:33.000Z",
+    "version_id": "1",
+    "updated": "2021-06-10T00:00:00.000Z",
+    "dataset_id": "NASA MEASURES Precipitation Ensemble based on GMI GPM NASA PPS L1C V05 Tbs 1-orbit L2 Swath 10x10km V1 (PRECIP_GMI_GPM)",
+    "entry_id": "PRECIP_GMI_GPM_1",
+    "has_spatial_subsetting": false,
+    "has_transforms": false,
+    "associations": {
+     "services": [
+      "S2874702816-XYZ_PROV"
+     ],
+     "citations": [
+      "CIT3857570715-ESDIS",
+      "CIT4201249480-ESDIS"
+     ]
+    },
+    "has_variables": true,
+    "data_center": "GES_DISC",
+    "short_name": "PRECIP_GMI_GPM",
+    "organizations": [
+     "NASA/GSFC/SED/ESD/TISL/GESDISC"
+    ],
+    "title": "NASA MEASURES Precipitation Ensemble based on GMI GPM NASA PPS L1C V05 Tbs 1-orbit L2 Swath 10x10km V1 (PRECIP_GMI_GPM)",
+    "coordinate_system": "GEODETIC",
+    "summary": "The data presented in this level 2 orbital product are rain rate estimates expressed as mm/hour determined from brightness temperatures (Tbs) obtained from the Global Precipitation Measurement (GPM) Microwave Imager (GMI) flown on the GPM satellite. Most of the products generated in this data set are based upon the algorithms developed for the 3rd Algorithm Intercomparison Project (AIP-3) of the Global Precipitation Climatology Project (GPCP).  Details of these 15 algorithms and development of a quality score which is a measure of confidence in the estimate, along with processing and algorithmic flags, can be found in the Algorithm Theoretical Basis Document  (ATBD).  The data in this product cover the period from 2014 to 2020 with one file per orbit.",
+    "time_end": "2021-01-01T01:31:33.000Z",
+    "service_features": {
+     "opendap": {
+      "has_formats": false,
+      "has_variables": false,
+      "has_transforms": false,
+      "has_combine": false,
+      "has_spatial_subsetting": false,
+      "has_temporal_subsetting": false
+     },
+     "esi": {
+      "has_formats": false,
+      "has_variables": false,
+      "has_transforms": false,
+      "has_combine": false,
+      "has_spatial_subsetting": false,
+      "has_temporal_subsetting": false
+     },
+     "harmony": {
+      "has_formats": false,
+      "has_variables": false,
+      "has_transforms": false,
+      "has_combine": false,
+      "has_spatial_subsetting": false,
+      "has_temporal_subsetting": false
+     }
+    },
+    "orbit_parameters": {
+     "swath_width": "885",
+     "period": "92.6",
+     "inclination_angle": "65",
+     "number_of_orbits": "1",
+     "start_circular_latitude": "-90"
+    },
+    "id": "C2368306937-GES_DISC",
+    "has_formats": false,
+    "score": 2.0592,
+    "consortiums": [
+     "EOSDIS",
+     "GEOSS"
+    ],
+    "original_format": "UMM_JSON",
+    "archive_center": "NASA/GSFC/SED/ESD/TISL/GESDISC",
+    "has_temporal_subsetting": false,
+    "browse_flag": true,
+    "platforms": [
+     "GPM"
+    ],
+    "association_details": {
+     "services": [
+      {
+       "concept_id": "S2874702816-XYZ_PROV"
+      }
+     ],
+     "citations": [
+      {
+       "concept_id": "CIT3857570715-ESDIS"
+      },
+      {
+       "concept_id": "CIT4201249480-ESDIS"
+      }
+     ]
+    },
+    "online_access_flag": true,
+    "links": [
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/browse#",
+      "hreflang": "en-US",
+      "href": "https://docserver.gesdisc.eosdis.nasa.gov/public/project/Images/PRECIP_GMI_GPM.png"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/metadata#",
+      "hreflang": "en-US",
+      "href": "https://disc.gsfc.nasa.gov/datasets/PRECIP_GMI_GPM_1/summary"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://docserver.gesdisc.eosdis.nasa.gov/public/project/MEaSUREs/Kidd/20220601_P-FCDR_ATBD.pdf"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/documentation#",
+      "hreflang": "en-US",
+      "href": "https://measures.gesdisc.eosdis.nasa.gov/data/Precipitation/PRECIP_GMI_GPM.1/doc/Readme_FCDR.pdf"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/data#",
+      "hreflang": "en-US",
+      "href": "https://measures.gesdisc.eosdis.nasa.gov/data/Precipitation/PRECIP_GMI_GPM.1/"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/service#",
+      "hreflang": "en-US",
+      "href": "https://cmr.earthdata.nasa.gov/virtual-directory/collections/C2368306937-GES_DISC"
+     },
+     {
+      "rel": "http://esipfed.org/ns/fedsearch/1.1/data#",
+      "hreflang": "en-US",
+      "href": "https://search.earthdata.nasa.gov/search/granules?p=C2368306937-GES_DISC"
+     }
+    ]
+   }
+  ]
+ }
+}

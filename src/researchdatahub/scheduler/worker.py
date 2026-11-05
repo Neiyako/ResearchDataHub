@@ -26,7 +26,7 @@
 from __future__ import annotations
 
 import threading
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -294,6 +294,7 @@ class TaskExecutor:
                 record,
                 task=verifying,
                 kinds=list(kinds),
+                expected_metadata=self._expected_metadata_for(repo, task.request_id),
             )
         except IntegrityError as exc:
             return self._finish_quarantine(
@@ -654,6 +655,46 @@ class TaskExecutor:
         )
 
     # -- 工具 ------------------------------------------------------------ #
+    def _expected_metadata_for(
+        self, repo: ManifestRepository, request_id: str
+    ) -> Mapping[str, object] | None:
+        """从已登记的需求契约里取出科学期望值（变量清单 / 时间覆盖）。
+
+        科学检查（``variable_present`` / ``time_coverage``）需要"用户请求了什么"作为对照。
+        这个信息在 ``DatasetRequest.metadata``（落库的契约）里，不在远端响应里——
+        用远端自称的元数据去校验远端字节，是循环论证，必须用请求契约。
+
+        Returns
+        -------
+        Mapping[str, object] | None
+            ``None`` 表示契约不可用，此时科学检查记 ``SKIPPED``（不猜，也不报通过）。
+        """
+        try:
+            request = repo.get_request(request_id)
+        except ManifestError:
+            return None
+        metadata = request.metadata
+        expected: dict[str, object] = {
+            "variables": [spec.name for spec in metadata.variables],
+            "temporal_coverage": {
+                "start": metadata.temporal_coverage.start.isoformat(),
+                "end": metadata.temporal_coverage.end.isoformat(),
+            },
+        }
+        # 语义变量名 → 平台原生变量名（来自请求契约的 ``rdh.provider_native`` 槽位）。
+        # 没有该槽位时文件里必须用同名变量，否则「变量是否真的到了」无法判定。
+        native = metadata.extensions.get("rdh.provider_native")
+        if isinstance(native, Mapping):
+            aliases: dict[str, list[str]] = {}
+            for semantic, mapping in native.items():
+                if isinstance(mapping, Mapping):
+                    values = [str(value) for value in mapping.values() if str(value)]
+                    if values:
+                        aliases[str(semantic)] = values
+            if aliases:
+                expected["native_names"] = aliases
+        return expected
+
     def _checks_for(self, repo: ManifestRepository, request_id: str) -> tuple[str, ...]:
         """请求声明的校验链；请求未登记时退回 ``integrity.default_checks``。"""
         try:

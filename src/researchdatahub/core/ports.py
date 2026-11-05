@@ -20,7 +20,7 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator, Iterable, Iterator, Sequence
+from collections.abc import AsyncIterator, Iterable, Iterator, Mapping, Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import Protocol, runtime_checkable
@@ -295,11 +295,19 @@ class IntegrityChecker(Protocol):
         *,
         task: AcquisitionTask,
         kinds: Sequence[str],
+        expected_metadata: Mapping[str, object] | None = None,
     ) -> IntegrityReport:
         """按 ``kinds`` 执行检查并返回报告。
 
         返回 ``status=FAILED`` 而不是抛异常（失败是正常结果）；只有内部不可恢复错误
         才抛 :class:`IntegrityError`。
+
+        Parameters
+        ----------
+        expected_metadata:
+            科学期望值（变量清单、时间覆盖等）。调用方应从**需求契约**提供它：
+            用远端自称的元数据去校验远端字节是循环论证。为 ``None`` 时实现可自行从
+            ``task`` 派生；仍无法派生则应记 ``SKIPPED`` 而不是 ``PASSED``。
 
         Raises
         ------

@@ -1,0 +1,492 @@
+{
+ "@odata.context": "$metadata#Products(Attributes())",
+ "value": [
+  {
+   "@odata.mediaContentType": "application/octet-stream",
+   "Id": "018805e8-b419-4040-b6e0-12b3cd883320",
+   "Name": "S2C_MSIL2A_20261105T124031_N0513_R052_T26SPF_20261105T134312.SAFE",
+   "ContentType": "application/octet-stream",
+   "ContentLength": 607269158,
+   "OriginDate": "2026-11-05T14:18:50.000000Z",
+   "PublicationDate": "2026-11-05T14:22:58.655654Z",
+   "ModificationDate": "2026-11-05T14:22:58.655654Z",
+   "Online": true,
+   "EvictionDate": "9999-12-31T23:59:59.999999Z",
+   "S3Path": "/eodata/Sentinel-2/MSI/L2A/2026/11/05/S2C_MSIL2A_20261105T124031_N0513_R052_T26SPF_20261105T134312.SAFE",
+   "Checksum": [
+    {
+     "Value": "31aeeec5930af4f765efca3af4d98566",
+     "Algorithm": "MD5",
+     "ChecksumDate": "2026-11-05T14:22:56.713053Z"
+    },
+    {
+     "Value": "92ced0265141b32e5c748fb6b85d1ef9c8ab323bdf63b1417f9e93914beb7387",
+     "Algorithm": "BLAKE3",
+     "ChecksumDate": "2026-11-05T14:22:57.622671Z"
+    }
+   ],
+   "ContentDate": {
+    "Start": "2026-11-05T12:40:31.025000Z",
+    "End": "2026-11-05T12:40:31.025000Z"
+   },
+   "Footprint": "geography'SRID=4326;POLYGON ((-25.03748856586074 36.03935685186665, -24.994958603960818 36.03874675277332, -24.969217962417307 36.11826276091222, -24.92132291586809 36.265106708581634, -24.873284431552104 36.4119530261019, -24.825098771365585 36.558762238229946, -24.776907947228032 36.70553200631796, -24.72866395438758 36.85226660420901, -24.68043360470033 36.9989387406515, -24.6722961236728 37.023589447883445, -25.875514452660653 37.041254047993014, -25.88701256339676 36.24247092920643, -25.795142250097257 36.222251409746846, -25.79440585923173 36.22458508709454, -25.54957319212563 36.16660966470389, -25.54958256896416 36.16658025159305, -25.5494597895879 36.16655120756523, -25.54959215711648 36.16613422893317, -25.549474749069248 36.166106493462905, -25.549613278901106 36.165667892878034, -25.549480804469784 36.16563672059343, -25.54952640819117 36.16549338726568, -25.549450332342182 36.16547550897748, -25.549529997421715 36.16522373544184, -25.54947315617428 36.16521040925973, -25.54952451916224 36.165048893607434, -25.5494065187164 36.16502126543754, -25.549419123870123 36.16498170489647, -25.54923732974479 36.164939192834154, -25.549495261567447 36.16412783302189, -25.435608947400592 36.136677419061805, -25.270496312289968 36.09749790251728, -25.269816662794767 36.09960585514989, -25.26924470962704 36.09945717923711, -25.03748856586074 36.03935685186665))'",
+   "GeoFootprint": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -25.03748856586074,
+       36.03935685186665
+      ],
+      [
+       -24.994958603960818,
+       36.03874675277332
+      ],
+      [
+       -24.969217962417307,
+       36.11826276091222
+      ],
+      [
+       -24.92132291586809,
+       36.265106708581634
+      ],
+      [
+       -24.873284431552104,
+       36.4119530261019
+      ],
+      [
+       -24.825098771365585,
+       36.558762238229946
+      ],
+      [
+       -24.776907947228032,
+       36.70553200631796
+      ],
+      [
+       -24.72866395438758,
+       36.85226660420901
+      ],
+      [
+       -24.68043360470033,
+       36.9989387406515
+      ],
+      [
+       -24.6722961236728,
+       37.023589447883445
+      ],
+      [
+       -25.875514452660653,
+       37.041254047993014
+      ],
+      [
+       -25.88701256339676,
+       36.24247092920643
+      ],
+      [
+       -25.795142250097257,
+       36.222251409746846
+      ],
+      [
+       -25.79440585923173,
+       36.22458508709454
+      ],
+      [
+       -25.54957319212563,
+       36.16660966470389
+      ],
+      [
+       -25.54958256896416,
+       36.16658025159305
+      ],
+      [
+       -25.5494597895879,
+       36.16655120756523
+      ],
+      [
+       -25.54959215711648,
+       36.16613422893317
+      ],
+      [
+       -25.549474749069248,
+       36.166106493462905
+      ],
+      [
+       -25.549613278901106,
+       36.165667892878034
+      ],
+      [
+       -25.549480804469784,
+       36.16563672059343
+      ],
+      [
+       -25.54952640819117,
+       36.16549338726568
+      ],
+      [
+       -25.549450332342182,
+       36.16547550897748
+      ],
+      [
+       -25.549529997421715,
+       36.16522373544184
+      ],
+      [
+       -25.54947315617428,
+       36.16521040925973
+      ],
+      [
+       -25.54952451916224,
+       36.165048893607434
+      ],
+      [
+       -25.5494065187164,
+       36.16502126543754
+      ],
+      [
+       -25.549419123870123,
+       36.16498170489647
+      ],
+      [
+       -25.54923732974479,
+       36.164939192834154
+      ],
+      [
+       -25.549495261567447,
+       36.16412783302189
+      ],
+      [
+       -25.435608947400592,
+       36.136677419061805
+      ],
+      [
+       -25.270496312289968,
+       36.09749790251728
+      ],
+      [
+       -25.269816662794767,
+       36.09960585514989
+      ],
+      [
+       -25.26924470962704,
+       36.09945717923711
+      ],
+      [
+       -25.03748856586074,
+       36.03935685186665
+      ]
+     ]
+    ]
+   },
+   "Attributes": [
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "origin",
+     "Value": "ESA",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "tileId",
+     "Value": "26SPF",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.DoubleAttribute",
+     "Name": "cloudCover",
+     "Value": 47.305813,
+     "ValueType": "Double"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "datastripId",
+     "Value": "S2C_OPER_MSI_L2A_DS_2CPS_20261105T134312_S20261105T124033_N05.13",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.IntegerAttribute",
+     "Name": "orbitNumber",
+     "Value": 11319,
+     "ValueType": "Integer"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "sourceProduct",
+     "Value": "S2C_OPER_MSI_L2A_TL_2CPS_20261105T134312_A011319_T26SPF_N05.13,S2C_OPER_MSI_L2A_DS_2CPS_20261105T134312_S20261105T124033_N05.13",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.DateTimeOffsetAttribute",
+     "Name": "processingDate",
+     "Value": "2026-11-05T13:43:12.000000Z",
+     "ValueType": "DateTimeOffset"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "productGroupId",
+     "Value": "GS2C_20261105T124031_011319_N05.13",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "operationalMode",
+     "Value": "INS-NOBS",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "processingLevel",
+     "Value": "S2MSI2A",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "processorVersion",
+     "Value": "05.13",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "granuleIdentifier",
+     "Value": "S2C_OPER_MSI_L2A_TL_2CPS_20261105T134312_A011319_T26SPF_N05.13",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "platformShortName",
+     "Value": "SENTINEL-2",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "instrumentShortName",
+     "Value": "MSI",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.IntegerAttribute",
+     "Name": "relativeOrbitNumber",
+     "Value": 52,
+     "ValueType": "Integer"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "sourceProductOriginDate",
+     "Value": "2026-11-05T14:18:50Z,2026-11-05T14:18:41Z",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "platformSerialIdentifier",
+     "Value": "C",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "productType",
+     "Value": "S2MSI2A",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.DateTimeOffsetAttribute",
+     "Name": "beginningDateTime",
+     "Value": "2026-11-05T12:40:31.025000Z",
+     "ValueType": "DateTimeOffset"
+    },
+    {
+     "@odata.type": "#OData.CSC.DateTimeOffsetAttribute",
+     "Name": "endingDateTime",
+     "Value": "2026-11-05T12:40:31.025000Z",
+     "ValueType": "DateTimeOffset"
+    }
+   ]
+  },
+  {
+   "@odata.mediaContentType": "application/octet-stream",
+   "Id": "06c2a916-643f-4ee2-a004-30a990138113",
+   "Name": "S2C_MSIL2A_20261105T124031_N0513_R052_T26SPG_20261105T134312.SAFE",
+   "ContentType": "application/octet-stream",
+   "ContentLength": 805600957,
+   "OriginDate": "2026-11-05T14:18:53.000000Z",
+   "PublicationDate": "2026-11-05T14:23:28.489321Z",
+   "ModificationDate": "2026-11-05T14:23:28.489321Z",
+   "Online": true,
+   "EvictionDate": "9999-12-31T23:59:59.999999Z",
+   "S3Path": "/eodata/Sentinel-2/MSI/L2A/2026/11/05/S2C_MSIL2A_20261105T124031_N0513_R052_T26SPG_20261105T134312.SAFE",
+   "Checksum": [
+    {
+     "Value": "1b1d65d3db4775f5758af40e7d6d4e1a",
+     "Algorithm": "MD5",
+     "ChecksumDate": "2026-11-05T14:23:25.505848Z"
+    },
+    {
+     "Value": "ad5e0352b3957404cbba2d238af8636d2298c48563ba335bba18da5d952835d8",
+     "Algorithm": "BLAKE3",
+     "ChecksumDate": "2026-11-05T14:23:27.296734Z"
+    }
+   ],
+   "ContentDate": {
+    "Start": "2026-11-05T12:40:31.025000Z",
+    "End": "2026-11-05T12:40:31.025000Z"
+   },
+   "Footprint": "geography'SRID=4326;POLYGON ((-24.63819594168304 37.126888441754176, -24.613057842445834 37.92337349546603, -25.861926068064744 37.94208532019618, -25.87681968515911 36.952569122489834, -24.701344542738486 36.935346998585324, -24.68043360470033 36.9989387406515, -24.63819594168304 37.126888441754176))'",
+   "GeoFootprint": {
+    "type": "Polygon",
+    "coordinates": [
+     [
+      [
+       -24.63819594168304,
+       37.126888441754176
+      ],
+      [
+       -24.613057842445834,
+       37.92337349546603
+      ],
+      [
+       -25.861926068064744,
+       37.94208532019618
+      ],
+      [
+       -25.87681968515911,
+       36.952569122489834
+      ],
+      [
+       -24.701344542738486,
+       36.935346998585324
+      ],
+      [
+       -24.68043360470033,
+       36.9989387406515
+      ],
+      [
+       -24.63819594168304,
+       37.126888441754176
+      ]
+     ]
+    ]
+   },
+   "Attributes": [
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "origin",
+     "Value": "ESA",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "tileId",
+     "Value": "26SPG",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.DoubleAttribute",
+     "Name": "cloudCover",
+     "Value": 50.720328,
+     "ValueType": "Double"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "datastripId",
+     "Value": "S2C_OPER_MSI_L2A_DS_2CPS_20261105T134312_S20261105T124033_N05.13",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.IntegerAttribute",
+     "Name": "orbitNumber",
+     "Value": 11319,
+     "ValueType": "Integer"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "sourceProduct",
+     "Value": "S2C_OPER_MSI_L2A_TL_2CPS_20261105T134312_A011319_T26SPG_N05.13,S2C_OPER_MSI_L2A_DS_2CPS_20261105T134312_S20261105T124033_N05.13",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.DateTimeOffsetAttribute",
+     "Name": "processingDate",
+     "Value": "2026-11-05T13:43:12.000000Z",
+     "ValueType": "DateTimeOffset"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "productGroupId",
+     "Value": "GS2C_20261105T124031_011319_N05.13",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "operationalMode",
+     "Value": "INS-NOBS",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "processingLevel",
+     "Value": "S2MSI2A",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "processorVersion",
+     "Value": "05.13",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "granuleIdentifier",
+     "Value": "S2C_OPER_MSI_L2A_TL_2CPS_20261105T134312_A011319_T26SPG_N05.13",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "platformShortName",
+     "Value": "SENTINEL-2",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "instrumentShortName",
+     "Value": "MSI",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.IntegerAttribute",
+     "Name": "relativeOrbitNumber",
+     "Value": 52,
+     "ValueType": "Integer"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "sourceProductOriginDate",
+     "Value": "2026-11-05T14:18:53Z,2026-11-05T14:18:41Z",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "platformSerialIdentifier",
+     "Value": "C",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.StringAttribute",
+     "Name": "productType",
+     "Value": "S2MSI2A",
+     "ValueType": "String"
+    },
+    {
+     "@odata.type": "#OData.CSC.DateTimeOffsetAttribute",
+     "Name": "beginningDateTime",
+     "Value": "2026-11-05T12:40:31.025000Z",
+     "ValueType": "DateTimeOffset"
+    },
+    {
+     "@odata.type": "#OData.CSC.DateTimeOffsetAttribute",
+     "Name": "endingDateTime",
+     "Value": "2026-11-05T12:40:31.025000Z",
+     "ValueType": "DateTimeOffset"
+    }
+   ]
+  }
+ ],
+ "@odata.nextLink": "https://catalogue.dataspace.copernicus.eu/odata/v1/Products?%24top=2&%24expand=Attributes&%24filter=Collection%2FName+eq+%27SENTINEL-2%27&%24orderby=ContentDate%2FStart+desc&%24skip=2"
+}

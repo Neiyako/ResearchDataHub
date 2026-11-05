@@ -1,0 +1,4 @@
+{
+ "code": "NotFoundError",
+ "description": "Collection not-a-real-collection-xyz does not exist."
+}

@@ -54,8 +54,9 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
-from typing import ClassVar, Literal, NoReturn
+from typing import ClassVar, Final, Literal, NoReturn
 
+import httpx
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from researchdatahub.config.models import TransferConfig
@@ -100,7 +101,71 @@ __all__ = [
     "ResumeProbe",
     "TransportAdapterBase",
     "decide_resume",
+    "redact_url",
 ]
+
+
+_MAX_REDACTED_URL_CHARS: Final[int] = 512
+"""日志/事件里 URL 的最大保留长度。超过即截断——长 URL 通常是签名地址，
+既可能超出 DB 字段上限，也会把临时凭据写进日志。"""
+
+_SIGNATURE_QUERY_KEYS: Final[frozenset[str]] = frozenset(
+    {
+        "signature",
+        "x-amz-signature",
+        "x-amz-credential",
+        "x-amz-security-token",
+        "awsaccesskeyid",
+        "expires",
+        "key-pair-id",
+        "policy",
+        "token",
+        "access_token",
+        "backend_params",
+        "state",
+        "code",
+    }
+)
+
+
+def redact_url(url: str, *, max_chars: int = _MAX_REDACTED_URL_CHARS) -> str:
+    """把 URL 变成可安全写入日志/事件的形式（去掉签名类查询参数并截断）。
+
+    **为什么必须做**：科研数据平台（EDS 的 CloudFront 签名、CDS 的结果签名 URL、
+    各类 S3 预签名地址）会把临时凭据放在查询串里。一旦原样写进 ``transfer_logs``，
+    凭据就持久化到磁盘并可能随报告/issue 外传——这是安全事故，不是日志噪声。
+
+    同时避免 ``TransferLogEvent.message`` 超出 2048 字符上限（签名 URL 常见上千字符）。
+
+    Parameters
+    ----------
+    url:
+        原始 URL。
+    max_chars:
+        保留的最大字符数（默认 512）。
+
+    Returns
+    -------
+    str
+        脱敏后的 URL：签名类查询参数的值替换为 ``REDACTED``，整体超长则截断并标注。
+    """
+    try:
+        parsed = httpx.URL(url)
+    except (httpx.InvalidURL, ValueError):
+        return "<invalid-url>"
+    if not parsed.host:
+        return url[:max_chars]
+    safe_params: list[tuple[str, str]] = []
+    for key, value in parsed.params.items():
+        if key.lower() in _SIGNATURE_QUERY_KEYS:
+            safe_params.append((key, "REDACTED"))
+        else:
+            safe_params.append((key, value))
+    safe = parsed.copy_with(params=safe_params) if safe_params else parsed.copy_with(params=[])
+    text = str(safe)
+    if len(text) > max_chars:
+        text = text[:max_chars] + "...<truncated>"
+    return text
 
 
 class _StructuredModel(BaseModel):
@@ -809,11 +874,12 @@ class TransportAdapterBase(ABC):
         self._emit(
             task.task_id,
             TransferEventType.HTTP_STATUS,
-            f"remote metadata status={metadata.http_status} for {metadata.url}",
+            f"remote metadata status={metadata.http_status} for {redact_url(metadata.url)}",
             metadata={
                 "method": "HEAD",
                 "status_code": metadata.http_status if metadata.http_status is not None else 0,
-                "url": metadata.url,
+                # 签名类查询参数必须脱敏后再落库（见 redact_url 文档）。
+                "url": redact_url(metadata.url),
             },
         )
         probe = self._probe_from_metadata(asset, metadata)

@@ -1,0 +1,2042 @@
+{
+ "COP-DEM": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "authority",
+   "ValueType": "String"
+  },
+  {
+   "Name": "spatialResolution",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "polarisationChannels",
+   "ValueType": "String"
+  }
+ ],
+ "SUOMI-NPP": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "tileId",
+   "ValueType": "String"
+  },
+  {
+   "Name": "campaign",
+   "ValueType": "String"
+  },
+  {
+   "Name": "dayNightFlag",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "verticalTileNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "horizontalTileNumber",
+   "ValueType": "Integer"
+  }
+ ],
+ "LANDSAT-7": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "wrsRow",
+   "ValueType": "String"
+  },
+  {
+   "Name": "sceneId",
+   "ValueType": "String"
+  },
+  {
+   "Name": "wrsPath",
+   "ValueType": "String"
+  },
+  {
+   "Name": "wrsType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "offNadir",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "authority",
+   "ValueType": "String"
+  },
+  {
+   "Name": "proj:epsg",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "projShape",
+   "ValueType": "String"
+  },
+  {
+   "Name": "rowNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "cloudCover",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "pathNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "orbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "geometricRmse",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "numberOfBands",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "projTransform",
+   "ValueType": "String"
+  },
+  {
+   "Name": "cloudCoverLand",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "collectionName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "geometricXBias",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "geometricYBias",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "operationalMode",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingLevel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "sunAzimuthAngle",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "collectionNumber",
+   "ValueType": "String"
+  },
+  {
+   "Name": "geometricXStddev",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "geometricYStddev",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "view:sun_azimuth",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "spatialResolution",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "sunElevationAngle",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "collectionCategory",
+   "ValueType": "String"
+  },
+  {
+   "Name": "view:sun_elevation",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "card4lSpecification",
+   "ValueType": "String"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "card4lSpecificationVersion",
+   "ValueType": "String"
+  }
+ ],
+ "SENTINEL-3": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "landCover",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "cloudCover",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "timeliness",
+   "ValueType": "String"
+  },
+  {
+   "Name": "brightCover",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "coordinates",
+   "ValueType": "String"
+  },
+  {
+   "Name": "cycleNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "orbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "coastalCover",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "processorName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "closedSeaCover",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "openOceanCover",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "orbitDirection",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingDate",
+   "ValueType": "DateTimeOffset"
+  },
+  {
+   "Name": "snowOrIceCover",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "lastOrbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "operationalMode",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingLevel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingCenter",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processorVersion",
+   "ValueType": "String"
+  },
+  {
+   "Name": "salineWaterCover",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "tidalRegionCover",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "baselineCollection",
+   "ValueType": "String"
+  },
+  {
+   "Name": "lastOrbitDirection",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingBaseline",
+   "ValueType": "String"
+  },
+  {
+   "Name": "continentalIceCover",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "relativeOrbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "freshInlandWaterCover",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "lastRelativeOrbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "platformSerialIdentifier",
+   "ValueType": "String"
+  }
+ ],
+ "CSS": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "Gsd",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "area",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "band",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "event",
+   "ValueType": "String"
+  },
+  {
+   "Name": "flight",
+   "ValueType": "String"
+  },
+  {
+   "Name": "vrtPath",
+   "ValueType": "String"
+  },
+  {
+   "Name": "widthPx",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "aperture",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "heightPx",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "cameraMake",
+   "ValueType": "String"
+  },
+  {
+   "Name": "flightName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "altitudeGps",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "cameraModel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "captureTime",
+   "ValueType": "DateTimeOffset"
+  },
+  {
+   "Name": "compression",
+   "ValueType": "String"
+  },
+  {
+   "Name": "rawFilePath",
+   "ValueType": "String"
+  },
+  {
+   "Name": "totalImages",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "averageGsdCm",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "exposureTime",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "failedImages",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "flightEndDate",
+   "ValueType": "DateTimeOffset"
+  },
+  {
+   "Name": "flightDuration",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "flightStartDate",
+   "ValueType": "DateTimeOffset"
+  },
+  {
+   "Name": "ortophotoWidthPx",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "cameraFocalLength",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "cameraSensorWidth",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "flightAltitudeAvg",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "flightAltitudeMax",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "flightAltitudeMin",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "ortophotoHeightPx",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingSeconds",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "cameraSensorHeight",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "reconstructedImages",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "reconstructedPoints",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "altitudeReconstruction",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "reprojectionErrorPixels",
+   "ValueType": "Double"
+  }
+ ],
+ "AQUA": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "tileId",
+   "ValueType": "String"
+  },
+  {
+   "Name": "dayNightFlag",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "verticalTileNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "horizontalTileNumber",
+   "ValueType": "Integer"
+  }
+ ],
+ "LANDSAT-5": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "wrsRow",
+   "ValueType": "String"
+  },
+  {
+   "Name": "sceneId",
+   "ValueType": "String"
+  },
+  {
+   "Name": "wrsPath",
+   "ValueType": "String"
+  },
+  {
+   "Name": "wrsType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "offNadir",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "authority",
+   "ValueType": "String"
+  },
+  {
+   "Name": "proj:epsg",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "projShape",
+   "ValueType": "String"
+  },
+  {
+   "Name": "rowNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "cloudCover",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "pathNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "orbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "geometricRmse",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "numberOfBands",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "projTransform",
+   "ValueType": "String"
+  },
+  {
+   "Name": "cloudCoverLand",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "collectionName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "geometricXBias",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "geometricYBias",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "operationalMode",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingLevel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "sunAzimuthAngle",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "collectionNumber",
+   "ValueType": "String"
+  },
+  {
+   "Name": "geometricXStddev",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "geometricYStddev",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "view:sun_azimuth",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "spatialResolution",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "sunElevationAngle",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "collectionCategory",
+   "ValueType": "String"
+  },
+  {
+   "Name": "view:sun_elevation",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "card4lSpecification",
+   "ValueType": "String"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "card4lSpecificationVersion",
+   "ValueType": "String"
+  }
+ ],
+ "LANDSAT-9": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "wrsRow",
+   "ValueType": "String"
+  },
+  {
+   "Name": "sceneId",
+   "ValueType": "String"
+  },
+  {
+   "Name": "wrsPath",
+   "ValueType": "String"
+  },
+  {
+   "Name": "wrsType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "offNadir",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "authority",
+   "ValueType": "String"
+  },
+  {
+   "Name": "proj:epsg",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "projShape",
+   "ValueType": "String"
+  },
+  {
+   "Name": "rowNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "cloudCover",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "pathNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "orbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "geometricRmse",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "numberOfBands",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "projTransform",
+   "ValueType": "String"
+  },
+  {
+   "Name": "USGScollection",
+   "ValueType": "String"
+  },
+  {
+   "Name": "cloudCoverLand",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "geometricXBias",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "geometricYBias",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "operationalMode",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingLevel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "sunAzimuthAngle",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "collectionNumber",
+   "ValueType": "String"
+  },
+  {
+   "Name": "geometricXStddev",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "geometricYStddev",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "view:sun_azimuth",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "spatialResolution",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "sunElevationAngle",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "collectionCategory",
+   "ValueType": "String"
+  },
+  {
+   "Name": "view:sun_elevation",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "card4lSpecification",
+   "ValueType": "String"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "card4lSpecificationVersion",
+   "ValueType": "String"
+  }
+ ],
+ "SENTINEL-6": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "origin",
+   "ValueType": "String"
+  },
+  {
+   "Name": "source",
+   "ValueType": "String"
+  },
+  {
+   "Name": "authority",
+   "ValueType": "String"
+  },
+  {
+   "Name": "timeliness",
+   "ValueType": "String"
+  },
+  {
+   "Name": "orbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "processingDate",
+   "ValueType": "DateTimeOffset"
+  },
+  {
+   "Name": "operationalMode",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingLevel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingCenter",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processorVersion",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "spatialResolution",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "processingBaseline",
+   "ValueType": "String"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "relativeOrbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "platformSerialIdentifier",
+   "ValueType": "String"
+  }
+ ],
+ "S2GLC": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processorVersion",
+   "ValueType": "String"
+  }
+ ],
+ "CCM-CAT1": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "cloudCover",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "collectionName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "productVersion",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingLevel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processorVersion",
+   "ValueType": "String"
+  },
+  {
+   "Name": "datasetIdentifier",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  }
+ ],
+ "NISAR": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "orbitDirection",
+   "ValueType": "String"
+  },
+  {
+   "Name": "productVersion",
+   "ValueType": "String"
+  },
+  {
+   "Name": "rangeBandwidth",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "processingLevel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "jointObservation",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingCenter",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processorVersion",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "relativeOrbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "polarisationChannels",
+   "ValueType": "String"
+  },
+  {
+   "Name": "rangeBandwidthFrequencyB",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "polarisationChannelsFrequencyB",
+   "ValueType": "String"
+  }
+ ],
+ "LANDSAT-8": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "wrsRow",
+   "ValueType": "String"
+  },
+  {
+   "Name": "sceneId",
+   "ValueType": "String"
+  },
+  {
+   "Name": "wrsPath",
+   "ValueType": "String"
+  },
+  {
+   "Name": "wrsType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "offNadir",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "authority",
+   "ValueType": "String"
+  },
+  {
+   "Name": "proj:epsg",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "projShape",
+   "ValueType": "String"
+  },
+  {
+   "Name": "rowNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "cloudCover",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "pathNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "orbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "geometricRmse",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "numberOfBands",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "projTransform",
+   "ValueType": "String"
+  },
+  {
+   "Name": "USGScollection",
+   "ValueType": "String"
+  },
+  {
+   "Name": "cloudCoverLand",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "geometricXBias",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "geometricYBias",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "operationalMode",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingLevel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "sunAzimuthAngle",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "collectionNumber",
+   "ValueType": "String"
+  },
+  {
+   "Name": "geometricXStddev",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "geometricYStddev",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "view:sun_azimuth",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "spatialResolution",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "sunElevationAngle",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "collectionCategory",
+   "ValueType": "String"
+  },
+  {
+   "Name": "view:sun_elevation",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "card4lSpecification",
+   "ValueType": "String"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "card4lSpecificationVersion",
+   "ValueType": "String"
+  }
+ ],
+ "TERRAAQUA": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "tileId",
+   "ValueType": "String"
+  },
+  {
+   "Name": "dayNightFlag",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "verticalTileNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "horizontalTileNumber",
+   "ValueType": "Integer"
+  }
+ ],
+ "GLOBAL-MOSAICS": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "stac",
+   "ValueType": "String"
+  },
+  {
+   "Name": "fundingSource",
+   "ValueType": "String"
+  },
+  {
+   "Name": "codeRepository",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingLevel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "productInterval",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingCenter",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingVersion",
+   "ValueType": "String"
+  },
+  {
+   "Name": "spatialResolution",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "sourceCollectionName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "technicalDocumentation",
+   "ValueType": "String"
+  }
+ ],
+ "GEOSPATIAL-DATA": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "godlo",
+   "ValueType": "String"
+  },
+  {
+   "Name": "idNMT",
+   "ValueType": "String"
+  },
+  {
+   "Name": "aktRok",
+   "ValueType": "String"
+  },
+  {
+   "Name": "format",
+   "ValueType": "String"
+  },
+  {
+   "Name": "idOrto",
+   "ValueType": "String"
+  },
+  {
+   "Name": "piksel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "ukladH",
+   "ValueType": "String"
+  },
+  {
+   "Name": "ukladXY",
+   "ValueType": "String"
+  },
+  {
+   "Name": "nazwaPliku",
+   "ValueType": "String"
+  },
+  {
+   "Name": "charPrzestrz",
+   "ValueType": "String"
+  },
+  {
+   "Name": "daneAktualne",
+   "ValueType": "String"
+  },
+  {
+   "Name": "externalSource",
+   "ValueType": "String"
+  }
+ ],
+ "SMOS": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "authority",
+   "ValueType": "String"
+  },
+  {
+   "Name": "orbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "orbitDirection",
+   "ValueType": "String"
+  },
+  {
+   "Name": "acquisitionType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "operationalMode",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingLevel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingCenter",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processorVersion",
+   "ValueType": "String"
+  },
+  {
+   "Name": "wrsLongitudeGrid",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "spatialResolution",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  }
+ ],
+ "SENTINEL-5P": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "doi",
+   "ValueType": "String"
+  },
+  {
+   "Name": "identifier",
+   "ValueType": "String"
+  },
+  {
+   "Name": "coordinates",
+   "ValueType": "String"
+  },
+  {
+   "Name": "orbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "productClass",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processorName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "qualityStatus",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingDate",
+   "ValueType": "DateTimeOffset"
+  },
+  {
+   "Name": "processingMode",
+   "ValueType": "String"
+  },
+  {
+   "Name": "acquisitionType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingLevel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "parentIdentifier",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingCenter",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processorVersion",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "baselineCollection",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingBaseline",
+   "ValueType": "String"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformSerialIdentifier",
+   "ValueType": "String"
+  }
+ ],
+ "SENTINEL-1": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "origin",
+   "ValueType": "String"
+  },
+  {
+   "Name": "datatakeID",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "timeliness",
+   "ValueType": "String"
+  },
+  {
+   "Name": "cycleNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "orbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "sliceNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "totalSlices",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "productClass",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processorName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "orbitDirection",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingDate",
+   "ValueType": "DateTimeOffset"
+  },
+  {
+   "Name": "operationalMode",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingLevel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "swathIdentifier",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingCenter",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processorVersion",
+   "ValueType": "String"
+  },
+  {
+   "Name": "segmentStartTime",
+   "ValueType": "DateTimeOffset"
+  },
+  {
+   "Name": "sliceProductFlag",
+   "ValueType": "Boolean"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "productGeneration",
+   "ValueType": "DateTimeOffset"
+  },
+  {
+   "Name": "processingBaseline",
+   "ValueType": "String"
+  },
+  {
+   "Name": "productComposition",
+   "ValueType": "String"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "relativeOrbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "polarisationChannels",
+   "ValueType": "String"
+  },
+  {
+   "Name": "productConsolidation",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformSerialIdentifier",
+   "ValueType": "String"
+  },
+  {
+   "Name": "instrumentConfigurationID",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "startTimeFromAscendingNode",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "completionTimeFromAscendingNode",
+   "ValueType": "Double"
+  }
+ ],
+ "CCM": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "haze",
+   "ValueType": "String"
+  },
+  {
+   "Name": "cellId",
+   "ValueType": "String"
+  },
+  {
+   "Name": "cfPoly",
+   "ValueType": "String"
+  },
+  {
+   "Name": "gridId",
+   "ValueType": "String"
+  },
+  {
+   "Name": "dataset",
+   "ValueType": "String"
+  },
+  {
+   "Name": "authority",
+   "ValueType": "String"
+  },
+  {
+   "Name": "countryId",
+   "ValueType": "String"
+  },
+  {
+   "Name": "procLevel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "cloudCover",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "instrument",
+   "ValueType": "String"
+  },
+  {
+   "Name": "projection",
+   "ValueType": "String"
+  },
+  {
+   "Name": "resolution",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "sensorType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "coordinates",
+   "ValueType": "String"
+  },
+  {
+   "Name": "datasetFull",
+   "ValueType": "String"
+  },
+  {
+   "Name": "orbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "platformName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "ccmCollection",
+   "ValueType": "String"
+  },
+  {
+   "Name": "eopIdentifier",
+   "ValueType": "String"
+  },
+  {
+   "Name": "orderReference",
+   "ValueType": "String"
+  },
+  {
+   "Name": "operationalMode",
+   "ValueType": "String"
+  },
+  {
+   "Name": "resolutionClass",
+   "ValueType": "String"
+  },
+  {
+   "Name": "sunAzimuthAngle",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "swathIdentifier",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "sunElevationAngle",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "polarisationChannels",
+   "ValueType": "String"
+  },
+  {
+   "Name": "alongTrackIncidenceAngle",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "acrossTrackIncidenceAngle",
+   "ValueType": "Double"
+  }
+ ],
+ "ENVISAT": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "authority",
+   "ValueType": "String"
+  },
+  {
+   "Name": "cycleNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "orbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "phaseNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "processingLevel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "spatialResolution",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  }
+ ],
+ "SENTINEL-1-RTC": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "authority",
+   "ValueType": "String"
+  },
+  {
+   "Name": "orbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "orbitDirection",
+   "ValueType": "String"
+  },
+  {
+   "Name": "operationalMode",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingLevel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "spatialResolution",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "relativeOrbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "polarisationChannels",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformSerialIdentifier",
+   "ValueType": "String"
+  }
+ ],
+ "ERA5": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "dataset",
+   "ValueType": "String"
+  },
+  {
+   "Name": "variable",
+   "ValueType": "String"
+  },
+  {
+   "Name": "datasetFull",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  }
+ ],
+ "SENTINEL-2": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "origin",
+   "ValueType": "String"
+  },
+  {
+   "Name": "tileId",
+   "ValueType": "String"
+  },
+  {
+   "Name": "cloudCover",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "coordinates",
+   "ValueType": "String"
+  },
+  {
+   "Name": "datastripId",
+   "ValueType": "String"
+  },
+  {
+   "Name": "orbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "qualityInfo",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "qualityStatus",
+   "ValueType": "String"
+  },
+  {
+   "Name": "sourceProduct",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingDate",
+   "ValueType": "DateTimeOffset"
+  },
+  {
+   "Name": "productGroupId",
+   "ValueType": "String"
+  },
+  {
+   "Name": "lastOrbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "operationalMode",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingLevel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingCenter",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processorVersion",
+   "ValueType": "String"
+  },
+  {
+   "Name": "granuleIdentifier",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingBaseline",
+   "ValueType": "String"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "relativeOrbitNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "illuminationZenithAngle",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "sourceProductOriginDate",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformSerialIdentifier",
+   "ValueType": "String"
+  }
+ ],
+ "CLMS": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "duId",
+   "ValueType": "String"
+  },
+  {
+   "Name": "cellID",
+   "ValueType": "String"
+  },
+  {
+   "Name": "fuaCode",
+   "ValueType": "String"
+  },
+  {
+   "Name": "fuaName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "component",
+   "ValueType": "String"
+  },
+  {
+   "Name": "gridLabel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "vppSeason",
+   "ValueType": "String"
+  },
+  {
+   "Name": "cloudCover",
+   "ValueType": "Double"
+  },
+  {
+   "Name": "fileFormat",
+   "ValueType": "String"
+  },
+  {
+   "Name": "wlLakeName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "countryCode",
+   "ValueType": "String"
+  },
+  {
+   "Name": "nominalDate",
+   "ValueType": "DateTimeOffset"
+  },
+  {
+   "Name": "wlBasinName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "wlRiverName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "datasetAlias",
+   "ValueType": "String"
+  },
+  {
+   "Name": "areaOfInterest",
+   "ValueType": "String"
+  },
+  {
+   "Name": "collectionName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "datasetVersion",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "productVersion",
+   "ValueType": "String"
+  },
+  {
+   "Name": "projectionName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformAcronym",
+   "ValueType": "String"
+  },
+  {
+   "Name": "swiSubParameter",
+   "ValueType": "String"
+  },
+  {
+   "Name": "vppSubParameter",
+   "ValueType": "String"
+  },
+  {
+   "Name": "datasetShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "missionShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "processingCenter",
+   "ValueType": "String"
+  },
+  {
+   "Name": "datasetIdentifier",
+   "ValueType": "String"
+  },
+  {
+   "Name": "metricGridSpacing",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "minimalMappingUnit",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "temporalRepeatRate",
+   "ValueType": "String"
+  },
+  {
+   "Name": "consolidationPeriod",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "minimalMappingWidth",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "productDeliveryDate",
+   "ValueType": "DateTimeOffset"
+  },
+  {
+   "Name": "SDIResourceIdentifier",
+   "ValueType": "String"
+  },
+  {
+   "Name": "minimalMappingUnitLabel",
+   "ValueType": "String"
+  },
+  {
+   "Name": "minimalMappingWidthLabel",
+   "ValueType": "String"
+  }
+ ],
+ "TERRA": [
+  {
+   "Name": "productType",
+   "ValueType": "String"
+  },
+  {
+   "Name": "tileId",
+   "ValueType": "String"
+  },
+  {
+   "Name": "dayNightFlag",
+   "ValueType": "String"
+  },
+  {
+   "Name": "platformShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "verticalTileNumber",
+   "ValueType": "Integer"
+  },
+  {
+   "Name": "instrumentShortName",
+   "ValueType": "String"
+  },
+  {
+   "Name": "horizontalTileNumber",
+   "ValueType": "Integer"
+  }
+ ]
+}

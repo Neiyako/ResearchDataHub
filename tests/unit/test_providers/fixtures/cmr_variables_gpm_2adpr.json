@@ -1,0 +1,56 @@
+{
+ "hits": 1,
+ "took": 18,
+ "items": [
+  {
+   "meta": {
+    "revision-id": 1,
+    "deleted": false,
+    "format": "application/vnd.nasa.cmr.umm+json",
+    "provider-id": "GES_DISC",
+    "user-id": "cloeser",
+    "associations": {
+     "collections": [
+      "C2179081499-GES_DISC"
+     ]
+    },
+    "native-id": "GPM_2ADPR_07_HS/navigation/scLon",
+    "association-details": {
+     "collections": [
+      {
+       "concept-id": "C2179081499-GES_DISC"
+      }
+     ]
+    },
+    "concept-id": "V2758121925-GES_DISC",
+    "revision-date": "2023-08-28T16:53:02.906Z",
+    "concept-type": "variable"
+   },
+   "umm": {
+    "LongName": "HS/navigation/scLon",
+    "Definition": "HS/navigation/scLon from GPM_2ADPR_07",
+    "Units": "degrees",
+    "FillValues": [
+     {
+      "Value": -9999.900390625,
+      "Type": "SCIENCE_FILLVALUE"
+     }
+    ],
+    "DataType": "float32",
+    "Name": "HS/navigation/scLon",
+    "MetadataSpecification": {
+     "URL": "https://cdn.earthdata.nasa.gov/umm/variable/v1.9.0",
+     "Name": "UMM-Var",
+     "Version": "1.9.0"
+    }
+   },
+   "associations": {
+    "collections": [
+     {
+      "concept-id": "C2179081499-GES_DISC"
+     }
+    ]
+   }
+  }
+ ]
+}

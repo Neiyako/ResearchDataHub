@@ -15,7 +15,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
@@ -151,7 +151,21 @@ class HttpTransportAdapter(TransportAdapterBase):
         random_source: Callable[[], float] | None = None,
         unverifiable_resume_policy: Literal["restart", "manual"] = "restart",
         trust_env: bool = True,
+        extra_headers: Mapping[str, str] | None = None,
     ) -> None:
+        """构造 HTTP 传输适配器。
+
+        Parameters
+        ----------
+        extra_headers:
+            附加到**每个**请求上的头，用于需要认证的公开科研数据源
+            （例如 NASA Earthdata 的 ``Authorization: Bearer <EDL token>``）。
+
+            **安全约束**：调用方负责保证这个映射里的值不会被写进返回值、日志或
+            Manifest —— 本类只把它交给 httpx，不读取、不回显。凭据解析由
+            ``environment``/``providers`` 层从环境变量或密钥环完成，不经由本参数传递
+            明文。值为 ``None`` 的项会被跳过（便于从"可能缺失"的配置直接展开）。
+        """
         effective = config or TransferConfig()
         # 注意：**不要**把 transfer.timeout_seconds 传给 httpx 的 ``total`` 参数——
         # 那会让“单次尝试总时长”变成对整条响应的硬截止，数 GB 的正常下载会被掐断。
@@ -180,6 +194,11 @@ class HttpTransportAdapter(TransportAdapterBase):
                 "User-Agent": "researchdatahub/0.1 (transfer)",
                 # 禁用压缩协商：Content-Length 必须等于落盘字节数，否则大小校验无意义。
                 "Accept-Encoding": "identity",
+                **{
+                    str(name): str(value)
+                    for name, value in (extra_headers or {}).items()
+                    if value is not None
+                },
             },
         )
         super().__init__(
