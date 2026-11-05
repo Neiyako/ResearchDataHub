@@ -328,29 +328,38 @@ def test_queued_task_cancel_is_immediate(tmp_path: Path, http_server: TransferTe
 def test_payload_validation_rejects_bad_requests(
     client: RemoteWorkerClient, http_server: TransferTestServer
 ) -> None:
-    bad = httpx.Client(
+    # 每个请求用独立 client（连接池 max_keepalive_connections=0）：
+    # 服务端在**收到畸形请求体后可能主动关闭连接**（这是合法的防御行为），
+    # 若复用同一条 keep-alive 连接，下一条请求就会撞上 ``RemoteProtocolError``。
+    # 这不是被测协议的缺陷，而是测试对该行为的假设过强——所以这里每次新建连接。
+    def post(path: str, **kwargs: object) -> httpx.Response:
+        with httpx.Client(
+            base_url=client.base_url,
+            headers={"Authorization": f"Bearer {TOKEN}"},
+            trust_env=False,
+            timeout=5.0,
+            limits=httpx.Limits(max_keepalive_connections=0),
+        ) as one_shot:
+            return one_shot.post(path, **kwargs)  # type: ignore[arg-type]
+
+    response = post("/v1/tasks", content=b"{not json")
+    assert response.status_code == 400
+    assert response.json()["error"] == "invalid_json"
+    response = post("/v1/tasks", json={"task_id": "x"})
+    assert response.status_code == 400
+    assert response.json()["error"] == "invalid_task"
+    response = post("/v1/register", json={"worker_id": "remote-a", "protocol_version": "9.9"})
+    assert response.status_code == 400
+    with httpx.Client(
         base_url=client.base_url,
         headers={"Authorization": f"Bearer {TOKEN}"},
         trust_env=False,
         timeout=5.0,
-    )
-    try:
-        response = bad.post("/v1/tasks", content=b"{not json")
-        assert response.status_code == 400
-        assert response.json()["error"] == "invalid_json"
-        response = bad.post("/v1/tasks", json={"task_id": "x"})
-        assert response.status_code == 400
-        assert response.json()["error"] == "invalid_task"
-        response = bad.post(
-            "/v1/register", json={"worker_id": "remote-a", "protocol_version": "9.9"}
-        )
-        assert response.status_code == 400
-        response = bad.get("/v1/nope")
-        assert response.status_code == 404
-        response = bad.post("/v1/tasks/x/cancel")
-        assert response.status_code == 400
-    finally:
-        bad.close()
+        limits=httpx.Limits(max_keepalive_connections=0),
+    ) as one_shot:
+        assert one_shot.get("/v1/nope").status_code == 404
+    response = post("/v1/tasks/x/cancel")
+    assert response.status_code == 400
 
 
 def test_capability_rejection_at_submit(
