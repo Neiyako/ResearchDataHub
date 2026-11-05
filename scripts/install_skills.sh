@@ -114,7 +114,14 @@ removed=0
 for entry in "${targets[@]}"; do
   name="${entry%%|*}"; dir="${entry#*|}"
   log "-- ${name} --"
-  run mkdir -p "${dir}"
+  if (( UNINSTALL == 0 )); then
+    # 安装时才建目录；卸载时目录不存在是正常情况，不该在这里失败。
+    # 用 `mkdir -p --` 保护以 '-' 开头的路径不会被当成选项。
+    run mkdir -p -- "${dir}"
+  elif [[ ! -d "${dir}" ]]; then
+    log "  （目标目录不存在，跳过：${dir}）"
+    continue
+  fi
 
   for skill in "${SKILL_NAMES[@]}"; do
     src="${SKILLS_SRC}/${skill}"

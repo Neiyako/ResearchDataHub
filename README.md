@@ -108,43 +108,54 @@ Coding Agent（Codex / Claude Code）通过 **MCP** 调用本系统，系统负�
 
 ## 3. 快速开始
 
-### 2.1 安装
+### 3.1 装好后直接对 Agent 说话（推荐）
+
+**把下面这段整段复制给 Codex / Claude Code，它会自己完成安装和配置：**
+
+```text
+请帮我安装并配置 ResearchDataHub（科研数据获取基础设施）：
+仓库 https://github.com/Neiyako/ResearchDataHub
+
+步骤：
+1. git clone 到 ~/ResearchDataHub（若已存在则跳过），cd 进去
+2. python3 -m venv .venv && .venv/bin/pip install -e ".[mcp,sci]"
+3. 把 MCP Server 注册到你自己：
+   - Claude Code: claude mcp add researchdatahub -- <仓库绝对路径>/.venv/bin/rdh-mcp
+   - Codex: 在 ~/.codex/config.toml 加
+       [mcp_servers.researchdatahub]
+       command = "<仓库绝对路径>/.venv/bin/rdh-mcp"
+4. bash scripts/install_skills.sh
+5. 用 `.venv/bin/rdh version` 验证退出码为 0，然后告诉我 MCP 工具是否可见
+
+注意：不要向我索要任何密码或 token；需要凭据时教我自己在终端 export。
+```
+
+装完后直接说需求即可，例如：
+
+> 帮我获取 2015—2024 年中国区域的 ERA5 小时数据，包含温度、风场、云液态水和云冰水，保存到当前项目的 `data/raw`。
+
+Agent 会按 Skill 自动走完：**搜索数据源 → 检查数据集 → 检查环境 → 引导配置凭据 → 校验请求 → 生成计划 → 等你确认 → 下载 → 校验 → 交付路径与 Manifest**。
+
+### 3.2 手动安装（想自己控制时）
 
 ```bash
 git clone https://github.com/Neiyako/ResearchDataHub.git
 cd ResearchDataHub
-python3 -m venv .venv && .venv/bin/pip install -e ".[dev,cds,sci]"
-.venv/bin/rdh version          # 退出码 0 即安装成功
+python3 -m venv .venv
+.venv/bin/pip install -e ".[mcp,sci]"     # mcp=Agent 接口, sci=NetCDF 校验
+.venv/bin/rdh version                     # 退出码 0 即成功
+bash scripts/install_skills.sh            # 装 4 个 Skill
 ```
 
-> 需要 **Python 3.12+**（源码使用 PEP 695 `type` 语句；见 [ADR-0010](docs/decisions/ADR-0010-python-version-and-deps.md)）。
+> 需要 **Python 3.12+**（见 [ADR-0010](docs/decisions/ADR-0010-python-version-and-deps.md)）。
+> `cds` 依赖只在需要 CDS 取数时安装：`pip install -e ".[cds]"`。
 
-### 2.2 给 Agent 用（推荐路径）
-
-```bash
-# 1) 装 MCP Server（可选依赖，只给 Agent 用的部署才需要）
-.venv/bin/pip install -e ".[mcp]"
-
-# 2) 注册到 Claude Code
-claude mcp add researchdatahub -- /绝对路径/ResearchDataHub/.venv/bin/rdh-mcp
-
-# 或注册到 Codex（~/.codex/config.toml）
-#   [mcp_servers.researchdatahub]
-#   command = "/绝对路径/ResearchDataHub/.venv/bin/rdh-mcp"
-
-# 3) 装 Skills（让 Agent 知道该怎么用这些工具）
-bash scripts/install_skills.sh --dry-run   # 先看会装到哪
-bash scripts/install_skills.sh
-```
-
-之后直接对 Agent 说需求即可。详见 [docs/mcp.md](docs/mcp.md) 与 [docs/skills.md](docs/skills.md)。
-
-### 2.3 用 CLI 手动跑（运维/调试）
+### 3.3 用 CLI（不用 Agent 时）
 
 ```bash
 cp configs/sources.example.yaml configs/sources.yaml
-export CDSAPI_KEY="<你的 CDS 个人访问令牌>"          # 凭据只以 env 引用出现，不写进 YAML
-.venv/bin/rdh config validate                       # PASS，退出码 0
+export CDSAPI_KEY="<你的 CDS 个人访问令牌>"     # 凭据只以 env 引用出现，不写进 YAML
+.venv/bin/rdh config validate                  # PASS，退出码 0
 
 .venv/bin/rdh request validate examples/era5-request.yaml
 .venv/bin/rdh plan create examples/era5-request.yaml
@@ -353,6 +364,7 @@ EDA / 清洗 / 分析 / 可视化 / 机器学习 / 模型训练 / 科研结论�
 
 | 文档 | 内容 |
 |---|---|
+| [INSTALL_PROMPT.md](INSTALL_PROMPT.md) | **给 Agent 的安装提示词（整段复制即可）** |
 | [roadmap.md](docs/roadmap.md) | **里程碑真实状态 + 未完成项与阻塞原因** |
 | [chain-speed-benchmark.md](docs/chain-speed-benchmark.md) | **三条链路效率实测对比（Earthdata / GEE / NCAR）** |
 | [repository-audit.md](docs/repository-audit.md) | M0 仓库审计：保留/修改/删除/新增判定 |
