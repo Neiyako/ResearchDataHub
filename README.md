@@ -108,7 +108,7 @@ Coding Agent（Codex / Claude Code）通过 **MCP** 调用本系统，系统负�
 
 ## 3. 快速开始
 
-### 3.1 装好后直接对 Agent 说话（推荐）
+### 3.1 装好后直接给 Agent 发提示词：
 
 **把下面这段整段复制给 Codex / Claude Code，它会自己完成安装和配置：**
 
