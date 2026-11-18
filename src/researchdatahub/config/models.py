@@ -321,6 +321,13 @@ class TransferConfig(_ConfigModel):
             "在 8 连接池上排队并误报 timeout_pool"
         ),
     )
+    metadata_probe: Literal["head", "declared"] = Field(
+        default="head",
+        description=(
+            "远端元数据探测方式。head=先 HEAD/Range 探测；declared=信任 SourceAsset "
+            "已声明的大小并直接 GET，适合 NCAR NCSS 等 HEAD 与 GET 同样昂贵的服务"
+        ),
+    )
     verify_tls: bool = True
     resume_enabled: bool = Field(default=True, description="是否允许在可自证一致性时断点续传")
     s3: S3TransferConfig = Field(default_factory=S3TransferConfig)

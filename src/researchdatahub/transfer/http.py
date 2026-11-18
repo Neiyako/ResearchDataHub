@@ -225,6 +225,26 @@ class HttpTransportAdapter(TransportAdapterBase):
         """``HEAD`` 探测远端声明；服务端不支持 HEAD 时用 ``Range: bytes=0-0`` 兜底。"""
         url = self._url(asset)
         self._require_open()
+        if self._config.metadata_probe == "declared":
+            if asset.size_bytes <= 0:
+                raise self._protocol_error(
+                    "metadata_probe=declared requires a positive declared asset size",
+                    url=url,
+                )
+            return RemoteMetadata(
+                origin_uri=asset.origin_uri,
+                url=url,
+                transport_id=self.transport_id,
+                http_status=200,
+                size_bytes=asset.size_bytes,
+                etag=asset.remote_etag,
+                last_modified=asset.remote_last_modified,
+                content_type=asset.content_type,
+                # A skipped probe cannot prove Range/validator support. The base
+                # strategy must therefore start from byte 0 and rely on the GET
+                # Content-Length + post-transfer checksum.
+                accepts_ranges=False,
+            )
         response = self._send_head(url)
         if response.status_code in _HEAD_NOT_ALLOWED:
             response.close()

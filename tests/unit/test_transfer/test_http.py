@@ -84,6 +84,21 @@ def test_http_pool_size_follows_transfer_config() -> None:
         adapter.close()
 
 
+def test_declared_metadata_probe_skips_head(server: TransferTestServer) -> None:
+    """可信目录声明大小可直接进入 GET，避免 NCSS 的双倍生成成本。"""
+    body = b"declared-size" * 100
+    resource = server.add("/declared.bin", Resource(body=body, etag='"declared"'))
+    adapter = make_http_adapter(
+        config=fast_transfer_config(metadata_probe="declared")
+    )
+    asset = make_http_asset(server.url("/declared.bin"), size_bytes=len(body))
+    metadata = adapter.get_remote_metadata(asset)
+    assert metadata.size_bytes == len(body)
+    assert metadata.accepts_ranges is False
+    assert resource.head_requests == 0
+    adapter.close()
+
+
 def test_probe_resume_reports_range_support_and_validators(
     server: TransferTestServer,
 ) -> None:
