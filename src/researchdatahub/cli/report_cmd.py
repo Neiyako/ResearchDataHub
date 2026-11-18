@@ -128,11 +128,29 @@ def register_report_commands(app: typer.Typer) -> None:
                         detail={"request_id": request_id},
                     )
                 files = list(repository.list_file_records(request_id=request_id))
-                reports = [
-                    report
-                    for task in tasks
-                    for report in repository.list_integrity_reports(task_id=task.task_id)
-                ]
+                # A task can accumulate failure reports from earlier attempts before a
+                # later retry succeeds. Those pre-file reports have file_id=None and
+                # cannot witness a delivered byte. Keep only the latest report for each
+                # actually committed file; otherwise a successful retry is permanently
+                # poisoned by historical failures in the same task.
+                reports = []
+                seen_file_reports: set[tuple[str, str]] = set()
+                for task in tasks:
+                    file_ids = {
+                        record.file_id
+                        for record in repository.list_file_records(task_id=task.task_id)
+                    }
+                    if not file_ids:
+                        continue
+                    latest_by_file = {}
+                    for report in repository.list_integrity_reports(task_id=task.task_id):
+                        if report.file_id in file_ids:
+                            latest_by_file[report.file_id] = report
+                    for file_id, report in latest_by_file.items():
+                        key = (task.task_id, file_id)
+                        if key not in seen_file_reports:
+                            seen_file_reports.add(key)
+                            reports.append(report)
                 # Report provenance must be run-scoped. The ``sources`` table is a
                 # global latest-state cache keyed by source_id; reading it here can
                 # attribute this request to an older/different provider that used

@@ -251,6 +251,39 @@ def test_report_generate_reports_failed_tasks_not_only_successes(tmp_path: Path)
     assert payload["failures"][0]["task_id"] == "task-0002"
 
 
+def test_report_delivery_ignores_pre_file_failure_reports(tmp_path: Path) -> None:
+    """成功重试后，旧 attempt 的无 file_id 失败报告不能污染交付。"""
+    from tests.conftest import make_integrity_report
+
+    from researchdatahub.manifest.cli_service import open_manifest, resolve_db_target
+
+    config, root = _prepare(tmp_path)
+    _seed(tmp_path, config)
+    repository = open_manifest(resolve_db_target(defaults_path=config))
+    try:
+        repository.save_integrity_report(
+            make_integrity_report(
+                report_id="report-old-failure",
+                task_id="task-0001",
+                file_id=None,
+                status="failed",
+                failures=["netcdf_openable: old truncated attempt"],
+            )
+        )
+    finally:
+        repository.close()
+
+    code, output = invoke("report", "generate", REQUEST_ID, "--config", str(config))
+    assert code == 0, output
+    deliveries = sorted((root / "deliveries").glob("*.json"))
+    assert deliveries
+    payload = json.loads(deliveries[-1].read_text())
+    notes = str(payload.get("notes") or "")
+    assert "report_without_file_id" not in notes
+    assert "file_missing" in notes  # fixture path is intentionally not materialized
+    assert all(item.get("file_id") for item in payload["integrity"])
+
+
 def test_report_generate_respects_plan_option(tmp_path: Path) -> None:
     config, root = _prepare(tmp_path)
     _seed(tmp_path, config)
