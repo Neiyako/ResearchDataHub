@@ -312,6 +312,15 @@ class TransferConfig(_ConfigModel):
         default=1_048_576, ge=65_536, le=33_554_432, description="流式写入分块大小"
     )
     max_redirects: int = Field(default=5, ge=0, le=20)
+    max_connections: int = Field(
+        default=64,
+        ge=1,
+        le=256,
+        description=(
+            "HTTP 连接池上限；应与 scheduler.max_workers 相匹配，避免高并发 worker "
+            "在 8 连接池上排队并误报 timeout_pool"
+        ),
+    )
     verify_tls: bool = True
     resume_enabled: bool = Field(default=True, description="是否允许在可自证一致性时断点续传")
     s3: S3TransferConfig = Field(default_factory=S3TransferConfig)

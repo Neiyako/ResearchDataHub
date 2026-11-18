@@ -50,7 +50,6 @@ __all__ = ["HttpTransportAdapter"]
 
 _HEAD_NOT_ALLOWED = frozenset({405, 501})
 _RETRYABLE_STATUS = frozenset({408, 425, 429, 500, 501, 502, 503, 504, 507, 509})
-_DEFAULT_MAX_CONNECTIONS = 8
 
 
 def _parse_http_date(value: str | None) -> datetime | None:
@@ -187,8 +186,9 @@ class HttpTransportAdapter(TransportAdapterBase):
             # loopback socket 行为可断言（代理会把「连接被拒绝」包装成 502）。
             trust_env=trust_env,
             limits=httpx.Limits(
-                max_connections=_DEFAULT_MAX_CONNECTIONS,
-                max_keepalive_connections=_DEFAULT_MAX_CONNECTIONS,
+                max_connections=effective.max_connections,
+                # 保留少量空闲连接即可；请求并发交给 max_connections。
+                max_keepalive_connections=min(effective.max_connections, 32),
             ),
             headers={
                 "User-Agent": "researchdatahub/0.1 (transfer)",

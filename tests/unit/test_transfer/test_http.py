@@ -73,6 +73,17 @@ def test_remote_metadata_exposes_size_etag_last_modified_and_content_type(
     adapter.close()
 
 
+def test_http_pool_size_follows_transfer_config() -> None:
+    """高并发 worker 不应被硬编码的 8 连接池串行化。"""
+    adapter = make_http_adapter(config=fast_transfer_config(max_connections=37))
+    try:
+        pool = adapter._client._transport._pool
+        assert pool._max_connections == 37
+        assert pool._max_keepalive_connections == 32
+    finally:
+        adapter.close()
+
+
 def test_probe_resume_reports_range_support_and_validators(
     server: TransferTestServer,
 ) -> None:

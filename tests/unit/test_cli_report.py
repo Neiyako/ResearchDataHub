@@ -128,6 +128,32 @@ def test_report_generate_writes_report_and_delivery(tmp_path: Path) -> None:
     assert (root / "deliveries").is_dir()
 
 
+def test_report_sources_come_from_request_tasks_not_global_cache(tmp_path: Path) -> None:
+    """全局 sources 行被旧来源污染时，报告不得改写当前请求的来源。"""
+    from tests.conftest import make_source_metadata
+
+    from researchdatahub.manifest.cli_service import open_manifest, resolve_db_target
+
+    config, root = _prepare(tmp_path)
+    _seed(tmp_path, config)
+    stale = make_source_metadata(
+        provider="replay",
+        display_name="old replay",
+        origin_uri="http://127.0.0.1:8765/old.nc",
+        access_route="https",
+    )
+    repository = open_manifest(resolve_db_target(defaults_path=config))
+    try:
+        repository.upsert_source(stale, adapter_id="replay")
+    finally:
+        repository.close()
+
+    assert invoke("report", "generate", REQUEST_ID, "--config", str(config))[0] == 0
+    payload = json.loads(sorted((root / "reports").glob("*.json"))[0].read_text())
+    assert payload["sources"][0]["provider"] == "NSF NCAR"
+    assert payload["sources"][0]["display_name"] == "NSF NCAR Research Data Archive"
+
+
 def test_report_show_renders_existing_report(tmp_path: Path) -> None:
     config, root = _prepare(tmp_path)
     _seed(tmp_path, config)

@@ -73,6 +73,8 @@ defaults:
     # 流式写入分块（字节）。8GB 内存设备上一次只驻留一块，禁止整文件载入内存。
     chunk_size_bytes: 1048576
     max_redirects: 5
+    # HTTP 连接池上限；并发的 worker 数超过此值时会在 pool 中等待。
+    max_connections: 64
     # 生产环境请勿关闭；自签测试服务器才临时关闭。
     verify_tls: true
     # 断点续传开关：即使开启，也只在远端 Range/ETag 能自证一致时才真正续传。

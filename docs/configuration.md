@@ -116,6 +116,7 @@ root: "${RDH_HOME}/storage"    # 内嵌插值
 | `read_timeout_seconds` | `60.0` | > 0，≤ timeout（若设了） | 读超时（每次 socket 读空闲，不是总时长） |
 | `chunk_size_bytes` | `1048576` | 64 KiB–32 MiB | 流式写入分块；内存占用 ≈ 该值 |
 | `max_redirects` | `5` | 0–20 | HTTP 重定向上限 |
+| `max_connections` | `64` | 1–256 | HTTP 连接池上限；应不小于并发 worker 数 |
 | `verify_tls` | `true` | bool | 生产环境不得关闭 |
 | `resume_enabled` | `true` | bool | **允许**尝试续传，不等于一定续传（见下） |
 

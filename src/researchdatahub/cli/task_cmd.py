@@ -95,9 +95,20 @@ def register_task_commands(app: typer.Typer) -> None:
                 transports=list(transports),
                 config=app_config.defaults,
             )
+            effective_request_id = request_id
             with open_repository(context) as repository:
                 if plan_id is not None:
                     plan = repository.load_plan(plan_id)
+                    if request_id is not None and request_id != plan.request_id:
+                        raise RdhError(
+                            f"plan {plan_id!r} belongs to request {plan.request_id!r}, "
+                            f"not {request_id!r}",
+                            detail={"plan_id": plan_id, "request_id": request_id},
+                        )
+                    # ``task run <plan>`` must scope claim/finish accounting to that
+                    # plan's request. Passing None previously counted every request
+                    # in the manifest and falsely reported unrelated unfinished work.
+                    effective_request_id = plan.request_id
                     queued = scheduler.submit(plan)
                 else:
                     queued = 0
@@ -106,7 +117,7 @@ def register_task_commands(app: typer.Typer) -> None:
             )
             summary = scheduler.run(
                 max_workers=max_workers,
-                request_id=request_id,
+                request_id=effective_request_id,
                 max_tasks=max_tasks,
             )
         except RdhError as exc:

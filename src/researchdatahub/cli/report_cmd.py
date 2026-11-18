@@ -133,7 +133,19 @@ def register_report_commands(app: typer.Typer) -> None:
                     for task in tasks
                     for report in repository.list_integrity_reports(task_id=task.task_id)
                 ]
-                sources = list(repository.list_sources())
+                # Report provenance must be run-scoped. The ``sources`` table is a
+                # global latest-state cache keyed by source_id; reading it here can
+                # attribute this request to an older/different provider that used
+                # the same source_id. Task asset snapshots retain the exact source
+                # metadata that produced these files.
+                sources = []
+                seen_sources: set[str] = set()
+                for task in tasks:
+                    source = task.asset.metadata
+                    if source.source_id in seen_sources:
+                        continue
+                    seen_sources.add(source.source_id)
+                    sources.append(source)
             finally:
                 repository.close()
 

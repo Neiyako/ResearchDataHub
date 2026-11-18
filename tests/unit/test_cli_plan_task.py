@@ -242,6 +242,56 @@ def test_task_run_without_plan_reports_zero(tmp_path: Path) -> None:
     assert "入队 0 个任务" in output
 
 
+def test_task_run_plan_ignores_unfinished_tasks_from_other_requests(tmp_path: Path) -> None:
+    """``task run <plan>`` 的退出状态只能由该计划所属请求决定。"""
+    config = _prepare(tmp_path)
+    repository = open_manifest(resolve_db_target(defaults_path=config))
+    try:
+        repository.save_request(make_request(request_id=REQUEST_ID))
+        completed = make_task(task_id="task-0001", plan_id=PLAN_ID, request_id=REQUEST_ID)
+        completed = completed.model_copy(update={"state": TaskState.COMPLETED})
+        repository.save_plan(
+            AcquisitionPlan(
+                plan_id=PLAN_ID,
+                request_id=REQUEST_ID,
+                tasks=[completed],
+                generated_at=FIXED_NOW,
+            ),
+        )
+
+        other_request = make_request(request_id="other-request-0001")
+        repository.save_request(other_request)
+        other = make_task(
+            task_id="task-other-0001",
+            plan_id="plan-other-0001",
+            request_id="other-request-0001",
+        ).model_copy(update={"state": TaskState.QUEUED})
+        repository.save_plan(
+            AcquisitionPlan(
+                plan_id="plan-other-0001",
+                request_id="other-request-0001",
+                tasks=[other],
+                generated_at=FIXED_NOW,
+            ),
+        )
+    finally:
+        repository.close()
+
+    code, output = invoke(
+        "task",
+        "run",
+        PLAN_ID,
+        "--config",
+        str(config),
+        "--sources",
+        str(_write_sources(tmp_path)),
+        "--root",
+        str(tmp_path / "rdh"),
+    )
+    assert code == 0, output
+    assert "未完成" in output
+
+
 @pytest.mark.parametrize("command", ["request", "plan", "task"])
 def test_command_group_help_lists_subcommands(command: str) -> None:
     code, output = invoke(command, "--help")
