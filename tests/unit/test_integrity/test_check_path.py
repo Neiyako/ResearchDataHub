@@ -12,6 +12,15 @@ from integrity_helpers import make_checksum, write_bytes, write_netcdf
 from researchdatahub.core.errors import IntegrityError
 from researchdatahub.core.models import IntegrityStatus
 from researchdatahub.integrity import CheckStatus, IntegrityChecker, PathCheckResult
+from researchdatahub.integrity.checker import _decode_netcdf_time
+
+
+def test_netcdf_time_decode_returns_none_on_overflow() -> None:
+    """损坏/混合历元时间不得让完整性检查线程崩溃。"""
+    assert _decode_netcdf_time(
+        [0.0, 9.999e20],
+        "hours since 1900-01-01 00:00:00",
+    ) is None
 
 
 def _sha256(content: bytes) -> str:
