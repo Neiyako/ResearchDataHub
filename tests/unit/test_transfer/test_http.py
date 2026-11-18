@@ -299,6 +299,24 @@ def test_existing_destination_with_different_size_is_refused(
     adapter.close()
 
 
+def test_unknown_declared_size_replaces_stale_destination_after_verification(
+    server: TransferTestServer, tmp_path: Path
+) -> None:
+    body = b"a" * 500
+    server.add("/unknown-size.bin", Resource(body=body, etag='"v1"'))
+    adapter = make_http_adapter()
+    asset = make_http_asset(server.url("/unknown-size.bin"), size_bytes=1)
+    destination = tmp_path / "unknown-size.bin"
+    destination.write_bytes(b"stale")
+
+    result = adapter.transfer(asset, destination, task=make_task_for(asset))
+
+    assert result.status is TransferStatus.SUCCEEDED
+    assert destination.read_bytes() == body
+    assert part_path_for(destination).exists() is False
+    adapter.close()
+
+
 # --------------------------------------------------------------------------- #
 # 状态码 / 重试
 # --------------------------------------------------------------------------- #

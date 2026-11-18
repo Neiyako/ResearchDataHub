@@ -836,6 +836,25 @@ class TransportAdapterBase(ABC):
                 actual_size=local_size,
                 started_at=started_at,
             )
+        if asset.size_bytes <= 1:
+            # Static NCAR result assets use 1 as an explicit "size unknown"
+            # sentinel. The existing destination may be a complete file left by
+            # an interrupted task whose final task-state update never landed.
+            # Do not treat the sentinel as authoritative: probe the remote and
+            # stage a replacement, which is atomically installed only after the
+            # remote size and integrity checks pass.
+            self._emit(
+                task.task_id,
+                TransferEventType.STAGING_CLEANUP,
+                "existing destination has unknown declared size; "
+                "remote metadata will determine the staged replacement",
+                metadata={
+                    "destination": str(destination),
+                    "local_size": local_size,
+                    "declared_size": asset.size_bytes,
+                },
+            )
+            return None
         failure = _Failure(
             error_code=str(TransferErrorCode.DESTINATION_EXISTS),
             message=(
