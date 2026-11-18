@@ -1,9 +1,9 @@
 ---
 name: data-discovery
-description: 把用户用自然语言描述的科学数据需求解析成结构化需求，并在 ResearchDataHub 中搜索、检视、比较候选数据集，产出对比表让用户确认。当用户提到要下载/采集 ERA5、再分析、云水、温度、风场等气候或地球科学数据，或问"有没有某个数据集""哪几个数据集能满足这个需求"时使用。
+description: 把用户用自然语言描述的科学数据需求解析成结构化需求，并在 ResearchDataHub 中搜索、检视、比较候选数据集，产出对比表并检查候选 route 状态后再让用户确认。当用户提到要下载/采集 ERA5、再分析、云水、温度、风场等气候或地球科学数据，或问"有没有某个数据集""哪几个数据集能满足这个需求""哪个源/链路可用"时使用。
 metadata:
   type: workflow
-  version: "1.0.0"
+  version: "1.1.0"
   stage: "1/4"
   next-skill: environment-setup
 ---
@@ -13,7 +13,7 @@ metadata:
 > 本 Skill 是 ResearchDataHub 四段式采集流程的**第 1 段**：
 > `data-discovery` → `environment-setup` → `data-acquisition` → `data-validation`
 > 本段**只读**：只用 `search_datasets` / `inspect_dataset` / `compare_datasets` /
-> `get_provider_capabilities` 四个工具，不落库、不下载。
+> `get_provider_capabilities` / `get_route_status` 五个工具，不落库、不下载科研数据。
 
 ## 1. 何时使用
 
@@ -76,6 +76,7 @@ metadata:
 ② inspect_dataset(dataset_id, provider?)
 ③ compare_datasets(dataset_ids[2..8], dimensions?)      # 有 2 个以上候选时
 ④ get_provider_capabilities(provider?)                   # 用户关心"哪个源更快/更全"时
+⑤ get_route_status(dataset_id?, probe?)                  # 查看候选 transport 与 qualification 经验
 ```
 
 ### 4.1 `search_datasets`
@@ -103,6 +104,16 @@ metadata:
 
 返回每个适配器的**可用路线、verified/unverified 能力、缺失依赖名、缺失凭证名**。
 **它只返回凭证名称，绝不返回值**——不要向用户索要值，也不要展示任何疑似密钥的字符串。
+
+### 4.5 `get_route_status`（可选 `dataset_id` / `probe`）
+
+返回 source × transport 候选、adapter 支持情况，以及 `routes.json` 中已有的
+qualification/benchmark 经验。`probe=true` 只对 https endpoint 做低字节量 HEAD；
+**probe 可达不代表 capability 全 PASS，更不代表已 qualification**。
+
+禁止把 `implemented=false` 解释成“该数据不存在”；它只表示 RDH 尚未实现该 transport。
+如果存在 `UNKNOWN` / 未 qualification 的候选 route，在进入下载阶段前必须交给
+`data-acquisition` 做 probe/benchmark，而不是直接选择最熟悉的平台。
 
 ## 5. 输出给用户的模板（候选对比表 + 确认请求）
 
@@ -150,6 +161,8 @@ metadata:
 3. **禁止索要、打印、上传任何密码/token/API Key**；本 Skill 不需要任何凭证。
 4. **禁止在本段调用 `submit_acquisition`** —— 那是 `data-acquisition` 的职责。
 5. 禁止把 CDS 的 `[N,W,S,E]` 顺序写进 `spatial.bounds`。
+6. 禁止因为某个 adapter 存在或未实现，就宣布“该数据集只能从某平台获取”；必须保留其他
+   `UNKNOWN` / `NOT_IMPLEMENTED` route 的独立语义。
 
 ## 8. 黄金路径（真实需求，跨 4 个 Skill，本文只覆盖到第 2 步）
 

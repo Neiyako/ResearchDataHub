@@ -5,8 +5,9 @@ from __future__ import annotations
 from importlib.metadata import PackageNotFoundError, version
 
 from researchdatahub.core.models import MODELS_VERSION
+from researchdatahub.routing import RouteIntelligence
 
-__all__ = ["MODELS_VERSION", "__version__"]
+__all__ = ["MODELS_VERSION", "RouteIntelligence", "__version__"]
 
 try:
     __version__ = version("researchdatahub")

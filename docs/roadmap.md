@@ -91,6 +91,7 @@ M1 的三个关键语义修正（都是审计中发现的**真实缺陷**，不�
 | Local Worker（适配既有 `TaskExecutor`，不重写） | ✅ |
 | Remote Worker 协议（agent 服务端 + 客户端，7 个端点） | ✅ 真实子进程 + 真实 HTTP 验证 |
 | Route Contract + RouteManager（基于**实测**打分，ADR-0013） | ✅ 冷启动标 `no_measurement`，**禁止按地域推断** |
+| Dataset Route Intelligence：discovery / 五态能力 / probe / benchmark / qualification / experience / policy（ADR-0016） | ✅ 第一版已落地；source-specific benchmark 仍可注入扩展 |
 | 故障转移与重试 | ✅ |
 
 **未验证**：真实公网远程节点（需用户提供服务器地址）；本机环回上的远程协议已验证。

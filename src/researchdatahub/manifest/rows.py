@@ -57,7 +57,7 @@ __all__ = [
     "validated",
 ]
 
-_JSON_ADAPTER: Final[TypeAdapter[JsonValue]] = TypeAdapter(JsonValue)
+_JSON_ADAPTER: Final[TypeAdapter[JsonValue]] = TypeAdapter(JsonValue)  # type: ignore[arg-type]
 
 TASK_SELECT: Final[str] = """
 SELECT

@@ -159,7 +159,19 @@ root: "${RDH_HOME}/storage"    # 内嵌插值
 | `max_tasks_per_plan` | `500` | 单计划任务数上限，防止一个需求被拆成数万个小任务 |
 | `allow_partial` | `true` | 部分变量无法满足时是否仍生成计划（未满足变量必须登记进计划） |
 
-### 1.7 `defaults.integrity`
+### 1.7 `defaults.routing`
+
+| 键 | 默认 | 说明 |
+|---|---|---|
+| `qualification_ttl_days` | `14` | `QUALIFIED` route 的有效期；过期后下一次评估必须重新 probe |
+| `small_max_bytes` | `1073741824` | 小任务上限（1 GiB）；超过后进入 medium 比较 |
+| `medium_max_bytes` | `107374182400` | 中任务上限（100 GiB）；超过后 large 必须带 benchmark |
+| `max_probe_routes` | `8` | 单次 evaluation 自动 probe 的候选上限 |
+| `registry_filename` | `routes.json` | 位于 `storage.root` 下的 route 经验文件名，不允许路径 |
+
+`routing` 只影响 route selection/policy，不改变科学请求或已生成任务的完整性校验。
+
+### 1.8 `defaults.integrity`
 
 | 键 | 默认 | 说明 |
 |---|---|---|
@@ -170,7 +182,7 @@ root: "${RDH_HOME}/storage"    # 内嵌插值
 `default_checks` 可选项：`size_match` / `checksum_match` / `format_sniff` /
 `netcdf_openable` / `variable_present` / `time_coverage` / `metadata_consistent`。
 
-### 1.8 `defaults.logging`
+### 1.9 `defaults.logging`
 
 | 键 | 默认 | 说明 |
 |---|---|---|

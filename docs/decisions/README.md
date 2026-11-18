@@ -32,6 +32,7 @@
 | [ADR-0013](ADR-0013-route-selection-from-measurement.md) | 链路选择只依据**实测**性能记录，禁止按地域推断 | Accepted |
 | [ADR-0014](ADR-0014-no-cdsapi-live-tests.md) | 禁止用 cdsapi 做联网抓取测试（用户指令），CDS 走离线 schema/翻译 + 目录只读探测 | Accepted |
 | [ADR-0015](ADR-0015-delivery-to-user-path.md) | 交付路径：数据必须落到用户要求的位置，默认不静默覆盖 | Accepted |
+| [ADR-0016](ADR-0016-route-intelligence.md) | 在 Adapter 与 Planner 之间增加 dataset Route Intelligence 与 qualification policy | Accepted |
 
 ---
 

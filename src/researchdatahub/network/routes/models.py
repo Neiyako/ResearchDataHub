@@ -22,7 +22,7 @@ from enum import StrEnum
 
 from pydantic import Field, field_validator, model_validator
 
-from researchdatahub.core.models import JsonValue
+from researchdatahub.core.models import JsonValue, RouteQualification
 from researchdatahub.network.workers.models import _Contract
 
 __all__ = [
@@ -31,6 +31,7 @@ __all__ = [
     "MeasurementBasis",
     "Route",
     "RouteOption",
+    "RouteQualification",
     "RouteRejection",
     "RouteRejectionCode",
     "RouteSelection",

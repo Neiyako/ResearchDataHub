@@ -33,6 +33,7 @@ from researchdatahub.interfaces.mcp.schemas import (
     require_str_list,
 )
 from researchdatahub.interfaces.mcp.tools._shared import json_ready
+from researchdatahub.routing.registry import RouteExperienceRegistry
 from researchdatahub.sources.base import AdapterCapabilities, SourceAdapter
 
 __all__ = [
@@ -296,6 +297,8 @@ def get_route_status(context: McpContext, arguments: Mapping[str, Any]) -> dict[
     ):
         raise not_found_error("dataset", dataset_id)
 
+    registry_path = context.storage_root / context.defaults.routing.registry_filename
+    experience = RouteExperienceRegistry(registry_path)
     routes: list[dict[str, Any]] = []
     for source_id, config in sources.items():
         if dataset_id is not None and dataset_id not in config.datasets:
@@ -315,6 +318,9 @@ def get_route_status(context: McpContext, arguments: Mapping[str, Any]) -> dict[
                     "usable": binding.implemented and supported_by_adapter,
                     "endpoint": config.endpoint,
                     "reason": _route_reason(binding.implemented, supported_by_adapter, adapter),
+                    "qualification": _experience_value(
+                        experience, source_id, route_name, dataset_id
+                    ),
                 }
             )
 
@@ -329,6 +335,34 @@ def get_route_status(context: McpContext, arguments: Mapping[str, Any]) -> dict[
     if note is not None:
         payload["note"] = note
     return payload
+
+
+def _experience_value(
+    registry: RouteExperienceRegistry,
+    source_id: str,
+    transport: str,
+    dataset_id: str | None,
+) -> dict[str, Any] | None:
+    """读取 route 经验，不把不存在或过期记录伪装成已验证。"""
+    for record in registry.list_records():
+        route = record.route
+        if route.source != source_id or route.transport != transport:
+            continue
+        if dataset_id is not None and route.dataset != dataset_id:
+            continue
+        return {
+            "route_id": route.id,
+            "qualification": route.qualification.value,
+            "status": route.status.value,
+            "last_verified": (
+                None if route.last_verified is None else route.last_verified.isoformat()
+            ),
+            "benchmark": None
+            if route.benchmark is None
+            else route.benchmark.model_dump(mode="json"),
+            "history": route.history.model_dump(mode="json"),
+        }
+    return None
 
 
 def _route_reason(

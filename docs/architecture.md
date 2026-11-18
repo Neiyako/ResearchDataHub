@@ -24,7 +24,10 @@ ResearchDataHub 是一个**模块化单体（modular monolith）**：单个 Pyth
 DatasetRequest
    │
    ▼
-[planner]      源匹配、文件去重、未满足变量登记      → AcquisitionPlan
+[routing]      source×transport discovery/能力/探活/排序 → RoutePlan + RouteEvaluation
+   │
+   ▼
+[planner]      仅用已选 source 做源匹配/去重/变量登记  → AcquisitionPlan
    │
    ▼
 [scheduler]    入队、限流、线程池分发                → AcquisitionTask (QUEUED→RUNNING)
@@ -51,6 +54,7 @@ DatasetRequest
 flowchart TD
     REQ["DatasetRequest<br/>用户需求"]
     CFG["config<br/>defaults.yaml + sources.yaml<br/>env: 展开 → AppConfig"]
+    ROUTE["routing<br/>discover + capability + probe + select"]
     PLAN["planner<br/>TaskPlanner.plan()"]
     SCH["scheduler<br/>TaskScheduler.submit()/run()"]
     POOL["ThreadPoolExecutor<br/>(N workers)"]
@@ -60,9 +64,10 @@ flowchart TD
     MAN[("manifest<br/>SQLite<br/>单写者")]
     REP["reporting<br/>DeliveryManifest"]
 
-    CFG -.注入 adapters/limits.-> PLAN
+    CFG -.注入 adapters/limits.-> ROUTE
     CFG -.注入并发与重试.-> SCH
-    REQ --> PLAN
+    REQ --> ROUTE
+    ROUTE -->|"qualified route / selected source"| PLAN
     PLAN -->|"AcquisitionPlan<br/>tasks@PLANNED"| SCH
     SCH --> POOL
     POOL -->|"AcquisitionTask<br/>RUNNING"| TR
@@ -79,6 +84,8 @@ flowchart TD
     classDef m1 fill:#fff8e1,stroke:#f9a825
     class CFG,MAN,REP m0
     class PLAN,SCH,POOL,TR,INT,ST m1
+    classDef route fill:#e3f2fd,stroke:#1565c0
+    class ROUTE route
 ```
 
 图例：绿色 = M0 已有的契约与配置层；黄色 = M1–M5 落地的执行层（现均已实现）。
@@ -90,17 +97,19 @@ flowchart TD
 1. **入口**：`config` 子系统先加载 `configs/defaults.yaml` 与 `configs/sources.yaml`，展开 `env:VAR`
    引用，产出不可变的 `AppConfig` / `SourcesConfig`。它把"该用哪些 adapter、并发多少、重试几次"
    作为**参数**注入下游，而不是让下游自己去读配置文件。
-2. **规划**：`config` 注入的 `DataSourceAdapter` 列表交给 `planner`，产出 `AcquisitionPlan`，
+2. **Route planning**：`routing.RouteIntelligence` 先发现所有候选 source/transport，检查能力、
+   探活并按 qualification/benchmark 选择 route；未实现项保留为 `NOT_IMPLEMENTED`，未知项进入 probe。
+3. **规划**：只把已选 route 对应的 source adapter 交给 `planner`，产出 `AcquisitionPlan`，
    其中的任务初始状态为 `PLANNED`。
-3. **调度**：`scheduler` 把计划里的任务放进队列，按优先级出队，交给 `ThreadPoolExecutor` 的 N 个 worker。
+4. **调度**：`scheduler` 把计划里的任务放进队列，按优先级出队，交给 `ThreadPoolExecutor` 的 N 个 worker。
    每个 worker 认领一个任务，任务转为 `RUNNING`。
-4. **传输**：worker 调用 `TransportAdapter.transfer()`，按 `SourceAsset.access_route` 选择实现，
+5. **传输**：worker 调用 `TransportAdapter.transfer()`，按 `SourceAsset.access_route` 选择实现，
    把字节写入临时文件（`.part`），返回 `TransferResult`。
-5. **校验**：传输成功后任务转 `VERIFYING`，`IntegrityChecker.check()` 返回 `IntegrityReport`。
-6. **落盘**：`storage` 把临时文件原子移动到原始区（只读）或隔离区。产出 `FileRecord`。
-7. **持久化**：`manifest` 把任务状态、事件、文件记录写进 SQLite。**这是唯一的事实来源**——
+6. **校验**：传输成功后任务转 `VERIFYING`，`IntegrityChecker.check()` 返回 `IntegrityReport`。
+7. **落盘**：`storage` 把临时文件原子移动到原始区（只读）或隔离区。产出 `FileRecord`。
+8. **持久化**：`manifest` 把任务状态、事件、文件记录写进 SQLite。**这是唯一的事实来源**——
    不靠扫描文件夹判断完成。
-8. **交付**：`reporting` 从 SQLite 读取已完成的文件记录，生成 `DeliveryManifest`。
+9. **交付**：`reporting` 从 SQLite 读取已完成的文件记录，生成 `DeliveryManifest`。
 
 反向的一条虚线：`reporting` 也读 SQLite，用于报告失败任务与重试历史。
 
@@ -117,6 +126,7 @@ flowchart TD
 | `storage` | 临时区/原始区/隔离区/归档区，原子移动，只读保护 | 校验内容、决定任务状态 | ✅ M5 |
 | `integrity` | 只依赖元数据与字节执行完整性检查 | 信任远端声明、删除失败文件 | ✅ M5 |
 | `manifest` | SQLite 持久化：状态、事件、文件记录 | 业务判断（只存事实） | ✅ M1 |
+| `routing` | 数据集 route discovery、五态能力检查、probe/benchmark、qualification、可解释选择 | 不搬字节、不提交平台下载任务 | ✅ Route Intelligence |
 | `planner` | 需求 → 计划；源匹配、去重、未满足变量登记 | 执行、下载、改配置 | ✅ M4 |
 | `scheduler` | 并发控制、优先级、重试预算、状态推进 | 传输实现、校验实现 | ✅ M4 |
 | `catalog` | 数据集目录（声明式产品目录） | 运行时任务状态 | ⬜ 仅 Protocol（M6 候选） |

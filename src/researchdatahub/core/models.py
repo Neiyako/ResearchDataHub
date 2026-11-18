@@ -125,6 +125,17 @@ class AccessRoute(StrEnum):
     LOCAL = "local"
 
 
+class RouteQualification(StrEnum):
+    """数据获取路线的资质生命周期（与运行时可用性分开）。"""
+
+    DISCOVERED = "discovered"
+    PROBING = "probing"
+    QUALIFIED = "qualified"
+    DEGRADED = "degraded"
+    FAILED = "failed"
+    EXPIRED = "expired"
+
+
 class Priority(StrEnum):
     """任务优先级。调度器按该顺序出队。"""
 

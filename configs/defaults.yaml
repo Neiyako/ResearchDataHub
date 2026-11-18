@@ -107,6 +107,17 @@ defaults:
     # 部分变量无法满足时是否仍生成计划（未满足的变量必须登记在计划里）。
     allow_partial: true
 
+  routing:
+    # Route Intelligence 的 qualification 有效期；过期后下一次评估必须重新 probe。
+    qualification_ttl_days: 14
+    # 任务规模分档：<= small 可直接用 qualified；small..medium 比较；> medium 必须 bench。
+    small_max_bytes: 1073741824
+    medium_max_bytes: 107374182400
+    # 单次 evaluate 自动 probe 的候选上限，避免一个需求打爆多个平台。
+    max_probe_routes: 8
+    # route 经验寄存文件，位于 storage.root 下；不写入 manifest.db。
+    registry_filename: routes.json
+
   integrity:
     # 默认完整性检查链。顺序即执行顺序；netcdf_openable 需要 .[sci] 额外依赖（xarray/netCDF4）。
     default_checks:

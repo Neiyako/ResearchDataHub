@@ -1,0 +1,43 @@
+{
+  "request_id": "req-era5-route-planning",
+  "dataset_id": "era5-pressure-levels",
+  "metadata": {
+    "schema_version": "1.0",
+    "product": "ERA5",
+    "product_type": "reanalysis",
+    "variables": [
+      {"name": "clwc", "units": "kg kg**-1", "long_name": "Specific cloud liquid water content"},
+      {"name": "ciwc", "units": "kg kg**-1", "long_name": "Specific cloud ice water content"},
+      {"name": "crwc", "units": "kg kg**-1", "long_name": "Specific rain water content"},
+      {"name": "cswc", "units": "kg kg**-1", "long_name": "Specific snow water content"},
+      {"name": "sp", "units": "Pa", "long_name": "Surface pressure"}
+    ],
+    "temporal_coverage": {"start": "2010-05-01T00:00:00Z", "end": "2015-09-30T23:59:59Z"},
+    "spatial_extent": {"west": 70.0, "east": 105.0, "south": 25.0, "north": 40.0, "grid_degrees": 0.25},
+    "vertical_levels": {
+      "kind": "pressure",
+      "levels": [1000, 975, 950, 925, 900, 875, 850, 825, 800, 775, 750, 700, 650, 600, 550, 500, 450, 400, 350, 300, 250, 225, 200, 175, 150, 125, 100, 70, 50, 40, 30, 20, 10, 7, 5, 3, 1],
+      "units": "hPa"
+    },
+    "grid": {"resolution_degrees": 0.25, "projection": "regular_latlon", "regridded": false},
+    "time_definition": "utc_hourly",
+    "data_version": "e5.1",
+    "post_processing": [],
+    "regridded": false,
+    "units_normalized": false,
+    "extensions": {
+      "era5.years": [2010, 2012, 2015],
+      "era5.months": [5, 6, 7, 8, 9],
+      "era5.single_level_variables": ["sp"],
+      "routing.expected_bytes": 268435456000,
+      "routing.required_formats": ["netcdf"],
+      "routing.requires_subset": true
+    }
+  },
+  "preferred_sources": ["cds"],
+  "max_sources": 2,
+  "checks": ["size_match", "checksum_match", "netcdf_openable"],
+  "preserve_original": true,
+  "priority": "normal",
+  "extensions": {}
+}

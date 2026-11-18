@@ -25,11 +25,14 @@ def test_yaml_matches_code_defaults_for_concurrency() -> None:
     assert yaml_value.per_source_limit == code_default.per_source_limit, "per_source_limit 分叉"
 
 
-def test_yaml_matches_code_defaults_for_retry_and_integrity() -> None:
+def test_yaml_matches_code_defaults_for_retry_routing_and_integrity() -> None:
     loaded = load_defaults(DEFAULTS).defaults
     code_default = AppConfig().defaults
     assert loaded.retry.max_attempts == code_default.retry.max_attempts
     assert loaded.retry.backoff_seconds == code_default.retry.backoff_seconds
+    assert loaded.routing.qualification_ttl_days == code_default.routing.qualification_ttl_days
+    assert loaded.routing.small_max_bytes == code_default.routing.small_max_bytes
+    assert loaded.routing.medium_max_bytes == code_default.routing.medium_max_bytes
     assert loaded.integrity.default_checks == code_default.integrity.default_checks
     assert loaded.integrity.stale_timeout_seconds == code_default.integrity.stale_timeout_seconds
 
@@ -49,7 +52,9 @@ def test_storage_root_is_portable() -> None:
     assert not root.startswith("/home/")
 
 
-@pytest.mark.parametrize("section", ["storage", "concurrency", "retry", "integrity", "logging"])
+@pytest.mark.parametrize(
+    "section", ["storage", "concurrency", "retry", "routing", "integrity", "logging"]
+)
 def test_every_documented_section_exists(section: str) -> None:
     loaded = load_defaults(DEFAULTS)
     assert hasattr(loaded.defaults, section), f"defaults.yaml 应覆盖 {section} 段"
