@@ -29,7 +29,7 @@ def invoke(*args: str) -> tuple[int, str]:
 def test_help_exits_zero_and_lists_commands() -> None:
     code, output = invoke("--help")
     assert code == 0
-    for command in ("version", "config", "source"):
+    for command in ("version", "config", "source", "route"):
         assert command in output
 
 
@@ -37,14 +37,14 @@ def test_help_lists_real_command_groups() -> None:
     """M1–M5 的命令组必须都在帮助里可见：它们是真实能力，不是占位符。"""
     code, output = invoke("--help")
     assert code == 0
-    for group in ("db", "request", "plan", "task", "file", "report"):
+    for group in ("route", "db", "request", "plan", "task", "file", "report"):
         assert group in output, f"帮助里缺少命令组 {group}"
     assert "未实现" not in output
 
 
 @pytest.mark.parametrize(
     "command",
-    ["version", "config", "source", "db", "request", "plan", "task", "file", "report"],
+    ["version", "config", "source", "route", "db", "request", "plan", "task", "file", "report"],
 )
 def test_subcommand_help_works(command: str) -> None:
     code, output = invoke(command, "--help")
@@ -144,3 +144,35 @@ def test_missing_required_argument_fails() -> None:
 def test_unknown_command_fails() -> None:
     code, _ = invoke("definitely-not-a-command")
     assert code != 0
+
+
+def test_route_evaluate_no_probe_is_offline_smoke(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CDSAPI_KEY", "test-token-not-real")
+    code, output = invoke(
+        "route",
+        "evaluate",
+        str(REPO / "examples" / "era5-request.yaml"),
+        "--sources",
+        str(SOURCES),
+        "--no-probe",
+    )
+    assert code == 0, output
+    assert "needs_probe" in output
+    assert "selected:" in output
+
+
+def test_route_plan_lists_multiple_routes(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Route discovery must not collapse ERA5 to the CDS adapter."""
+    monkeypatch.setenv("CDSAPI_KEY", "test-token-not-real")
+    code, output = invoke(
+        "route",
+        "plan",
+        str(REPO / "examples" / "era5-request.yaml"),
+        "--sources",
+        str(SOURCES),
+        "--json",
+    )
+    assert code == 0, output
+    assert '"candidate_routes"' in output
+    assert "ncar-era5-pressure-levels-https" in output
+    assert "cds-era5-pressure-levels-cds-api" in output

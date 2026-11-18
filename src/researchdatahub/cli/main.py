@@ -36,6 +36,7 @@ from researchdatahub.cli.file_cmd import register_file_commands
 from researchdatahub.cli.plan_cmd import register_plan_commands
 from researchdatahub.cli.report_cmd import register_report_commands
 from researchdatahub.cli.request_cmd import register_request_commands
+from researchdatahub.cli.route_cmd import register_route_commands
 from researchdatahub.cli.source_cmd import register_source_commands
 from researchdatahub.cli.task_cmd import register_task_commands
 from researchdatahub.cli.version_cmd import register_version_command
@@ -44,9 +45,10 @@ from researchdatahub.core.errors import RdhError
 __all__ = ["app", "main", "register_commands"]
 
 _HELP_EPILOG = (
-    "M1–M5 命令：version / config validate / source list / db / request / plan / task / "
-    "file verify / report。\n"
-    "采集链路：request validate → plan create → plan show → task run → report generate。"
+    "M1–M5 命令：version / config validate / source list / route / db / request / plan / "
+    "task / file verify / report。\n"
+    "采集链路：request validate → route plan → route evaluate → route select → "
+    "plan create → task run → report generate。"
 )
 
 app: typer.Typer = typer.Typer(
@@ -72,6 +74,7 @@ def register_commands(target: typer.Typer) -> None:
     register_file_commands(target)
     register_report_commands(target)
     register_request_commands(target)
+    register_route_commands(target)
     register_plan_commands(target)
     register_task_commands(target)
 

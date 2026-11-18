@@ -1,9 +1,9 @@
 ---
 name: data-acquisition
-description: 在 ResearchDataHub 中把已确认的数据需求估量、生成执行计划、向用户展示计划并取得明确确认（计划带一次性 approval_token），然后提交采集任务并轮询状态，失败时按错误码做重试或取消。当用户已确认数据集与参数、要真正开始下载/采集，或要"估算这次要下载多少""把任务跑起来""查进度""取消任务"时使用。
+description: 在 ResearchDataHub 中把已确认的数据需求先做 route discovery/qualification，再估量、生成执行计划、向用户展示计划并取得明确确认（计划带一次性 approval_token），然后提交采集任务并轮询状态，失败时按错误码做重试或取消。当用户已确认数据集与参数、要真正开始下载/采集，或要"估算这次要下载多少""比较数据源/链路""把任务跑起来""查进度""取消任务"时使用。
 metadata:
   type: workflow
-  version: "1.0.0"
+  version: "1.1.0"
   stage: "3/4"
   next-skill: data-validation
 ---
@@ -22,6 +22,36 @@ metadata:
 
 **不适用**：还没确认科学参数（回 `data-discovery`）；环境未就绪（回 `environment-setup`）。
 
+## 1.1 Route Policy（硬性，先于任何下载）
+
+不要把“我知道 CDS”当作“ERA5 只能走 CDS”。每次准备下载前，先执行 route discovery：
+
+```text
+rdh route plan <request.yaml> --json
+rdh route evaluate <request.yaml> --no-probe
+rdh route select <request.yaml>
+```
+
+或通过 MCP 的 `estimate_acquisition` / `create_execution_plan` 返回值检查：
+
+- `route_plan.candidate_routes`：必须能看到所有候选 source/transport，包括未实现项；
+- `route_evaluation.needs_probe`：未知 route 必须先 probe，不得直接放弃；
+- `route_policy.selected_route_id`：只有 eligible + qualified route 才会出现；
+- `selected_route == null`：不得绕过 policy 直接调用某个平台 Adapter。
+
+状态语义必须原样保留：
+
+```text
+UNKNOWN          -> 仍需 probe，不是失败
+NOT_IMPLEMENTED  -> RDH 尚未实现该 route，不是“数据不存在”
+QUALIFIED        -> 才允许默认下载
+EXPIRED          -> 必须重新 probe
+DEGRADED/FAILED  -> 不得当作健康 route 静默复用
+```
+
+**禁止**：发现 `cds` adapter → 直接调用 CDS；发现某个 adapter 未实现 → 告诉用户
+“该数据只能从某平台获取”。只能报告“该 route 的 adapter 未实现”，并继续检查其他 route。
+
 ## 2. 前置条件（硬性）
 
 1. `validate_environment(provider).usable == true`（否则不允许进入本段）；
@@ -32,8 +62,8 @@ metadata:
 
 ```text
 ① validate_request(request | request_path, units_catalog?)      # 规范化 + 可满足性预判
-② estimate_acquisition(request | request_path, split_granularity?)   # 规模估算
-③ create_execution_plan(request | request_path, split_granularity?, approval_ttl_seconds?)  # 落库 + 发令牌
+② estimate_acquisition(request | request_path, split_granularity?)   # 规模估算 + route plan
+③ create_execution_plan(request | request_path, split_granularity?, approval_ttl_seconds?)  # 落库 + 发令牌 + route policy
 ④ （把计划展示给用户，取得明确确认）
 ⑤ submit_acquisition(plan_id, approval_token, max_workers?, max_tasks?)   # 唯一真正执行入口
 ⑥ get_task_status(task_ids)                                     # 轮询

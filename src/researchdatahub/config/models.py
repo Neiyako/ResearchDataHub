@@ -392,6 +392,40 @@ class SchedulerConfig(_ConfigModel):
         return self
 
 
+class RoutingConfig(_ConfigModel):
+    """Route Intelligence 的规模与经验策略（只影响选路，不改变科学契约）。"""
+
+    qualification_ttl_days: int = Field(
+        default=14, ge=1, le=365, description="QUALIFIED 状态的有效期；过期后必须重新 probe"
+    )
+    small_max_bytes: int = Field(
+        default=1024**3, ge=1, description="小任务上限；超过后进入 medium 比较"
+    )
+    medium_max_bytes: int = Field(
+        default=100 * 1024**3, ge=1, description="中任务上限；超过后进入 large qualification"
+    )
+    max_probe_routes: int = Field(
+        default=8, ge=1, le=64, description="单次评估最多自动 probe 的候选 route 数"
+    )
+    registry_filename: str = Field(
+        default="routes.json", min_length=1, max_length=128, description="route 经验 JSON 文件名"
+    )
+
+    @field_validator("registry_filename")
+    @classmethod
+    def _plain_filename(cls, value: str) -> str:
+        text = value.strip()
+        if any(part in text for part in ("/", "\\", "..")):
+            raise ValueError("routing.registry_filename must be a plain filename")
+        return text
+
+    @model_validator(mode="after")
+    def _ordered_thresholds(self) -> RoutingConfig:
+        if self.medium_max_bytes <= self.small_max_bytes:
+            raise ValueError("routing.medium_max_bytes must exceed routing.small_max_bytes")
+        return self
+
+
 class DefaultsConfig(_ConfigModel):
     """``configs/defaults.yaml`` 的 ``defaults:`` 段。"""
 
@@ -402,6 +436,7 @@ class DefaultsConfig(_ConfigModel):
     transfer: TransferConfig = Field(default_factory=TransferConfig)
     manifest: ManifestConfig = Field(default_factory=ManifestConfig)
     planner: PlannerConfig = Field(default_factory=PlannerConfig)
+    routing: RoutingConfig = Field(default_factory=RoutingConfig)
     integrity: IntegrityConfig = Field(default_factory=IntegrityConfig)
     logging: LoggingConfig = Field(default_factory=LoggingConfig)
     scheduler: SchedulerConfig = Field(default_factory=SchedulerConfig)

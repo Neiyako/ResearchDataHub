@@ -5,7 +5,7 @@
 
 [![CI](https://github.com/Neiyako/ResearchDataHub/actions/workflows/ci.yml/badge.svg)](https://github.com/Neiyako/ResearchDataHub/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-blue)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-1735%20passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-1756%20passed-brightgreen)](tests/)
 [![Chain Benchmark](https://img.shields.io/badge/chain%20benchmark-3%20platforms-blue)](docs/chain-speed-benchmark.md)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -46,6 +46,7 @@ Coding Agent（Codex / Claude Code）通过 **MCP** 调用本系统，系统负�
 | **环境配置系统** | 5 个 Provider 的依赖/凭据/网络/磁盘检查 + 可操作引导 | [`environment/`](src/researchdatahub/environment/) · [`docs/environment-setup.md`](docs/environment-setup.md) |
 | **多节点 Worker 体系** | Worker 注册/心跳/健康、**真实 Remote Worker 协议**（7 端点，含 Range 回传） | [`network/`](src/researchdatahub/network/) · [`docs/workers.md`](docs/workers.md) |
 | **多链路 Route 选择** | 只凭**实测**性能打分；冷启动明说"无测量"，**禁止按地域推断速度** | [ADR-0013](docs/decisions/ADR-0013-route-selection-from-measurement.md) |
+| **Dataset Route Intelligence** | 发现多源/多传输候选、五态能力检查、低字节探活、经验 registry 与 qualification 闸门；CDS 不再拥有隐式优先权 | [`routing/`](src/researchdatahub/routing/) · [Route Intelligence](docs/route-intelligence.md) · [ADR-0016](docs/decisions/ADR-0016-route-intelligence.md) |
 | **Provider 契约 v1** | NASA Earthdata（CMR + EDL）、Copernicus Dataspace（STAC/OData + OAuth2） | [`providers/`](src/researchdatahub/providers/) |
 | **需求级状态机** | 17 态覆盖 发现→评估→配置→计划→审批→执行→交付 | [`core/acquisition.py`](src/researchdatahub/core/acquisition.py) · [ADR-0007](docs/decisions/ADR-0007-two-level-state-machines.md) |
 | **请求契约 v1.2** | 坐标顺序/日期边界/时区/频率/语义变量名→原生 ID 映射 | [`planner/request_v12.py`](src/researchdatahub/planner/request_v12.py) · [ADR-0012](docs/decisions/ADR-0012-request-contract-v1-2.md) |
@@ -158,6 +159,9 @@ export CDSAPI_KEY="<你的 CDS 个人访问令牌>"     # 凭据只以 env 引�
 .venv/bin/rdh config validate                  # PASS，退出码 0
 
 .venv/bin/rdh request validate examples/era5-request.yaml
+.venv/bin/rdh route plan examples/era5-request.yaml
+.venv/bin/rdh route evaluate examples/era5-request.yaml --no-probe
+.venv/bin/rdh route select examples/era5-request.yaml
 .venv/bin/rdh plan create examples/era5-request.yaml
 .venv/bin/rdh task run <plan_id> --max-tasks 1 --max-workers 1
 .venv/bin/rdh report generate <request_id>
@@ -374,6 +378,7 @@ EDA / 清洗 / 分析 / 可视化 / 机器学习 / 模型训练 / 科研结论�
 | [skills.md](docs/skills.md) | 四个 Agent Skills 的安装与使用 |
 | [environment-setup.md](docs/environment-setup.md) | 环境检查与配置引导 |
 | [workers.md](docs/workers.md) | Worker/Route 部署、远程 Worker 协议 |
+| [route-intelligence.md](docs/route-intelligence.md) | 数据集 route discovery、能力五态、probe/benchmark、qualification 与下载政策 |
 | [data-contract.md](docs/data-contract.md) | 契约模型、科学等价性、版本策略 |
 | [data-integrity.md](docs/data-integrity.md) | 六层校验、checksum 策略、原子提交 |
 | [recovery.md](docs/recovery.md) | 租约/心跳/崩溃恢复/对账 |

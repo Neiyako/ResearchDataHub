@@ -3,6 +3,32 @@
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 结构，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased] — 2026-11-18
+
+### Added
+
+- **Route Intelligence**：新增 `routing/`，把 dataset/source/transport/adapter 状态拆成
+  五态能力矩阵，支持候选 route discovery、低字节量 probe、benchmark 经验、qualification、
+  可解释选择与下载 policy。
+- **Route Experience Registry**：原子 JSON 持久化 route 历史与 qualification；过期 route
+  必须重新 probe，连续失败降级。
+- **`rdh route plan|evaluate|select|qualify`**：CLI-first 的 route discovery 与 selection 入口。
+- **ERA5 route-planning fixture**：覆盖 37 pressure levels、5 variables、CDS/NCAR 多 route、
+  Case A–F 偷懒回归、未实现 adapter 与过期 route 场景。
+
+### Changed
+
+- MCP `estimate_acquisition` / `create_execution_plan` 返回 route plan/evaluation/needs_probe；
+  有 qualified selected route 时，规划只使用该 route 的 source adapter。
+- CDS 仍只是普通 source route；没有硬编码 source 优先级。
+
+### Known gaps
+
+- 真实 source-specific capability probe 与 benchmark 仍需按平台实现；默认健康探针不会伪造
+  科学能力或速度。
+- Route Intelligence 已提供 policy/materialize 接口，但默认 `download()` 仍要求组合根注入
+  现有 scheduler/transport executor，不能绕过执行层直接调用平台 SDK。
+
 ## [1.1.0] — 2026-11-06
 
 ### v1.1.0 增补（真实链路效率基准）

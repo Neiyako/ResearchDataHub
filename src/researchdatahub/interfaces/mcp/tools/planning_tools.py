@@ -20,7 +20,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import yaml
@@ -62,6 +62,8 @@ from researchdatahub.planner.request import (
     load_request_text_detailed,
 )
 from researchdatahub.planner.service import create_plan, instantiate_planner
+from researchdatahub.routing.engine import RouteIntelligence
+from researchdatahub.routing.registry import RouteExperienceRegistry
 from researchdatahub.scheduler.models import DEFAULT_WORKER_LIMIT
 from researchdatahub.scheduler.scheduler import build_scheduler
 
@@ -264,6 +266,36 @@ def _satisfiability(context: McpContext, request: DatasetRequest) -> dict[str, A
 
 
 # --------------------------------------------------------------------------- #
+# Route Intelligence 适配（Agent-facing 规划输出）
+# --------------------------------------------------------------------------- #
+def _route_intelligence(context: McpContext) -> RouteIntelligence:
+    """构造共享的 route 引擎；注册表位于 Manifest 同目录，不混入任务表。"""
+    routing = context.defaults.routing
+    registry_path = context.storage_root / routing.registry_filename
+    return RouteIntelligence(
+        sources=context.sources_config,
+        adapters=context.adapters,
+        registry=RouteExperienceRegistry(registry_path),
+        qualification_ttl=timedelta(days=routing.qualification_ttl_days),
+        medium_bytes=routing.small_max_bytes,
+        large_bytes=routing.medium_max_bytes,
+        max_probe_routes=routing.max_probe_routes,
+    )
+
+
+def _route_payload(engine: RouteIntelligence, request: DatasetRequest) -> dict[str, Any]:
+    """返回 discovery + 静态 evaluation；不会隐式下载或提交 CDS 作业。"""
+    route_plan = engine.plan(request)
+    evaluation = engine.evaluate(route_plan, auto_probe=False)
+    return {
+        "plan": route_plan.model_dump(mode="json"),
+        "evaluation": evaluation.model_dump(mode="json"),
+        "selected_route_id": None if evaluation.selected is None else evaluation.selected.id,
+        "needs_probe": list(evaluation.needs_probe),
+    }
+
+
+# --------------------------------------------------------------------------- #
 # estimate_acquisition
 # --------------------------------------------------------------------------- #
 def estimate_acquisition(context: McpContext, arguments: Mapping[str, Any]) -> dict[str, Any]:
@@ -277,6 +309,7 @@ def estimate_acquisition(context: McpContext, arguments: Mapping[str, Any]) -> d
             "no data source adapter is configured; cannot estimate acquisition size"
         )
     plan = _build_plan(context, request=request, split=split)
+    route_data = _route_payload(_route_intelligence(context), request)
     return {
         "request_id": request.request_id,
         "warnings": list(warnings),
@@ -294,6 +327,16 @@ def estimate_acquisition(context: McpContext, arguments: Mapping[str, Any]) -> d
             for task in plan.tasks
         ],
         "unmatched_variables": list(plan.unmatched_variables),
+        "route_plan": route_data["plan"],
+        "route_evaluation": route_data["evaluation"],
+        "route_policy": {
+            "selected_route_id": route_data["selected_route_id"],
+            "needs_probe": route_data["needs_probe"],
+            "note": (
+                "静态 route evaluation 不等于 qualification；未 qualified 的 route "
+                "不得用于大规模下载"
+            ),
+        },
         "persisted": False,
     }
 
@@ -328,11 +371,28 @@ def create_execution_plan(context: McpContext, arguments: Mapping[str, Any]) -> 
         raise ApprovalInvalidError(
             "approval subsystem is not configured on this server instance; cannot issue tokens"
         )
+    route_data = _route_payload(_route_intelligence(context), request)
+    selected_route = route_data["plan"].get("candidate_routes", [])
+    selected_id = route_data["selected_route_id"]
+    plan_adapters = _plan_adapters(context)
+    selected_route_payload: dict[str, Any] | None = None
+    if isinstance(selected_id, str):
+        matching = [
+            item
+            for item in selected_route
+            if isinstance(item, dict) and item.get("id") == selected_id
+        ]
+        if matching:
+            selected_route_payload = matching[0]
+            selected_source = str(matching[0].get("source"))
+            plan_adapters = tuple(
+                adapter for adapter in plan_adapters if adapter.source_id == selected_source
+            )
     with context.repository() as repo:
         plan = create_plan(
             repo=repo,
             request=request,
-            adapters=_plan_adapters(context),
+            adapters=plan_adapters,
             config=context.defaults,
             split_hints=_split_hints(context, split),
         )
@@ -355,6 +415,17 @@ def create_execution_plan(context: McpContext, arguments: Mapping[str, Any]) -> 
             "submit_tool": "submit_acquisition",
             "one_shot": True,
             "note": "令牌只对本 plan 生效，提交一次后失效；过期需重新生成计划。",
+        },
+        "route_plan": route_data["plan"],
+        "route_evaluation": route_data["evaluation"],
+        "selected_route": selected_route_payload,
+        "route_policy": {
+            "selected_route_id": selected_id,
+            "needs_probe": route_data["needs_probe"],
+            "qualified": bool(selected_route_payload),
+            "note": (
+                "selected route 来自 Route Intelligence；没有 qualified route 时该字段为 null"
+            ),
         },
         "warnings": list(warnings),
         "persisted": True,

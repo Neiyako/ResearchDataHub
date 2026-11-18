@@ -104,7 +104,7 @@ fd 1，并把进程内**任何**杂散 `print` 导向 stderr（我们*不*自己
 | `inspect_dataset` | `dataset_id` **必填** string · `provider?` string | 单数据集详情 + 每个 Provider 的适配器能力边界 |
 | `compare_datasets` | `dataset_ids` **必填** string[2–8] · `dimensions?` enum[]（`variables`/`temporal_coverage`/`spatial_extent`/`vertical_levels`/`providers`/`grid`） | 多维比较；配置层没有权威值的维度如实返回 `null` |
 | `get_provider_capabilities` | `provider?` string | 路线、已实现/未实现、能力边界、可选包可用性；**绝不返回凭证值** |
-| `get_route_status` | `dataset_id?` string · `probe?` bool（默认 false） · `timeout_seconds?` number | 路线可用性；`probe=true` 时对 https 端点做真实 HEAD |
+| `get_route_status` | `dataset_id?` string · `probe?` bool（默认 false） · `timeout_seconds?` number | 路线可用性；`probe=true` 时对 https 端点做真实 HEAD；同时读取 `routes.json` 的 qualification/benchmark 经验 |
 
 ### 3.2 环境（只读；接 `researchdatahub.environment`，M2）
 
@@ -121,8 +121,8 @@ fd 1，并把进程内**任何**杂散 `print` 导向 stderr（我们*不*自己
 | 工具 | 入参摘要 | 说明 |
 | --- | --- | --- |
 | `validate_request` | `request?` object 或 `request_path?` string（二选一） · `units_catalog?` object | 校验并规范化需求，返回 `warnings` 与可满足性预判 |
-| `estimate_acquisition` | 同上 + `split_granularity?` enum（`auto`/`file`/`year`/`month`/`request`） | 任务数、按源/按路线分布、总字节；**不落库** |
-| `create_execution_plan` | 同上 + `approval_ttl_seconds?` int(60–86400，默认 3600) | **落库**请求+计划+任务，返回 `plan_id` 与一次性 `approval_token` |
+| `estimate_acquisition` | 同上 + `split_granularity?` enum（`auto`/`file`/`year`/`month`/`request`） | 任务数、按源/按路线分布、总字节；同时返回 `route_plan` / `route_evaluation`，**不落库、不下载** |
+| `create_execution_plan` | 同上 + `approval_ttl_seconds?` int(60–86400，默认 3600) | **落库**请求+计划+任务，返回 `plan_id`、一次性 `approval_token` 与 route policy 结果；有 qualified selected route 时只使用该 source adapter |
 | `get_execution_plan` | `plan_id` **必填** string | 读计划、任务状态与审批状态（SQLite，跨会话可查） |
 
 `request` 支持两种形态：分段格式（`request`/`dataset`/`variables`/`temporal`/`spatial`/`vertical`/`storage`/`validation`）
@@ -272,7 +272,7 @@ CREATE TABLE mcp_approvals (
 | 包 | 状态 | MCP 侧接法 |
 | --- | --- | --- |
 | `researchdatahub.environment`（M2） | ✅ 已落地 | `get_environment_requirements` / `check_environment` / `validate_environment` 直接调用 `get_requirements` / `validate_environment`；`usable` 以 `OverallStatus.ok` 为唯一通过口径 |
-| `researchdatahub.network`（M4） | ✅ 已落地 | `list_workers` 用 `WorkerRegistry(WorkerStore(<状态根>/workers.db))`；`get_route_status` 展示配置层路线与适配器支持情况 |
+| `researchdatahub.network`（M4） | ✅ 已落地 | `list_workers` 用 `WorkerRegistry(WorkerStore(<状态根>/workers.db))`；`get_route_status` 展示配置层路线、adapter 支持情况与 route experience |
 | `researchdatahub.providers`（M3） | ⏳ 并行开发中 | 能力探测（`capabilities.py`）会报告 `available`；尚未提供被 MCP 工具直接调用的入口，工具层不臆造其 API |
 
 探测实现为**可选注入 + 能力探测**：`importlib` 逐候选模块（包顶层 → 已知子模块）检查入口符号，
