@@ -94,7 +94,7 @@ RETURNING *;
 
 | 观察 | 判定 | 动作 |
 |---|---|---|
-| `lease_expired` 且 `now < heartbeat_at + stale_timeout` | 慢任务被误抢（原 worker 可能还活着） | **续租给原持有者**，记录 `lease_renewed` 事件，不接管 |
+| `lease_expired` 且 `now < heartbeat_at + stale_timeout` | 孤儿疑似（原 worker 可能已死/短暂卡顿） | **不代续租、不接管**，记录 `lease_orphan_suspected`，等心跳过期 |
 | `heartbeat_at + stale_timeout <= now` | 进程已死 | 按 `state.recover_stale` 处理：`VERIFYING → RETRY_WAIT`；`RUNNING` 有预算 → `RETRY_WAIT`，无预算 → `FAILED` |
 | 终态 / 非在途 | 不在回收范围 | 跳过 |
 

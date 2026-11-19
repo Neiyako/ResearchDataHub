@@ -20,10 +20,10 @@
 
 退化行为（明确记录，不静默）
 ----------------------------
-* ``release_expired`` 对“租约过期但心跳未超时”的任务**续租而不接管**，返回的
-  :class:`RecoveryResult` 满足 ``previous_state == new_state``（reason 以
-  ``lease expired but heartbeat fresh`` 开头）；心跳超时的任务按
-  :func:`~researchdatahub.core.state.recover_stale` 处理并写审计事件。
+* ``release_expired`` 对“租约过期但心跳未超时”的任务**只观察、不代续租也不接管**，
+  返回的 :class:`RecoveryResult` 满足 ``previous_state == new_state``，并记录
+  ``lease_orphan_suspected``；心跳超时的任务再按
+  :func:`~researchdatahub.core.state.recover_stale` 处理。
 * 恢复为 ``RETRY_WAIT`` 的任务会把 ``scheduled_at`` 置为当前时间，使其**立即可领取**；
   退避策略由调度器在推进状态时覆盖，不由恢复流程猜测。
 * ``save_plan`` 是幂等重放：已存在的任务**不会被降级**（不覆盖已推进的状态），
@@ -304,6 +304,7 @@ class SqliteManifestRepository:
         *,
         state: TaskState | None = None,
         request_id: str | None = None,
+        plan_id: str | None = None,
         limit: int | None = None,
         offset: int = 0,
     ) -> Iterator[AcquisitionTask]:
@@ -327,6 +328,9 @@ class SqliteManifestRepository:
         if request_id is not None:
             clauses.append("t.request_id = ?")
             params.append(request_id)
+        if plan_id is not None:
+            clauses.append("t.plan_id = ?")
+            params.append(plan_id)
         if clauses:
             sql += " WHERE " + " AND ".join(clauses)
         sql += " ORDER BY t.task_id ASC"
@@ -349,6 +353,7 @@ class SqliteManifestRepository:
         now: datetime | None = None,
         lease_seconds: int = DEFAULT_LEASE_SECONDS,
         request_id: str | None = None,
+        plan_id: str | None = None,
     ) -> Sequence[AcquisitionTask]:
         """原子领取至多 ``limit`` 个可执行任务（``QUEUED`` 或到期的 ``RETRY_WAIT``）。
 
@@ -388,6 +393,9 @@ class SqliteManifestRepository:
             if request_id is not None:
                 sql += " AND t.request_id = ?"
                 params.append(request_id)
+            if plan_id is not None:
+                sql += " AND t.plan_id = ?"
+                params.append(plan_id)
             sql += (
                 " ORDER BY t.priority DESC, COALESCE(t.scheduled_at, ?) ASC, t.task_id ASC LIMIT ?"
             )
@@ -481,8 +489,8 @@ class SqliteManifestRepository:
         判定顺序（先短周期、后长周期）：
 
         1. ``lease_expired(task, now)`` 为 ``False`` → 租约仍有效，跳过；
-        2. 租约失效但 ``is_stale == False``（心跳仍新）→ **续租不接管**，返回
-           ``previous_state == new_state`` 的 :class:`RecoveryResult`；
+        2. 租约失效但 ``is_stale == False``（心跳仍新）→ **不接管、也不代续租**，
+           返回 ``previous_state == new_state`` 的 :class:`RecoveryResult`；
         3. 心跳也超时 → :func:`~researchdatahub.core.state.recover_stale` 重新排队
            （``RETRY_WAIT``，``scheduled_at`` 置为当前时间）或判 ``FAILED``，
            并写 ``transfer_logs`` 审计事件。
@@ -544,13 +552,12 @@ class SqliteManifestRepository:
                         },
                     )
                 else:
-                    renewed = renew_lease(task, now=stamp, lease_seconds=lease_seconds)
-                    self._write_task(connection, renewed, expected_state=task.state)
+                    # 不能在恢复流程里替一个未知 owner 刷新 heartbeat：若原进程已死，
+                    # 这样做会把“心跳仍新”永久续命，孤儿 RUNNING 永远达不到 stale 阈值。
+                    # 此处只观察、不写状态；等 heartbeat 真正过期后再按 recover_stale 接管。
                     reason = (
-                        f"lease expired but heartbeat fresh; renewed until "
-                        f"{to_iso(renewed.lease_expires_at)} without takeover"
-                        if renewed.lease_expires_at is not None
-                        else "lease expired but heartbeat fresh; renewed without takeover"
+                        "lease expired but heartbeat is still fresh; orphan suspected, "
+                        "left unchanged until heartbeat becomes stale"
                     )
                     results.append(
                         RecoveryResult(
@@ -564,8 +571,13 @@ class SqliteManifestRepository:
                     self._append_event_conn(
                         connection,
                         task.task_id,
-                        "lease_renewed",
-                        {"message": reason, "lease_owner": task.worker_id},
+                        "lease_orphan_suspected",
+                        {
+                            "message": reason,
+                            "lease_owner": task.worker_id,
+                            "heartbeat_at": to_optional_iso(task.heartbeat_at),
+                            "lease_expires_at": to_optional_iso(task.lease_expires_at),
+                        },
                     )
             return results
 
@@ -724,6 +736,23 @@ class SqliteManifestRepository:
                 from_json_text(row["payload"], column="requests.payload"),
                 context=f"request {request_id!r}",
             )
+
+    def latest_plan_id(self, request_id: str) -> str | None:
+        """返回请求下最新的计划 ID；没有计划行时回退到任务上的 plan_id 快照。"""
+        with self._guard() as connection:
+            row = connection.execute(
+                "SELECT plan_id FROM plans WHERE request_id = ? "
+                "ORDER BY generated_at DESC, plan_id DESC LIMIT 1",
+                (request_id,),
+            ).fetchone()
+            if row is not None:
+                return str(row["plan_id"])
+            row = connection.execute(
+                "SELECT plan_id FROM tasks WHERE request_id = ? "
+                "ORDER BY last_transition_at DESC, task_id DESC LIMIT 1",
+                (request_id,),
+            ).fetchone()
+            return None if row is None else str(row["plan_id"])
 
     def save_plan(self, plan: AcquisitionPlan) -> None:
         """登记计划与其任务（同一事务；重复 ``plan_id`` 视为幂等重放）。
@@ -899,9 +928,13 @@ class SqliteManifestRepository:
             return file_record_from_row(row)
 
     def list_file_records(
-        self, *, task_id: str | None = None, request_id: str | None = None
+        self,
+        *,
+        task_id: str | None = None,
+        request_id: str | None = None,
+        plan_id: str | None = None,
     ) -> Iterator[FileRecord]:
-        """惰性流式列出文件记录（可按任务/请求过滤；请求过滤经由 ``tasks.request_id``）。"""
+        """惰性流式列出文件记录（可按任务/请求/计划过滤）。"""
         sql = "SELECT f.* FROM files AS f JOIN tasks AS t ON t.task_id = f.task_id"
         clauses: list[str] = []
         params: list[object] = []
@@ -911,6 +944,9 @@ class SqliteManifestRepository:
         if request_id is not None:
             clauses.append("t.request_id = ?")
             params.append(request_id)
+        if plan_id is not None:
+            clauses.append("t.plan_id = ?")
+            params.append(plan_id)
         if clauses:
             sql += " WHERE " + " AND ".join(clauses)
         sql += " ORDER BY f.file_id ASC"

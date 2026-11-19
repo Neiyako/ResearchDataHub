@@ -68,7 +68,7 @@ storage.recover_pending_commits()  # 2. 对账"文件已提交但数据库未更
 | 观察 | 判定 | 动作 | 审计 |
 |---|---|---|---|
 | 租约未过期 | 正常在途 | 不动 | — |
-| 租约过期，但 `heartbeat_at + stale_timeout` 未到 | **慢任务**，持有者可能还活着 | **续租给原持有者**，不接管 | `RecoveryResult(previous==new, reason="lease expired but heartbeat fresh")` |
+| 租约过期，但 `heartbeat_at + stale_timeout` 未到 | **孤儿疑似**，持有者可能已死也可能只是短暂卡顿 | **不代续租、不接管**；保持原样等心跳真正过期 | `RecoveryResult(previous==new)` + `lease_orphan_suspected` |
 | `heartbeat_at + stale_timeout` 已到 | **进程已死** | 按状态机接管（见下） | `RecoveryResult` + `transfer_logs` 事件 |
 
 接管时的目标状态由 `core.state.recover_stale()` 决定：
@@ -79,9 +79,9 @@ storage.recover_pending_commits()  # 2. 对账"文件已提交但数据库未更
 | `RUNNING` | `attempt < max_attempts` | `RETRY_WAIT` | 重新排队，等待退避到期 |
 | `RUNNING` | 预算耗尽 | `FAILED` | 不再无限重试 |
 
-为什么"租约过期但心跳新鲜"要续租而不是接管：租约过期可能只是 worker 在长时间
-`fsync`/校验中没来得及续约；此时接管会让**同一文件被两个进程同时写**，比"晚 15 分钟
-才恢复"危险得多。
+为什么"租约过期但心跳新鲜"既不接管、也不由恢复流程续租：此时没有证据证明原 owner
+仍活着；代它刷新 heartbeat 会让一个已经退出的 scheduler 永久续命。保持原状可以避免
+**同一文件被两个进程同时写**，代价是等到 `stale_timeout` 后才接管。
 
 ### 3.2 文件系统对账（M5）
 

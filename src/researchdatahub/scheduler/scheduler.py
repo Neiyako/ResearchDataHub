@@ -202,6 +202,7 @@ class DefaultTaskScheduler:
         *,
         max_workers: int | None = None,
         request_id: str | None = None,
+        plan_id: str | None = None,
         max_tasks: int | None = None,
         stop_event: threading.Event | None = None,
     ) -> RunSummary:
@@ -213,6 +214,9 @@ class DefaultTaskScheduler:
             并发 worker 数；``None`` 用 ``min(scheduler.max_workers, 2)``。
         request_id:
             只执行该请求下的任务（``claim_tasks`` 下推到 SQL）。
+        plan_id:
+            只执行该计划下的任务；与 ``request_id`` 同时给出时取交集。给定计划时，
+            未完成计数也只统计该计划，避免历史计划污染本次退出码。
         max_tasks:
             本轮最多领取多少个任务（测试与限流用）。
         stop_event:
@@ -234,6 +238,7 @@ class DefaultTaskScheduler:
             return self._run_locked(
                 max_workers=max_workers,
                 request_id=request_id,
+                plan_id=plan_id,
                 max_tasks=max_tasks,
                 stop_event=stop_event,
             )
@@ -297,6 +302,7 @@ class DefaultTaskScheduler:
         *,
         max_workers: int | None,
         request_id: str | None,
+        plan_id: str | None,
         max_tasks: int | None,
         stop_event: threading.Event | None,
     ) -> RunSummary:
@@ -322,7 +328,7 @@ class DefaultTaskScheduler:
         threads = [
             threading.Thread(
                 target=self._worker_loop,
-                args=(index, run_stop, guard, counters, request_id, max_tasks),
+                args=(index, run_stop, guard, counters, request_id, plan_id, max_tasks),
                 name=f"{self._worker_prefix}-{index}",
                 daemon=True,
             )
@@ -346,7 +352,7 @@ class DefaultTaskScheduler:
         _, records, errors = counters.snapshot()
         heartbeat_errors = heartbeat.errors
         all_errors = (*errors, *heartbeat_errors)
-        unfinished = self._count_unfinished(request_id)
+        unfinished = self._count_unfinished(request_id, plan_id=plan_id)
         return RunSummary(
             started_at=started_at,
             finished_at=self._clock(),
@@ -364,6 +370,7 @@ class DefaultTaskScheduler:
         guard: LeaseGuard,
         counters: _RunCounters,
         request_id: str | None,
+        plan_id: str | None,
         max_tasks: int | None,
     ) -> None:
         """一个 worker 线程：claim → execute → 循环（每线程独立 SQLite 连接）。"""
@@ -383,6 +390,7 @@ class DefaultTaskScheduler:
                         now=self._clock(),
                         lease_seconds=self._lease_seconds,
                         request_id=request_id,
+                        plan_id=plan_id,
                     )
                 except RdhError as exc:
                     counters.error(f"worker {owner} claim failed: {exc}")
@@ -431,12 +439,12 @@ class DefaultTaskScheduler:
         except RdhError:
             return
 
-    def _count_unfinished(self, request_id: str | None) -> int:
-        """统计仍有未终态任务的请求（惰性遍历，不整表载入内存）。"""
+    def _count_unfinished(self, request_id: str | None, *, plan_id: str | None = None) -> int:
+        """统计指定请求/计划下仍有未终态任务的数量（惰性遍历）。"""
         repo = self._repo_factory()
         try:
             count = 0
-            for task in repo.list_tasks(request_id=request_id):
+            for task in repo.list_tasks(request_id=request_id, plan_id=plan_id):
                 if task.state not in TERMINAL_STATES:
                     count += 1
             return count

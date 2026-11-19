@@ -135,6 +135,21 @@ def test_time_coverage_is_now_implemented(tmp_path: Path) -> None:
     assert "reported" not in str(checks["time_coverage"]["detail"])
 
 
+def test_netcdf_time_fill_value_does_not_overflow() -> None:
+    """残坏时间填充值不能把完整性线程打死；未知时间应返回 None。"""
+    import numpy as np
+
+    from researchdatahub.integrity.checker import _decode_netcdf_time
+
+    assert (
+        _decode_netcdf_time(
+            np.array([1e30], dtype="float64"),
+            "hours since 1900-01-01 00:00:00",
+        )
+        is None
+    )
+
+
 def test_empty_kinds_reports_unknown(tmp_path: Path) -> None:
     path = write_bytes(tmp_path / "unknown.bin", b"bytes")
     record, task = make_context(path, content_type=None)

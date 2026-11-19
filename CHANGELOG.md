@@ -22,6 +22,22 @@
   有 qualified selected route 时，规划只使用该 route 的 source adapter。
 - CDS 仍只是普通 source route；没有硬编码 source 优先级。
 
+### Fixed
+
+- **RDH-001**：报告与交付清单改为按所选 plan 的 task/asset 快照取数据源，不再读取会被
+  历史记录污染的全局 `sources` 表；`report generate` 默认选择最新计划。
+- **RDH-002**：NCAR 适配器支持 `filelist/{year}{gindex}` 与可选 THREDDS NCSS 原生发现，
+  包含变量/文件名显式映射、区域/时段子集、单响应大小上限和发现后免二次 HEAD。
+- **RDH-003**：交付 ID 改为 request/plan/证据内容派生的确定性 ID；相同证据重复生成命中
+  同一交付文件。
+- **RDH-HTTP-01**：HTTP 连接池大小、keepalive 与 pool timeout 改为正式配置项。
+- **RDH-HEARTBEAT-01**：恢复流程不再替未知 owner 续租；心跳尚新的孤儿 RUNNING 保持不动，
+  心跳过期后才回收，避免永久续命。
+- **RDH-CLI-02**：`task run <plan>` 的 claim 与 unfinished 计数均按 plan 过滤，不再扫描
+  同库其它计划。
+- **RDH-REPORT-FILEID / RDH-TIME-OVERFLOW**：报告按 file_id 过滤并去重完整性证据；
+  NetCDF 时间填充值溢出返回未知时间而不是打死完整性线程。
+
 ### Known gaps
 
 - 真实 source-specific capability probe 与 benchmark 仍需按平台实现；默认健康探针不会伪造

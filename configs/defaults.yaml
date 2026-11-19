@@ -77,6 +77,12 @@ defaults:
     verify_tls: true
     # 断点续传开关：即使开启，也只在远端 Range/ETag 能自证一致时才真正续传。
     resume_enabled: true
+    # HTTP 连接池：高并发 NCAR/CDS 下载应按 worker 数显式放大，而不是子类化 transport。
+    max_connections: 8
+    # null = 与 max_connections 相同。
+    max_keepalive_connections: null
+    # 连接池等待超时（秒）。避免高并发下 15s 连接超时被误当成远端不可达。
+    pool_timeout_seconds: 60.0
     s3:
       # 空 = 用 boto3 默认（AWS 公有云）。测试用本机 MinIO 时填 http://127.0.0.1:9000。
       endpoint_url: null

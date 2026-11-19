@@ -432,6 +432,7 @@ class ManifestRepository(Protocol):
         *,
         state: TaskState | None = None,
         request_id: str | None = None,
+        plan_id: str | None = None,
         limit: int | None = None,
         offset: int = 0,
     ) -> Iterator[AcquisitionTask]:
@@ -446,6 +447,7 @@ class ManifestRepository(Protocol):
         now: datetime | None = None,
         lease_seconds: int = DEFAULT_LEASE_SECONDS,
         request_id: str | None = None,
+        plan_id: str | None = None,
     ) -> Sequence[AcquisitionTask]:
         """原子领取至多 ``limit`` 个可执行任务，返回已是 ``RUNNING`` 且持有租约的任务。
 
@@ -482,7 +484,7 @@ class ManifestRepository(Protocol):
         """回收过期在途任务（租约失效 + 心跳超时），按状态机规则重新排队或判失败。
 
         必须区分两种情况并分别记录：
-        * **租约过期但心跳未超时**：可能是慢任务被误抢，应**续租**而不是接管；
+        * **租约过期但心跳未超时**：孤儿疑似，**不代续租也不接管**，等心跳超时；
         * **心跳超时**：进程已死，按 :func:`researchdatahub.core.state.recover_stale` 处理。
         """
         ...
@@ -558,9 +560,13 @@ class ManifestRepository(Protocol):
         ...
 
     def list_file_records(
-        self, *, task_id: str | None = None, request_id: str | None = None
+        self,
+        *,
+        task_id: str | None = None,
+        request_id: str | None = None,
+        plan_id: str | None = None,
     ) -> Iterator[FileRecord]:
-        """流式列出文件记录（可按任务/请求过滤）。"""
+        """流式列出文件记录（可按任务/请求/计划过滤）。"""
         ...
 
     def save_integrity_report(self, report: IntegrityReport) -> None:

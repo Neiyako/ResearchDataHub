@@ -47,8 +47,9 @@ import re
 import threading
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any, ClassVar, Final
+from urllib.parse import quote, urlencode, urlsplit
 
 import httpx
 
@@ -65,6 +66,7 @@ from researchdatahub.core.models import (
     JsonValue,
     SourceAsset,
     SourceMetadata,
+    TemporalExtent,
 )
 from researchdatahub.sources.base import (
     DEFAULT_TIMEOUT_SECONDS,
@@ -85,9 +87,11 @@ __all__ = [
     "GdexCatalogClient",
     "NCARAdapter",
     "RdaFileGroup",
+    "RdaFileListFile",
     "RdaWebFile",
     "normalize_dsid",
     "parse_file_groups",
+    "parse_file_list",
     "parse_web_files",
 ]
 
@@ -103,6 +107,8 @@ _API_ROOT: Final[str] = "/api"
 _LEGACY_DSID_PATTERN: Final = re.compile(r"^ds(\d{3})\.(\d{1,3})$")
 _GDEX_DSID_PATTERN: Final = re.compile(r"^d\d{6}$")
 _MAX_WEB_FILE_METADATA: Final[int] = 5000
+_DEFAULT_NCSS_ENDPOINT: Final[str] = "https://tds.gdex.ucar.edu/thredds/ncss/grid/files"
+_DEFAULT_NCSS_MAX_BYTES: Final[int] = 64 * 1024 * 1024
 
 RdaJson = Mapping[str, JsonValue]
 
@@ -170,6 +176,29 @@ class RdaWebFile:
     def size_source(self) -> str:
         """大小来源标记：目录声明值，未与字节核验。"""
         return "catalog_unverified"
+
+
+@dataclass(frozen=True)
+class RdaFileListFile:
+    """GDEX ``filelist/{year}{gindex}`` 中的一条文件记录。"""
+
+    file_name: str
+    url: str
+    data_path: str | None
+    size_bytes: int
+    data_format: str | None
+    date_archived: datetime | None
+    gindex: int
+    raw: RdaJson
+
+
+@dataclass(frozen=True)
+class _NcssVariableRule:
+    """一个显式配置的逻辑变量 → NCSS 参数/文件匹配规则。"""
+
+    logical_name: str
+    parameter: str
+    filename_contains: str
 
 
 def parse_file_groups(payload: Mapping[str, Any]) -> tuple[RdaFileGroup, ...]:
@@ -260,6 +289,95 @@ def parse_web_files(payload: Mapping[str, Any]) -> tuple[RdaWebFile, ...]:
     return tuple(files)
 
 
+def parse_file_list(payload: Mapping[str, Any]) -> tuple[RdaFileListFile, ...]:
+    """解析 GDEX ``filelist/{year}{gindex}`` 的表格型响应。
+
+    响应把文件信息放在 ``data.groups[].rows`` 的单元格列表中；这里按单元格的
+    ``name`` 取值，不依赖列顺序。只接受带真实 URL 与正整数大小的条目。
+    """
+    data = _require_data(payload, context="filelist")
+    if not isinstance(data, Mapping):
+        raise MetadataError("GDEX filelist response 'data' is not an object")
+    groups = data.get("groups")
+    if not isinstance(groups, Sequence) or isinstance(groups, (str, bytes)):
+        raise MetadataError("GDEX filelist response 'data.groups' is not a list")
+    files: list[RdaFileListFile] = []
+    for group in groups:
+        if not isinstance(group, Mapping):
+            raise MetadataError("GDEX filelist group is not an object")
+        gindex_raw = group.get("gindex")
+        try:
+            gindex = int(str(gindex_raw))
+        except (TypeError, ValueError) as exc:
+            raise MetadataError(
+                "GDEX filelist group has no usable 'gindex'",
+                detail={"observed": json_safe(gindex_raw)},
+            ) from exc
+        rows = group.get("rows")
+        if not isinstance(rows, Sequence) or isinstance(rows, (str, bytes)):
+            raise MetadataError("GDEX filelist group 'rows' is not a list")
+        for row in rows:
+            if not isinstance(row, Sequence) or isinstance(row, (str, bytes)):
+                raise MetadataError("GDEX filelist row is not a list")
+            cells = [cell for cell in row if isinstance(cell, Mapping)]
+            file_cell = next(
+                (
+                    cell
+                    for cell in cells
+                    if cell.get("is_file") is True
+                    or cell.get("name") == "File Name"
+                    or isinstance(cell.get("url"), str)
+                ),
+                None,
+            )
+            if file_cell is None:
+                continue
+            name = file_cell.get("value")
+            url = file_cell.get("url")
+            if not isinstance(name, str) or not name.strip():
+                raise MetadataError("GDEX filelist file row has no file name")
+            if not isinstance(url, str) or not url.startswith(("https://", "http://")):
+                raise MetadataError(
+                    "GDEX filelist file row has no absolute data URL",
+                    detail={"file": name},
+                )
+            by_name = {
+                str(cell.get("name")): cell for cell in cells if isinstance(cell.get("name"), str)
+            }
+            size_cell = by_name.get("Size", {})
+            size = parse_size_bytes(size_cell.get("value"), field="filelist.Size")
+            if size is None or size <= 0:
+                raise MetadataError(
+                    "GDEX filelist file row has no positive size",
+                    detail={"file": name, "observed": json_safe(size_cell.get("value"))},
+                )
+            format_cell = by_name.get("Data Format", {})
+            date_cell = by_name.get("Date Archived", {})
+            data_path = file_cell.get("data_path")
+            files.append(
+                RdaFileListFile(
+                    file_name=name.strip(),
+                    url=url.strip(),
+                    data_path=data_path.strip() if isinstance(data_path, str) else None,
+                    size_bytes=size,
+                    data_format=(
+                        format_cell.get("value")
+                        if isinstance(format_cell.get("value"), str)
+                        else None
+                    ),
+                    date_archived=parse_timestamp(
+                        date_cell.get("value"),
+                        field="filelist.Date Archived",
+                        allow_date_only=True,
+                        date_only_assume_utc=True,
+                    ),
+                    gindex=gindex,
+                    raw={str(key): json_safe(value) for key, value in file_cell.items()},
+                )
+            )
+    return tuple(files)
+
+
 def _require_data(payload: Mapping[str, Any], *, context: str) -> Any:
     status = payload.get("status")
     if isinstance(status, str) and status.lower() not in ("ok", "success"):
@@ -317,10 +435,19 @@ class GdexCatalogClient:
             self._owns_http = True
         return self._http
 
-    def _get_json(self, path: str, *, context: str) -> Mapping[str, Any]:
+    def _get_json(
+        self,
+        path: str,
+        *,
+        context: str,
+        timeout_seconds: float | None = None,
+    ) -> Mapping[str, Any]:
         url = f"{self._endpoint}{_API_ROOT}{path}"
         try:
-            response = self._client().get(url)
+            if timeout_seconds is None:
+                response = self._client().get(url)
+            else:
+                response = self._client().get(url, timeout=httpx.Timeout(timeout_seconds))
         except httpx.HTTPError as exc:
             raise SourceUnavailableError(
                 f"GDEX {context} request failed",
@@ -359,6 +486,26 @@ class GdexCatalogClient:
         """列出某分组内可通过 HTTPS 下载的文件。"""
         payload = self._get_json(f"/datasets/{dsid}/webfiles/{gindex}/", context="webfiles")
         return parse_web_files(payload)
+
+    def list_file_list(
+        self,
+        dsid: str,
+        gindex: int,
+        year: int,
+        *,
+        timeout_seconds: float | None = None,
+    ) -> tuple[RdaFileListFile, ...]:
+        """列出大分组在指定年份的文件清单（``filelist/{year}{gindex}``）。"""
+        if year < 1900 or year > 2200:
+            raise MetadataError(
+                "filelist year is outside the supported range", detail={"year": year}
+            )
+        payload = self._get_json(
+            f"/datasets/{dsid}/filelist/{year}{gindex}/",
+            context="filelist",
+            timeout_seconds=timeout_seconds,
+        )
+        return parse_file_list(payload)
 
     def dataset_license(self, dsid: str) -> str | None:
         """读取数据集许可证名称；响应没有名称时返回 ``None``。"""
@@ -618,6 +765,8 @@ class NCARAdapter(SourceAdapter):
         unverified = [
             "scientific variable -> RDA file group (gindex) mapping: not machine-readable; "
             "discover_assets requires an explicit rda.gindex",
+            "NCSS variable -> file naming rules are dataset-specific; configure "
+            "rda.ncss.variables[].filename_contains instead of guessing",
             "per-file data time range: filename convention is dataset-specific and not built in; "
             "configure rda.file_time to filter by time",
             "file sizes are catalog-declared and not verified against bytes "
@@ -634,6 +783,9 @@ class NCARAdapter(SourceAdapter):
                 "GDEX RDA Datasets API /api/datasets/ (real GET 2026-11-04)",
                 "GDEX dataset file groups /groups/ and web files /webfiles/{gindex}/ "
                 "(real GET 2026-11-04)",
+                "GDEX large-group filelist /filelist/{year}{gindex}/ parsing "
+                "(real response shape with 2024 pressure-level evidence)",
+                "THREDDS NetcdfSubset URL/size probing when rda.ncss is explicitly configured",
                 "GDEX data file URLs on https://data.gdex.ucar.edu (real HEAD 200 2026-11-04)",
                 "legacy dsid conversion ds633.0 -> d633000 (observed redirect 2026-11-04)",
             ),
@@ -703,6 +855,8 @@ class NCARAdapter(SourceAdapter):
 
     def _discover_assets(self, request: DatasetRequest) -> Sequence[SourceAsset]:
         dsid = self.resolve_dsid(request.dataset_id)
+        if self._ncss_config(request) is not None:
+            return self._discover_ncss_assets(request, dsid)
         gindex = self._resolve_gindex(request)
         files = self.catalog().list_web_files(dsid, gindex)
         if not files:
@@ -771,6 +925,312 @@ class NCARAdapter(SourceAdapter):
                 )
             )
         return tuple(assets)
+
+    # -- NCAR THREDDS NetcdfSubset ---------------------------------------- #
+    def _ncss_config(self, request: DatasetRequest) -> Mapping[str, Any] | None:
+        """返回 NCSS 配置；请求扩展优先于数据源配置。"""
+        candidate = request.extensions.get("rda.ncss")
+        if candidate is None and self._config is not None:
+            candidate = self._config.extensions.get("rda.ncss")
+        if candidate is None:
+            return None
+        if not isinstance(candidate, Mapping):
+            raise MetadataError(
+                "rda.ncss must be an object with a 'variables' mapping",
+                detail={"observed": json_safe(candidate)},
+            )
+        return candidate
+
+    def _ncss_rules(
+        self, request: DatasetRequest, config: Mapping[str, Any]
+    ) -> tuple[_NcssVariableRule, ...]:
+        raw_variables = config.get("variables")
+        if not isinstance(raw_variables, Mapping) or not raw_variables:
+            raise MetadataError(
+                "rda.ncss.variables must be a non-empty mapping",
+                detail={"observed": json_safe(raw_variables)},
+            )
+        requested = request.required_variables()
+        rules: list[_NcssVariableRule] = []
+        for logical_raw, spec in raw_variables.items():
+            logical = str(logical_raw).strip().lower()
+            if logical not in requested:
+                continue
+            if not isinstance(spec, Mapping):
+                raise MetadataError(
+                    "each rda.ncss.variables entry must be an object",
+                    detail={"variable": logical, "observed": json_safe(spec)},
+                )
+            parameter = spec.get("var")
+            contains = spec.get("filename_contains")
+            if not isinstance(parameter, str) or not parameter.strip():
+                raise MetadataError(
+                    "rda.ncss variable entry requires non-empty 'var'",
+                    detail={"variable": logical},
+                )
+            if not isinstance(contains, str) or not contains.strip():
+                raise MetadataError(
+                    "rda.ncss variable entry requires non-empty 'filename_contains' "
+                    "(the variable-to-file naming rule is dataset-specific)",
+                    detail={"variable": logical},
+                )
+            rules.append(
+                _NcssVariableRule(
+                    logical_name=logical,
+                    parameter=parameter.strip(),
+                    filename_contains=contains.strip(),
+                )
+            )
+        return tuple(rules)
+
+    def _discover_ncss_assets(self, request: DatasetRequest, dsid: str) -> Sequence[SourceAsset]:
+        config = self._ncss_config(request)
+        if config is None:
+            raise MetadataError("NCSS discovery requires rda.ncss configuration")
+        rules = self._ncss_rules(request, config)
+        if not rules:
+            raise SourceNotFoundError(
+                "rda.ncss.variables does not cover any requested variable",
+                source_id=self.source_id,
+                detail={"requested": sorted(request.required_variables())},
+            )
+        max_bytes_raw = request.extensions.get("rda.ncss.max_bytes", config.get("max_bytes"))
+        if max_bytes_raw is None:
+            max_bytes = _DEFAULT_NCSS_MAX_BYTES
+        elif (
+            isinstance(max_bytes_raw, bool)
+            or not isinstance(max_bytes_raw, int)
+            or max_bytes_raw <= 0
+        ):
+            raise MetadataError(
+                "rda.ncss.max_bytes must be a positive integer",
+                detail={"observed": json_safe(max_bytes_raw)},
+            )
+        else:
+            max_bytes = max_bytes_raw
+        timeout_raw = config.get("timeout_seconds", 120.0)
+        if (
+            isinstance(timeout_raw, bool)
+            or not isinstance(timeout_raw, (int, float))
+            or timeout_raw <= 0
+        ):
+            raise MetadataError(
+                "rda.ncss.timeout_seconds must be a positive number",
+                detail={"observed": json_safe(timeout_raw)},
+            )
+        timeout_seconds = float(timeout_raw)
+        filelist_timeout_raw = config.get("filelist_timeout_seconds", 120.0)
+        if (
+            isinstance(filelist_timeout_raw, bool)
+            or not isinstance(filelist_timeout_raw, (int, float))
+            or filelist_timeout_raw <= 0
+        ):
+            raise MetadataError(
+                "rda.ncss.filelist_timeout_seconds must be a positive number",
+                detail={"observed": json_safe(filelist_timeout_raw)},
+            )
+        filelist_timeout = float(filelist_timeout_raw)
+        endpoint_raw = config.get("endpoint")
+        endpoint = (
+            endpoint_raw.rstrip("/")
+            if isinstance(endpoint_raw, str) and endpoint_raw.strip()
+            else _DEFAULT_NCSS_ENDPOINT
+        )
+        interval_raw = config.get("file_interval_seconds")
+        if interval_raw is not None and (
+            isinstance(interval_raw, bool)
+            or not isinstance(interval_raw, (int, float))
+            or interval_raw <= 0
+        ):
+            raise MetadataError(
+                "rda.ncss.file_interval_seconds must be a positive number when provided",
+                detail={"observed": json_safe(interval_raw)},
+            )
+        file_interval = (
+            timedelta(seconds=float(interval_raw))
+            if isinstance(interval_raw, (int, float))
+            else None
+        )
+        stride_raw = config.get("time_stride", 1)
+        if isinstance(stride_raw, bool) or not isinstance(stride_raw, int) or stride_raw < 1:
+            raise MetadataError(
+                "rda.ncss.time_stride must be a positive integer",
+                detail={"observed": json_safe(stride_raw)},
+            )
+
+        catalog = self.catalog()
+        time_filter = self._time_filter()
+        years = _years_for_extent(
+            request.metadata.temporal_coverage.start,
+            request.metadata.temporal_coverage.end,
+        )
+        file_pools: dict[int, tuple[RdaFileListFile, ...]] = {}
+        for year in years:
+            file_pools[year] = catalog.list_file_list(
+                dsid,
+                self._resolve_gindex(request),
+                year,
+                timeout_seconds=filelist_timeout,
+            )
+
+        license_text = self._cached_license(dsid, catalog)
+        spatial = request.metadata.spatial_extent
+        assets: list[SourceAsset] = []
+        seen_files: set[tuple[str, str]] = set()
+        for rule in rules:
+            matched_rule_file = False
+            for year in years:
+                for item in file_pools[year]:
+                    if rule.filename_contains not in item.file_name:
+                        continue
+                    matched_rule_file = True
+                    key = (rule.logical_name, item.url)
+                    if key in seen_files:
+                        continue
+                    overlap = _file_time_overlap(
+                        item.file_name,
+                        request.metadata.temporal_coverage.start,
+                        request.metadata.temporal_coverage.end,
+                        time_filter=time_filter,
+                        file_interval=file_interval,
+                    )
+                    if overlap is None:
+                        continue
+                    window_start, window_end, file_end = overlap
+                    url = _build_ncss_url(
+                        endpoint=endpoint,
+                        dsid=dsid,
+                        data_path=item.data_path or urlsplit(item.url).path,
+                        parameter=rule.parameter,
+                        request=request,
+                        start=window_start,
+                        end=min(window_end, file_end + timedelta(seconds=1))
+                        if file_end is not None
+                        else window_end,
+                        time_stride=stride_raw,
+                    )
+                    size = self._ncss_content_length(url, max_bytes, timeout_seconds)
+                    metadata_extensions: dict[str, JsonValue] = {
+                        "rda.dsid": dsid,
+                        "rda.gindex": item.gindex,
+                        "rda.service": "THREDDS-NetcdfSubset",
+                        "rda.variable": rule.parameter,
+                        "rda.variable_names": [rule.logical_name],
+                        "rda.no_cds": True,
+                        "rda.file_name": item.file_name,
+                        "rda.size_source": "ncss_head",
+                        "rda.checksum": "unknown",
+                        "rda.subset.lat": [spatial.south, spatial.north],
+                        "rda.subset.lon": [spatial.west, spatial.east],
+                        "rda.subset.levels_hpa": list(request.metadata.vertical_levels.levels),
+                        "rda.subset.time": [window_start.isoformat(), window_end.isoformat()],
+                        "rda.ncss.max_bytes": max_bytes,
+                        "transfer.head_probe": "skip",
+                    }
+                    metadata = build_source_metadata(
+                        source_id=self.source_id,
+                        display_name=(
+                            self._config.display_name
+                            if self._config is not None
+                            else f"RDA {dsid} NCSS"
+                        ),
+                        provider=(
+                            self._config.provider if self._config is not None else "NSF NCAR RDA"
+                        ),
+                        access_route=AccessRoute.HTTPS,
+                        dataset_id=dsid,
+                        origin_uri=url,
+                        retrieved_at=self.clock(),
+                        protocol_version="rda-thredds-ncss/1.0",
+                        license=license_text,
+                        citation="ECMWF ERA5; NSF NCAR RDA THREDDS NetcdfSubset",
+                        extensions=metadata_extensions,
+                    )
+                    file_name = (
+                        f"ncar_{dsid}_{rule.logical_name}_"
+                        f"{window_start:%Y%m%dT%H%MZ}_{window_end:%Y%m%dT%H%MZ}_ncss.nc"
+                    )
+                    assets.append(
+                        build_asset(
+                            source_id=self.source_id,
+                            dataset_id=request.dataset_id,
+                            access_route=AccessRoute.HTTPS,
+                            origin_uri=url,
+                            file_name=file_name,
+                            size_bytes=size,
+                            metadata=metadata,
+                            discovered_at=self.clock(),
+                            asset_id=asset_id_for(self.source_id, f"ncss:{key[0]}:{url}"),
+                            checksum=None,
+                            content_type="application/x-netcdf",
+                            time_slice=TemporalExtent(start=window_start, end=window_end),
+                            level_slice=(
+                                list(request.metadata.vertical_levels.levels)
+                                if request.metadata.vertical_levels.levels
+                                else None
+                            ),
+                        )
+                    )
+                    seen_files.add(key)
+                    if len(assets) > self._max_web_files:
+                        raise SourceUnavailableError(
+                            f"NCSS discovery produced more than {self._max_web_files} assets; "
+                            "narrow the time range or raise max_web_files",
+                            source_id=self.source_id,
+                            detail={"dsid": dsid, "assets": len(assets)},
+                        )
+            if not matched_rule_file:
+                logger.warning(
+                    "NCSS filename rule did not match %s in years %s", rule.logical_name, years
+                )
+        if not assets:
+            raise SourceNotFoundError(
+                "NCSS discovery found no files matching the configured variable rules "
+                "and time range",
+                source_id=self.source_id,
+                detail={"dsid": dsid, "years": list(years)},
+            )
+        return tuple(assets)
+
+    def _ncss_content_length(self, url: str, max_bytes: int, timeout_seconds: float) -> int:
+        """HEAD 一次 NCSS 生成结果，并执行单请求大小闸门。"""
+        try:
+            response = self.http.head(url, timeout=httpx.Timeout(timeout_seconds))
+        except httpx.HTTPError as exc:
+            raise SourceUnavailableError(
+                "NCAR NCSS HEAD failed",
+                source_id=self.source_id,
+                detail={"url": url, "error_type": type(exc).__name__},
+            ) from exc
+        try:
+            if response.status_code != httpx.codes.OK:
+                raise SourceUnavailableError(
+                    f"NCAR NCSS HEAD returned HTTP {response.status_code}",
+                    source_id=self.source_id,
+                    detail={"url": url, "status": response.status_code},
+                )
+            raw = response.headers.get("Content-Length")
+            try:
+                size = int(raw) if raw is not None else 0
+            except ValueError as exc:
+                raise MetadataError(
+                    "NCAR NCSS Content-Length is not an integer",
+                    detail={"url": url, "observed": raw},
+                ) from exc
+            if size <= 0:
+                raise MetadataError(
+                    "NCAR NCSS did not provide a positive Content-Length",
+                    detail={"url": url},
+                )
+            if size > max_bytes:
+                raise SourceUnavailableError(
+                    f"NCAR NCSS response {size} B exceeds configured limit {max_bytes} B",
+                    source_id=self.source_id,
+                    detail={"url": url, "size_bytes": size, "max_bytes": max_bytes},
+                )
+            return size
+        finally:
+            response.close()
 
     # -- 分组/时间过滤 ----------------------------------------------------- #
     def _resolve_gindex(self, request: DatasetRequest) -> int:
@@ -873,6 +1333,81 @@ class NCARAdapter(SourceAdapter):
             return catalog.dataset_license(dsid)
         except SourceError:
             return None
+
+
+def _years_for_extent(start: datetime, end: datetime) -> tuple[int, ...]:
+    """返回闭开时间区间覆盖的年份（end 恰为新年零点时不误加一年）。"""
+    last = end - timedelta(microseconds=1) if end > start else start
+    return tuple(range(start.year, last.year + 1))
+
+
+def _file_time_overlap(
+    file_name: str,
+    request_start: datetime,
+    request_end: datetime,
+    *,
+    time_filter: tuple[re.Pattern[str], str] | None,
+    file_interval: timedelta | None,
+) -> tuple[datetime, datetime, datetime | None] | None:
+    """由显式文件名规则计算请求与文件的交集；没有规则时不猜文件时间。"""
+    if time_filter is None:
+        return request_start, request_end, None
+    compiled, format_text = time_filter
+    match = compiled.search(file_name)
+    if match is None:
+        return None
+    try:
+        file_start = datetime.strptime(match.group("start"), format_text).replace(tzinfo=UTC)
+        file_end = datetime.strptime(match.group("end"), format_text).replace(tzinfo=UTC)
+    except ValueError as exc:
+        raise MetadataError(
+            "rda.file_time.format does not match the captured file timestamps",
+            detail={"file": file_name, "format": format_text},
+        ) from exc
+    file_exclusive_end = file_end + (file_interval or timedelta(seconds=1))
+    window_start = max(request_start, file_start)
+    window_end = min(request_end, file_exclusive_end)
+    if window_start >= window_end:
+        return None
+    return window_start, window_end, file_end
+
+
+def _build_ncss_url(
+    *,
+    endpoint: str,
+    dsid: str,
+    data_path: str,
+    parameter: str,
+    request: DatasetRequest,
+    start: datetime,
+    end: datetime,
+    time_stride: int,
+) -> str:
+    """按显式变量/区域/时段生成 THREDDS NetcdfSubset URL。"""
+    if not data_path.startswith(f"/{dsid}/"):
+        raise MetadataError(
+            "GDEX filelist data_path does not belong to the resolved dataset",
+            detail={"dsid": dsid, "data_path": data_path},
+        )
+    query_end = end - timedelta(seconds=1)
+    if query_end < start:
+        query_end = start
+    spatial = request.metadata.spatial_extent
+    query = urlencode(
+        [
+            ("var", parameter),
+            ("north", f"{spatial.north:g}"),
+            ("west", f"{spatial.west:g}"),
+            ("east", f"{spatial.east:g}"),
+            ("south", f"{spatial.south:g}"),
+            ("horizStride", "1"),
+            ("time_start", start.strftime("%Y-%m-%dT%H:%M:%SZ")),
+            ("time_end", query_end.strftime("%Y-%m-%dT%H:%M:%SZ")),
+            ("timeStride", str(time_stride)),
+            ("accept", "netcdf"),
+        ]
+    )
+    return f"{endpoint.rstrip('/')}{quote(data_path, safe='/')}?{query}"
 
 
 def ncar_adapter_from_config(source_id: str, config: SourceConfig) -> NCARAdapter:

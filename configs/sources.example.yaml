@@ -62,6 +62,21 @@ sources:
       # 因此发现阶段要求显式指定；未指定时适配器如实报错而不是猜一个。
       ncar.dataset_group: ds633.0
       ncar.gindex: -1
+      # ERA5 压力层大分组（gindex=26）可用 filelist + THREDDS NCSS 原生发现。
+      # 变量到文件名的映射由数据集约定决定，本适配器不猜测；按需取消注释并填写。
+      # rda.gindex: 26
+      # rda.file_time:
+      #   pattern: '\.(?P<start>\d{10})_(?P<end>\d{10})\.'
+      #   format: '%Y%m%d%H'
+      # rda.ncss:
+      #   max_bytes: 67108864
+      #   timeout_seconds: 120
+      #   filelist_timeout_seconds: 120
+      #   file_interval_seconds: 86400
+      #   time_stride: 6
+      #   variables:
+      #     clwc: {var: CLWC, filename_contains: '128_246_clwc'}
+      #     ciwc: {var: CIWC, filename_contains: '128_247_ciwc'}
 
   cds:
     provider: Copernicus CDS

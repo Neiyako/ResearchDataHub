@@ -30,9 +30,14 @@ def make_http_asset(
     etag: str | None = None,
     last_modified: datetime | None = None,
     file_name: str = "payload.bin",
+    metadata_extensions: dict[str, object] | None = None,
 ) -> SourceAsset:
     """构造一个 ``https`` 访问路径的资产，指向本地真实 HTTP 服务器。"""
-    metadata = make_source_metadata(origin_uri=uri, access_route=AccessRoute.HTTPS)
+    metadata = make_source_metadata(
+        origin_uri=uri,
+        access_route=AccessRoute.HTTPS,
+        extensions=metadata_extensions or {},
+    )
     return make_asset(
         asset_id="asset-http-0001",
         origin_uri=uri,

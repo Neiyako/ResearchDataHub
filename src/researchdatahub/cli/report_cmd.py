@@ -121,24 +121,50 @@ def register_report_commands(app: typer.Typer) -> None:
             repository = open_manifest(target)
             try:
                 request = repository.get_request(request_id)
-                tasks = list(repository.list_tasks(request_id=request_id))
-                if not tasks:
+                effective_plan = plan_id or repository.latest_plan_id(request_id)
+                if effective_plan is None:
                     raise RdhError(
-                        f"请求 {request_id!r} 下没有任何任务，无法生成报告",
+                        f"请求 {request_id!r} 下没有任何计划/任务，无法生成报告",
                         detail={"request_id": request_id},
                     )
-                files = list(repository.list_file_records(request_id=request_id))
-                reports = [
-                    report
-                    for task in tasks
-                    for report in repository.list_integrity_reports(task_id=task.task_id)
-                ]
-                sources = list(repository.list_sources())
+                plan = repository.load_plan(effective_plan)
+                if plan.request_id != request_id:
+                    raise RdhError(
+                        f"计划 {effective_plan!r} 属于请求 {plan.request_id!r}，"
+                        f"不属于 {request_id!r}",
+                        detail={"request_id": request_id, "plan_id": effective_plan},
+                    )
+                tasks = list(plan.tasks)
+                files = list(repository.list_file_records(plan_id=effective_plan))
+                reports = []
+                seen_file_reports: set[tuple[str, str]] = set()
+                for task in tasks:
+                    file_ids = {
+                        record.file_id
+                        for record in repository.list_file_records(task_id=task.task_id)
+                    }
+                    if not file_ids:
+                        continue
+                    latest_by_file = {}
+                    for integrity_report in repository.list_integrity_reports(task_id=task.task_id):
+                        if integrity_report.file_id in file_ids:
+                            latest_by_file[integrity_report.file_id] = integrity_report
+                    for file_id, integrity_report in latest_by_file.items():
+                        key = (task.task_id, file_id)
+                        if key not in seen_file_reports:
+                            seen_file_reports.add(key)
+                            reports.append(integrity_report)
+                sources = []
+                seen_sources: set[str] = set()
+                for task in tasks:
+                    source = task.asset.metadata
+                    if source.source_id not in seen_sources:
+                        seen_sources.add(source.source_id)
+                        sources.append(source)
             finally:
                 repository.close()
 
             now = datetime.now(UTC)
-            effective_plan = plan_id or tasks[0].plan_id
             delivery_path: Path | None = None
             delivery_note: str | None = None
             if files:
@@ -182,7 +208,7 @@ def register_report_commands(app: typer.Typer) -> None:
                     # 报告本身正是用来解释"为什么还不能交付"的。
                     delivery_note = f"交付清单未生成：{exc.message}"
 
-            report = build_collection_report(
+            collection_report = build_collection_report(
                 request_id=request_id,
                 plan_id=effective_plan,
                 tasks=tasks,
@@ -195,18 +221,18 @@ def register_report_commands(app: typer.Typer) -> None:
                 generated_at=now,
             )
             report_path = _report_dir(storage_root) / f"{_report_id(request_id, now)}.json"
-            write_collection_report(report, report_path)
+            write_collection_report(collection_report, report_path)
         except RdhError as exc:
             render_error(exc)
             raise typer.Exit(code=EXIT_FAILED) from exc
 
-        con_console.print(render_collection_report(report))
+        con_console.print(render_collection_report(collection_report))
         con_console.print(f"\n报告：{report_path}")
         if delivery_path is not None:
             con_console.print(f"交付清单：{delivery_path}")
         if delivery_note is not None:
             con_console.print(f"[yellow]{delivery_note}[/]")
-        tally = report.integrity
+        tally = collection_report.integrity
         if tally.failed or tally.missing or tally.unknown or tally.skipped:
             con_console.print(
                 "[yellow]注意：存在未通过/未经校验的文件"
