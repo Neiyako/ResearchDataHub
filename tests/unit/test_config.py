@@ -50,6 +50,24 @@ def test_repository_defaults_load() -> None:
     config = load_defaults(DEFAULTS)
     assert config is not None
     assert config.defaults.storage.root == "~/.rdh"
+    assert config.defaults.transfer.max_connections == 8
+    assert config.defaults.transfer.max_keepalive_connections is None
+    assert config.defaults.transfer.pool_timeout_seconds == 60.0
+
+
+def test_transfer_pool_configuration_is_validated(tmp_path: Path) -> None:
+    path = write(
+        tmp_path,
+        "defaults.yaml",
+        MINIMAL_DEFAULTS
+        + """
+  transfer:
+    max_connections: 4
+    max_keepalive_connections: 8
+""",
+    )
+    with pytest.raises(ConfigError, match="max_keepalive_connections"):
+        load_defaults(path)
 
 
 def test_repository_configs_have_no_absolute_user_path() -> None:

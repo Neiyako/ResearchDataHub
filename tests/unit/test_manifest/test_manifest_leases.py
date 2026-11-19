@@ -134,11 +134,12 @@ def test_heartbeat_rejects_wrong_owner_expired_lease_and_non_running(
 # --------------------------------------------------------------------------- #
 # release_expired：续租 vs 接管
 # --------------------------------------------------------------------------- #
-def test_release_expired_renews_but_does_not_take_over_when_heartbeat_fresh(
+def test_release_expired_observes_without_extending_when_heartbeat_fresh(
     repo: SqliteManifestRepository,
 ) -> None:
     seed_queued_task(repo, task_id="task-slow")
     repo.claim_tasks(owner="worker-1", limit=1, now=FIXED_NOW, lease_seconds=LEASE)
+    before = repo.load_task("task-slow")
 
     later = FIXED_NOW + timedelta(seconds=LEASE + 1)
     results = repo.release_expired(now=later, stale_timeout_seconds=STALE, lease_seconds=300)
@@ -146,17 +147,20 @@ def test_release_expired_renews_but_does_not_take_over_when_heartbeat_fresh(
     result = results[0]
     assert result.task_id == "task-slow"
     assert result.previous_state == TaskState.RUNNING.value
-    assert result.new_state == TaskState.RUNNING.value  # 同状态 = 只续租，不接管
-    assert "heartbeat fresh" in result.reason
+    assert result.new_state == TaskState.RUNNING.value
+    assert "heartbeat is still fresh" in result.reason
     assert result.lease_owner == "worker-1"
 
     loaded = repo.load_task("task-slow")
     assert loaded.state is TaskState.RUNNING
     assert loaded.worker_id == "worker-1"
-    assert loaded.lease_expires_at == later + timedelta(seconds=300)
-    # 另一个 worker 依然领不到这个任务。
+    assert loaded.heartbeat_at == before.heartbeat_at
+    assert loaded.lease_expires_at == before.lease_expires_at
+    # 不代续租，也不允许另一个 worker 抢走尚处于 stale 宽限期的任务。
     assert _claim_one(repo, owner="worker-2", now=later) == []
-    assert "lease_renewed" in [event.event_type for event in repo.list_events("task-slow")]
+    event_types = [event.event_type for event in repo.list_events("task-slow")]
+    assert "lease_orphan_suspected" in event_types
+    assert "lease_renewed" not in event_types
 
 
 def test_release_expired_recovers_stale_running_task_and_requeues(

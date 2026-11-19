@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from datetime import UTC, datetime
 from pathlib import Path
@@ -18,12 +19,13 @@ from tests.conftest import (
     make_file_record,
     make_integrity_report,
     make_request,
+    make_source_metadata,
     make_task,
 )
 from typer.testing import CliRunner
 
 from researchdatahub.cli.main import app
-from researchdatahub.core.models import AcquisitionPlan
+from researchdatahub.core.models import AcquisitionPlan, Checksum
 from researchdatahub.core.state import TaskState, transition
 
 REPO = Path(__file__).resolve().parents[2]
@@ -85,7 +87,16 @@ def _seed(tmp_path: Path, config: Path) -> None:
                 generated_at=FIXED_NOW,
             ),
         )
-        record = make_file_record(task_id="task-0001")
+        data = b"report-delivery-bytes"
+        path = tmp_path / "rdh" / "raw" / "era5-pressure-levels" / "data.nc"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+        record = make_file_record(
+            task_id="task-0001",
+            local_path=str(path),
+            size_bytes=len(data),
+            checksum=Checksum(value="sha256:" + hashlib.sha256(data).hexdigest()),
+        )
         repository.save_file_record(record)
         repository.save_integrity_report(
             make_integrity_report(task_id="task-0001", file_id=record.file_id),
@@ -126,6 +137,88 @@ def test_report_generate_writes_report_and_delivery(tmp_path: Path) -> None:
     # 交付清单也应生成（文件校验 PASSED）
     assert payload["delivery_manifest_path"] is not None
     assert (root / "deliveries").is_dir()
+
+
+def test_report_generate_is_delivery_idempotent(tmp_path: Path) -> None:
+    """同一 request/plan/证据重复生成报告不得产生新的 delivery_id 文件。"""
+    config, root = _prepare(tmp_path)
+    _seed(tmp_path, config)
+
+    assert invoke("report", "generate", REQUEST_ID, "--config", str(config))[0] == 0
+    first = sorted((root / "deliveries").glob("delivery-*.json"))
+    assert len(first) == 1
+
+    assert invoke("report", "generate", REQUEST_ID, "--config", str(config))[0] == 0
+    second = sorted((root / "deliveries").glob("delivery-*.json"))
+    assert second == first
+
+
+def test_report_uses_task_source_snapshot_and_selected_plan(tmp_path: Path) -> None:
+    """全局 sources 行被污染、同请求有多个计划时，报告仍只取所选计划的资产快照。"""
+    from researchdatahub.manifest.cli_service import open_manifest, resolve_db_target
+
+    config, root = _prepare(tmp_path)
+    _seed(tmp_path, config)
+    repository = open_manifest(resolve_db_target(defaults_path=config))
+    try:
+        repository.upsert_source(
+            make_source_metadata(provider="WRONG GLOBAL PROVIDER"),
+            adapter_id="polluted",
+        )
+        other_asset = make_asset(metadata=make_source_metadata())
+        other = transition(
+            transition(
+                make_task(
+                    task_id="task-plan-2",
+                    plan_id="plan-0002",
+                    request_id=REQUEST_ID,
+                    asset=other_asset,
+                ),
+                TaskState.PLANNED,
+                reason="planned",
+                now=FIXED_NOW,
+            ),
+            TaskState.QUEUED,
+            reason="queued",
+            now=FIXED_NOW,
+        )
+        other = transition(other, TaskState.RUNNING, reason="run", now=FIXED_NOW)
+        other = transition(
+            other,
+            TaskState.FAILED,
+            reason="boom",
+            error="boom",
+            now=FIXED_NOW,
+        )
+        repository.save_plan(
+            AcquisitionPlan(
+                plan_id="plan-0002",
+                request_id=REQUEST_ID,
+                tasks=[other],
+                generated_at=FIXED_NOW,
+            )
+        )
+    finally:
+        repository.close()
+
+    code, output = invoke(
+        "report", "generate", REQUEST_ID, "--config", str(config), "--plan", PLAN_ID
+    )
+    assert code == 0, output
+    payload = json.loads(
+        sorted((root / "reports").glob("report-*.json"))[-1].read_text(encoding="utf-8")
+    )
+    assert payload["plan_id"] == PLAN_ID
+    assert payload["counts"]["discovered"] == 1
+    assert payload["counts"]["failed"] == 0
+    assert payload["sources"] == [
+        {
+            "source_id": "ncar",
+            "display_name": "NSF NCAR Research Data Archive",
+            "provider": "NSF NCAR",
+            "access_route": "s3",
+        }
+    ]
 
 
 def test_report_show_renders_existing_report(tmp_path: Path) -> None:

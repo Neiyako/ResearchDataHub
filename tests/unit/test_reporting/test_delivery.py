@@ -54,6 +54,26 @@ def test_complete_delivery_requires_passed_reports(tmp_path: Path) -> None:
     assert len(manifest.files) == 1
 
 
+def test_delivery_id_is_content_stable_and_plan_scoped(tmp_path: Path) -> None:
+    """同一 request/plan/证据重复生成必须命中同一 delivery 文件。"""
+    _, record = _fixture(tmp_path)
+    kwargs = {
+        "request_id": "req-1",
+        "plan_id": "plan-1",
+        "dataset_metadata": make_dataset_metadata(),
+        "files": [record],
+        "integrity_reports": [make_report()],
+        "sources": [make_source()],
+    }
+    first = build_delivery_manifest(**kwargs, created_at=FIXED_NOW)
+    second = build_delivery_manifest(**kwargs, created_at=FIXED_NOW.replace(hour=13))
+    other_plan = build_delivery_manifest(**(kwargs | {"plan_id": "plan-2"}), created_at=FIXED_NOW)
+
+    assert first.delivery_id == second.delivery_id
+    assert first.delivery_id.startswith("delivery-")
+    assert other_plan.delivery_id != first.delivery_id
+
+
 def test_missing_report_marks_delivery_incomplete(tmp_path: Path) -> None:
     _, record = _fixture(tmp_path)
     manifest = build_delivery_manifest(

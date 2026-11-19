@@ -193,7 +193,7 @@ source-specific prober 完成 benchmark。`route qualify` 只记录低字节量�
 ## 10. 本轮验证证据（2026-11-18）
 
 - 静态检查：`ruff check src tests` rc=0；`mypy src/researchdatahub` 136 个源文件 0 错误。
-- 测试：1756 个默认测试全通过（30 个 network 测试按项目约定默认 deselected）。
+- 测试：1767 个默认测试全通过（30 个 network 测试按项目约定默认 deselected）。
 - ERA5 fixture：发现 5 条候选 route（NCAR S3/HTTPS/Globus/Zarr + CDS API），未因 CDS adapter 存在而收敛为单一路线。
 - 真实低字节量探测：
   - GDEX `/api/datasets/d633000/groups/` → HTTP 200，3.5 KB，约 3.3 s；

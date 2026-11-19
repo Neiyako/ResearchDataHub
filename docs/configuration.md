@@ -118,6 +118,9 @@ root: "${RDH_HOME}/storage"    # 内嵌插值
 | `max_redirects` | `5` | 0–20 | HTTP 重定向上限 |
 | `verify_tls` | `true` | bool | 生产环境不得关闭 |
 | `resume_enabled` | `true` | bool | **允许**尝试续传，不等于一定续传（见下） |
+| `max_connections` | `8` | 1–1024 | HTTP 连接池上限；高并发任务应按 worker 数显式放大 |
+| `max_keepalive_connections` | `null` | 0–1024 | 空闲长连接上限；`null` = 与 `max_connections` 相同 |
+| `pool_timeout_seconds` | `60.0` | > 0–600 | 等待连接池可用连接的最长秒数 |
 
 断点续传的三重前提（缺一不可，见 `docs/data-integrity.md` §4）：
 
@@ -237,6 +240,35 @@ root: "${RDH_HOME}/storage"    # 内嵌插值
 | `options` | 传输层选项，键必须命名空间化（`s3.part_size_mb`、`https.timeout_seconds`） |
 
 同一数据源的 `route` 不得重复（模型校验）。
+
+### 2.2 NCAR filelist / THREDDS NCSS（`sources.ncar.extensions`）
+
+ERA5 压力层大分组不会在 `/webfiles/{gindex}/` 返回文件，必须使用
+`/filelist/{year}{gindex}/`。变量到文件名的映射是数据集约定，RDH 不猜测；显式配置
+`rda.ncss.variables` 后，适配器会发现匹配文件、生成 NCSS URL，并用一次 HEAD 把
+单请求大小限制在 `max_bytes` 内。传输层看到发现阶段写入的真实大小和
+`transfer.head_probe: skip` 后不会重复发 HEAD。
+
+```yaml
+extensions:
+  rda.gindex: 26
+  rda.file_time:
+    pattern: '\.(?P<start>\d{10})_(?P<end>\d{10})\.'
+    format: '%Y%m%d%H'
+  rda.ncss:
+    max_bytes: 67108864
+    timeout_seconds: 120
+    filelist_timeout_seconds: 120
+    file_interval_seconds: 86400
+    time_stride: 6
+    variables:
+      clwc: {var: CLWC, filename_contains: '128_246_clwc'}
+      ciwc: {var: CIWC, filename_contains: '128_247_ciwc'}
+```
+
+`rda.file_time` 和 `rda.ncss` 是可选能力；未配置时仍走原有显式 `rda.gindex` +
+`webfiles` 路径。NCSS 是服务端生成型响应，发现阶段的大小是 HEAD 快照，最终仍以
+GET 的 Content-Length、实际字节数、SHA-256 与 NetCDF 校验为准。
 
 **ADR-0002 的分界线**：`adapter` 回答"数据在哪、元数据长什么样"，`transports[].adapter`
 回答"字节怎么搬"。源与传输的耦合点**只有** `route` 与 `SourceAsset.origin_uri`，

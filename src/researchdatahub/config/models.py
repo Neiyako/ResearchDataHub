@@ -314,10 +314,35 @@ class TransferConfig(_ConfigModel):
     max_redirects: int = Field(default=5, ge=0, le=20)
     verify_tls: bool = True
     resume_enabled: bool = Field(default=True, description="是否允许在可自证一致性时断点续传")
+    max_connections: int = Field(
+        default=8,
+        ge=1,
+        le=1024,
+        description="HTTP 连接池上限；高并发任务应显式设置，不应继承私有 transport",
+    )
+    max_keepalive_connections: int | None = Field(
+        default=None,
+        ge=0,
+        le=1024,
+        description="HTTP 空闲长连接上限；null 表示与 max_connections 相同",
+    )
+    pool_timeout_seconds: float = Field(
+        default=60.0,
+        gt=0.0,
+        le=600.0,
+        description="等待连接池可用连接的最长秒数",
+    )
     s3: S3TransferConfig = Field(default_factory=S3TransferConfig)
 
     @model_validator(mode="after")
     def _timeouts_ordered(self) -> TransferConfig:
+        if (
+            self.max_keepalive_connections is not None
+            and self.max_keepalive_connections > self.max_connections
+        ):
+            raise ValueError(
+                "transfer.max_keepalive_connections must not exceed transfer.max_connections"
+            )
         if self.timeout_seconds is None:
             return self
         if self.connect_timeout_seconds > self.timeout_seconds:

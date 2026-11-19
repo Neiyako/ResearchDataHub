@@ -403,8 +403,13 @@ def _decode_netcdf_time(values: object, units: object) -> tuple[str, str] | None
     array = array[np.isfinite(array)]
     if array.size == 0:
         return None
-    start = epoch + timedelta(seconds=float(array.min()) * seconds)
-    end = epoch + timedelta(seconds=float(array.max()) * seconds)
+    try:
+        start = epoch + timedelta(seconds=float(array.min()) * seconds)
+        end = epoch + timedelta(seconds=float(array.max()) * seconds)
+    except (OverflowError, OSError, ValueError):
+        # Corrupt/hybrid-epoch files may contain huge fill values. Time range is
+        # unknown, but the integrity worker must not crash or wedge the task.
+        return None
     return start.astimezone(UTC).isoformat(), end.astimezone(UTC).isoformat()
 
 

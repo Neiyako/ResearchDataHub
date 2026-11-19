@@ -79,6 +79,46 @@ def test_single_task_completes_full_pipeline(
     assert "task_completed" in event_types
 
 
+def test_run_with_plan_id_does_not_claim_other_plans(
+    config, repo, repo_factory, storage, integrity, transport, server
+) -> None:
+    """给定 plan_id 时 claim 和未完成计数都必须只作用于该计划。"""
+    data_a = b"plan-a" * 128
+    data_b = b"plan-b" * 128
+    serve_bytes(server, "/plans/a.nc", data_a)
+    serve_bytes(server, "/plans/b.nc", data_b)
+    asset_a = make_https_asset(server, path="/plans/a.nc", data=data_a, file_name="a.nc")
+    asset_b = make_https_asset(server, path="/plans/b.nc", data=data_b, file_name="b.nc")
+    scheduler = make_scheduler(
+        config=config,
+        repo_factory=repo_factory,
+        storage=storage,
+        integrity=integrity,
+        transports=[transport],
+    )
+    plan_a = create_and_submit(
+        scheduler=scheduler,
+        repo=repo,
+        request=new_request(request_id="req-plan-a"),
+        assets=[asset_a],
+        config=config,
+    )
+    plan_b = create_and_submit(
+        scheduler=scheduler,
+        repo=repo,
+        request=new_request(request_id="req-plan-b"),
+        assets=[asset_b],
+        config=config,
+    )
+
+    summary = scheduler.run(plan_id=plan_a.plan_id)
+
+    assert summary.counts == {"completed": 1}
+    assert summary.unfinished == 0
+    assert repo.load_task(plan_a.task_ids()[0]).state is TaskState.COMPLETED
+    assert repo.load_task(plan_b.task_ids()[0]).state is TaskState.QUEUED
+
+
 def test_worker_concurrency_is_bounded(
     config, repo, repo_factory, storage, integrity, transport, server
 ) -> None:
@@ -129,7 +169,8 @@ def test_retryable_http_error_sets_retry_wait_then_second_run_completes(
     )
     task_id = plan.task_ids()[0]
 
-    first = scheduler.run()
+    # 只领取一次，确保观察到 RETRY_WAIT 的中间态；否则 1ms 退避可能在同一轮内被重领。
+    first = scheduler.run(max_tasks=1)
     assert first.counts == {"retry_wait": 1}
     waiting = repo.load_task(task_id)
     assert waiting.state is TaskState.RETRY_WAIT

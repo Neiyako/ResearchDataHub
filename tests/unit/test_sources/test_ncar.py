@@ -8,9 +8,10 @@ from __future__ import annotations
 
 import httpx
 import pytest
-from tests.conftest import make_request
+from tests.conftest import make_metadata, make_request
 from tests.unit.test_sources.conftest import (
     LocalHttpServer,
+    Response,
     load_fixture,
     make_source_config,
 )
@@ -23,12 +24,14 @@ from researchdatahub.core.errors import (
 )
 from researchdatahub.core.models import AccessRoute
 from researchdatahub.core.ports import DataSourceAdapter, assert_implements
+from researchdatahub.planner.planner import DefaultTaskPlanner
 from researchdatahub.sources.ncar import (
     GDEX_DATA_HOST,
     GDEX_ENDPOINT,
     NCARAdapter,
     normalize_dsid,
     parse_file_groups,
+    parse_file_list,
     parse_web_files,
 )
 
@@ -131,6 +134,19 @@ def test_parse_real_group_and_webfile_shapes():
     assert first.date_modified is not None
     assert first.date_modified.isoformat() == "2025-10-30T00:00:00+00:00"
     assert first.size_source == "catalog_unverified"
+
+
+def test_parse_real_filelist_shape():
+    """``filelist/{year}{gindex}`` 的表格响应可解析出真实 URL、大小和时间。"""
+    files = parse_file_list(load_fixture("gdex_filelist_d633000_-2.json"))
+    assert len(files) == 6
+    first = files[0]
+    assert first.file_name == "d633000-osdf.csv"
+    assert first.url == "https://data.gdex.ucar.edu/d633000/catalogs/d633000-osdf.csv"
+    assert first.data_path == "/d633000/catalogs/d633000-osdf.csv"
+    assert first.size_bytes == 106391
+    assert first.gindex == -2
+    assert first.date_archived is not None
 
 
 # --------------------------------------------------------------------------- #
@@ -319,6 +335,198 @@ def test_missing_size_is_refused_not_faked(http_server: LocalHttpServer):
     )
     with pytest.raises(MetadataError):
         _adapter(http_server).discover_assets(make_request(extensions={"rda.gindex": -2}))
+
+
+def test_ncss_discovery_uses_filelist_and_enforces_response_size(http_server: LocalHttpServer):
+    """原生 NCAR 发现：2024 年 filelist → 两个云水 NCSS 切片 + HEAD 大小闸门。"""
+    base = "/thredds/ncss/grid/files/d633000/e5.oper.an.pl/202401"
+    clwc = "e5.oper.an.pl.128_246_clwc.ll025sc.2024010100_2024010123.nc"
+    ciwc = "e5.oper.an.pl.128_247_ciwc.ll025sc.2024010100_2024010123.nc"
+    payload = {
+        "status": "ok",
+        "data": {
+            "groups": [
+                {
+                    "gindex": "26",
+                    "group_id": "e5.oper.an.pl",
+                    "column_headers": ["File Name", "Size", "Data Format", "Date Archived"],
+                    "rows": [
+                        [
+                            {
+                                "is_file": True,
+                                "name": "File Name",
+                                "value": clwc,
+                                "url": f"https://data.gdex.ucar.edu/d633000/e5.oper.an.pl/202401/{clwc}",
+                                "data_path": f"/d633000/e5.oper.an.pl/202401/{clwc}",
+                            },
+                            {"name": "Size", "value": 999999},
+                            {"name": "Data Format", "value": "NetCDF"},
+                            {"name": "Date Archived", "value": "2024-02-01"},
+                        ],
+                        [
+                            {
+                                "is_file": True,
+                                "name": "File Name",
+                                "value": ciwc,
+                                "url": f"https://data.gdex.ucar.edu/d633000/e5.oper.an.pl/202401/{ciwc}",
+                                "data_path": f"/d633000/e5.oper.an.pl/202401/{ciwc}",
+                            },
+                            {"name": "Size", "value": 999999},
+                            {"name": "Data Format", "value": "NetCDF"},
+                            {"name": "Date Archived", "value": "2024-02-01"},
+                        ],
+                    ],
+                }
+            ]
+        },
+    }
+    http_server.add_json("GET", f"{API}/datasets/{DSID}/filelist/202426/", payload)
+    for name in (clwc, ciwc):
+        http_server.add(
+            "HEAD",
+            f"{base}/{name}",
+            Response(
+                status=200,
+                body=b"x" * 1280,
+                headers={"Content-Type": "application/x-netcdf"},
+            ),
+        )
+    config = _config(
+        server=http_server,
+        extensions={
+            "rda.gindex": 26,
+            "rda.file_time": {
+                "pattern": r"\.(?P<start>\d{10})_(?P<end>\d{10})\.",
+                "format": "%Y%m%d%H",
+            },
+            "rda.ncss": {
+                "endpoint": f"{http_server.url}/thredds/ncss/grid/files",
+                "max_bytes": 4096,
+                "file_interval_seconds": 86400,
+                "time_stride": 1,
+                "variables": {
+                    "clwc": {"var": "CLWC", "filename_contains": "128_246_clwc"},
+                    "ciwc": {"var": "CIWC", "filename_contains": "128_247_ciwc"},
+                },
+            },
+        },
+    )
+    metadata = make_metadata(
+        variables=[
+            {"name": "clwc", "units": "kg kg**-1"},
+            {"name": "ciwc", "units": "kg kg**-1"},
+        ],
+        temporal_coverage={
+            "start": "2024-01-01T00:00:00Z",
+            "end": "2024-01-01T01:00:00Z",
+        },
+        spatial_extent={
+            "west": 70.0,
+            "east": 105.0,
+            "south": 25.0,
+            "north": 40.0,
+            "grid_degrees": 0.25,
+        },
+    )
+    request = make_request(
+        dataset_id="era5-pressure-levels",
+        metadata=metadata,
+        extensions={"rda.gindex": 26},
+    )
+
+    assets = _adapter(http_server, config=config).discover_assets(request)
+
+    assert len(assets) == 2
+    assert {asset.metadata.extensions["rda.variable"] for asset in assets} == {"CLWC", "CIWC"}
+    assert all(asset.size_bytes == 1280 for asset in assets)
+    assert all(asset.metadata.extensions["transfer.head_probe"] == "skip" for asset in assets)
+    assert all(asset.metadata.extensions["rda.size_source"] == "ncss_head" for asset in assets)
+    assert all("time_start=2024-01-01T00%3A00%3A00Z" in asset.origin_uri for asset in assets)
+    assert len(http_server.requests_to(f"{base}/{clwc}")) == 1
+    assert http_server.requests_to(f"{base}/{clwc}")[0].method == "HEAD"
+
+    class _StaticAssets:
+        source_id = "ncar"
+        supported_routes = frozenset({"https"})
+
+        def describe(self):
+            return assets[0].metadata
+
+        def discover_assets(self, _request):
+            return assets
+
+        def health_check(self):
+            return True
+
+    plan = DefaultTaskPlanner().plan(request, [_StaticAssets()])
+    assert plan.unmatched_variables == []
+    assert len(plan.tasks) == 2
+
+
+def test_ncss_discovery_rejects_oversized_subset(http_server: LocalHttpServer):
+    """NCSS 单请求超过配置上限时必须失败，不能把超大任务交给传输层。"""
+    name = "e5.oper.an.pl.128_246_clwc.ll025sc.2024010100_2024010123.nc"
+    payload = {
+        "status": "ok",
+        "data": {
+            "groups": [
+                {
+                    "gindex": "26",
+                    "rows": [
+                        [
+                            {
+                                "is_file": True,
+                                "name": "File Name",
+                                "value": name,
+                                "url": f"https://data.gdex.ucar.edu/d633000/e5.oper.an.pl/202401/{name}",
+                                "data_path": f"/d633000/e5.oper.an.pl/202401/{name}",
+                            },
+                            {"name": "Size", "value": 999999},
+                        ]
+                    ],
+                }
+            ]
+        },
+    }
+    http_server.add_json("GET", f"{API}/datasets/{DSID}/filelist/202426/", payload)
+    http_server.add(
+        "HEAD",
+        f"/thredds/ncss/grid/files/d633000/e5.oper.an.pl/202401/{name}",
+        Response(status=200, body=b"x" * 2048),
+    )
+    config = _config(
+        server=http_server,
+        extensions={
+            "rda.gindex": 26,
+            "rda.file_time": {
+                "pattern": r"\.(?P<start>\d{10})_(?P<end>\d{10})\.",
+                "format": "%Y%m%d%H",
+            },
+            "rda.ncss": {
+                "endpoint": f"{http_server.url}/thredds/ncss/grid/files",
+                "max_bytes": 1024,
+                "file_interval_seconds": 86400,
+                "variables": {
+                    "clwc": {"var": "CLWC", "filename_contains": "128_246_clwc"},
+                },
+            },
+        },
+    )
+    metadata = make_metadata(
+        variables=[{"name": "clwc", "units": "kg kg**-1"}],
+        temporal_coverage={
+            "start": "2024-01-01T00:00:00Z",
+            "end": "2024-01-01T01:00:00Z",
+        },
+    )
+    with pytest.raises(SourceUnavailableError, match="exceeds configured limit"):
+        _adapter(http_server, config=config).discover_assets(
+            make_request(
+                dataset_id="era5-pressure-levels",
+                metadata=metadata,
+                extensions={"rda.gindex": 26},
+            )
+        )
 
 
 # --------------------------------------------------------------------------- #

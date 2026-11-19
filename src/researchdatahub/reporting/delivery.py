@@ -52,6 +52,7 @@ __all__ = [
     "ExcludedFile",
     "build_delivery_manifest",
     "delivery_manifest_to_json",
+    "derive_delivery_id",
     "latest_reports_by_file",
     "verify_delivery_manifest",
     "write_delivery_manifest",
@@ -209,6 +210,60 @@ def _collect_issues(
     return issues, latest
 
 
+def derive_delivery_id(
+    *,
+    request_id: str,
+    plan_id: str,
+    dataset_metadata: DatasetMetadata,
+    files: Sequence[FileRecord],
+    integrity_reports: Sequence[IntegrityReport],
+    sources: Sequence[SourceMetadata] = (),
+) -> str:
+    """由交付证据内容派生稳定 ID（同一 request/plan/证据重生成不新增文件）。"""
+    latest, _issues = latest_reports_by_file(files, integrity_reports)
+    selected_reports = _reports_for_manifest(files, integrity_reports, latest)
+    payload = {
+        "request_id": request_id,
+        "plan_id": plan_id,
+        "dataset_metadata": dataset_metadata.model_dump(mode="json"),
+        "files": sorted(
+            (
+                {
+                    "file_id": record.file_id,
+                    "task_id": record.task_id,
+                    "source_id": record.source_id,
+                    "origin_uri": record.origin_uri,
+                    "size_bytes": record.size_bytes,
+                    "checksum": record.checksum.value,
+                }
+                for record in files
+            ),
+            key=lambda item: str(item["file_id"]),
+        ),
+        "integrity": sorted(
+            (report.model_dump(mode="json") for report in selected_reports),
+            key=lambda item: str(item["report_id"]),
+        ),
+        "sources": sorted(
+            (
+                {
+                    "source_id": source.source_id,
+                    "provider": source.provider,
+                    "access_route": source.access_route.value,
+                    "dataset_id": source.dataset_id,
+                }
+                for source in sources
+            ),
+            key=lambda item: str(item["source_id"]),
+        ),
+        "tool_version": _tool_version(),
+    }
+    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode(
+        "utf-8"
+    )
+    return f"delivery-{hashlib.sha256(encoded).hexdigest()[:16]}"
+
+
 def build_delivery_manifest(
     *,
     delivery_id: str | None = None,
@@ -265,11 +320,19 @@ def build_delivery_manifest(
             "delivery manifest requires request_id and plan_id",
             detail={"request_id": request_id, "plan_id": plan_id},
         )
+    effective_delivery_id = delivery_id or derive_delivery_id(
+        request_id=request_id,
+        plan_id=plan_id,
+        dataset_metadata=dataset_metadata,
+        files=files,
+        integrity_reports=integrity_reports,
+        sources=sources,
+    )
     issues, latest = _collect_issues(files, integrity_reports)
     verification: DeliveryVerification | None = None
     if verify_files:
         pending = _manifest_for_verification(
-            delivery_id=delivery_id,
+            delivery_id=effective_delivery_id,
             request_id=request_id,
             plan_id=plan_id,
             dataset_metadata=dataset_metadata,
@@ -291,7 +354,7 @@ def build_delivery_manifest(
     complete = bool(files) and total_bytes > 0 and not issues and all_passed
     combined_notes = _compose_notes(notes, issues, excluded, complete)
     manifest = DeliveryManifest(
-        delivery_id=delivery_id if delivery_id is not None else f"delivery-{uuid.uuid4().hex[:16]}",
+        delivery_id=effective_delivery_id,
         request_id=request_id,
         plan_id=plan_id,
         dataset_metadata=dataset_metadata,
@@ -337,7 +400,7 @@ def _reports_for_manifest(
 
 def _manifest_for_verification(
     *,
-    delivery_id: str | None,
+    delivery_id: str,
     request_id: str,
     plan_id: str,
     dataset_metadata: DatasetMetadata,
@@ -348,7 +411,7 @@ def _manifest_for_verification(
 ) -> DeliveryManifest:
     """构造一个 ``complete=False`` 的临时清单，仅用于磁盘一致性校验。"""
     return DeliveryManifest(
-        delivery_id=delivery_id if delivery_id is not None else f"delivery-{uuid.uuid4().hex[:16]}",
+        delivery_id=delivery_id,
         request_id=request_id,
         plan_id=plan_id,
         dataset_metadata=dataset_metadata,

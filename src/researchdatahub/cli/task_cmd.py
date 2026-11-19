@@ -107,6 +107,7 @@ def register_task_commands(app: typer.Typer) -> None:
             summary = scheduler.run(
                 max_workers=max_workers,
                 request_id=request_id,
+                plan_id=plan_id,
                 max_tasks=max_tasks,
             )
         except RdhError as exc:

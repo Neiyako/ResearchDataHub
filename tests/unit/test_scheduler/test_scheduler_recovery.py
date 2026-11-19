@@ -97,28 +97,31 @@ def test_release_expired_requeues_stale_running_task(
     assert "lease_recovered" in event_types
 
 
-def test_release_expired_renews_when_heartbeat_is_fresh(
+def test_release_expired_does_not_extend_orphan_when_heartbeat_is_fresh(
     config, repo, repo_factory, storage, integrity, server
 ) -> None:
     data = b"slow-but-alive" * 50
     serve_bytes(server, "/fresh/file.nc", data)
     asset = make_https_asset(server, path="/fresh/file.nc", data=data, file_name="fresh.nc")
     task_id = _queue_plan(config, repo, asset)
-    # 租约 1 秒已过期，但心跳只有 10 秒前（< stale 60 秒）→ 应续租而不是接管。
+    # 租约 1 秒已过期，但心跳只有 10 秒前（< stale 60 秒）→ 先观察，绝不代续租。
     _claim_crashed(repo, task_id, seconds_ago=10)
+    before = repo.load_task(task_id)
 
     results = _recovery(config, repo_factory, storage, integrity).release_expired()
 
     assert len(results) == 1
     assert results[0].previous_state == "RUNNING"
     assert results[0].new_state == "RUNNING"
-    renewed = repo.load_task(task_id)
-    assert renewed.state is TaskState.RUNNING
-    assert renewed.lease_expires_at is not None
-    assert renewed.heartbeat_at is not None
-    assert renewed.worker_id == "crashed-worker"
+    assert "orphan suspected" in results[0].reason
+    unchanged = repo.load_task(task_id)
+    assert unchanged.state is TaskState.RUNNING
+    assert unchanged.lease_expires_at == before.lease_expires_at
+    assert unchanged.heartbeat_at == before.heartbeat_at
+    assert unchanged.worker_id == "crashed-worker"
     event_types = [event.event_type for event in repo.list_events(task_id)]
-    assert "lease_renewed" in event_types
+    assert "lease_orphan_suspected" in event_types
+    assert "lease_renewed" not in event_types
 
 
 def test_process_restart_recovery_then_run_completes(

@@ -5,7 +5,7 @@
 
 [![CI](https://github.com/Neiyako/ResearchDataHub/actions/workflows/ci.yml/badge.svg)](https://github.com/Neiyako/ResearchDataHub/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%20%7C%203.13-blue)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-1756%20passed-brightgreen)](tests/)
+[![Tests](https://img.shields.io/badge/tests-1767%20passed-brightgreen)](tests/)
 [![Chain Benchmark](https://img.shields.io/badge/chain%20benchmark-3%20platforms-blue)](docs/chain-speed-benchmark.md)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -191,7 +191,7 @@ export CDSAPI_KEY="<你的 CDS 个人访问令牌>"     # 凭据只以 env 引�
 | 平台 | 覆盖数据 | 状态 |
 |---|---|---|
 | **Copernicus CDS** | ERA5 / ERA5-Land / 气压层 / 单层 / 其他 CDS 集合 | ✅ 真实取数实测（2026-11-04，见 [`benchmarks/m6/`](benchmarks/m6/)）；**本轮未重测**（[ADR-0014](docs/decisions/ADR-0014-no-cdsapi-live-tests.md)：用户要求不做 cdsapi 抓取测试） |
-| **NSF NCAR GDEX (RDA)** | 大气/气候/数值预报/地球系统科学 | ✅ 真实取数实测（1.13 GB 文件，10.5 MB/s） |
+| **NSF NCAR GDEX (RDA)** | 大气/气候/数值预报/地球系统科学 | ✅ 真实取数实测（1.13 GB 文件，10.5 MB/s）；压力层大分组支持 `filelist` + 可选 THREDDS NCSS 子集 |
 | **NASA Earthdata (CMR)** | MODIS / VIIRS / 对地观测 | 🟡 目录查询与能力声明已实现；**真实下载 `UNVERIFIED`**（需 EDL 账户） |
 | **Copernicus Data Space** | Sentinel 系列（STAC / OData） | 🟡 目录查询与 OAuth2 已实现；**真实下载 `UNVERIFIED`**（需 CDSE 账户） |
 | **Google Earth Engine** | 遥感影像 / 土地覆盖 / 植被指数 | ⬜ **未实现**（需 GEE 项目权限；且只做筛选/裁剪/导出，不做分析） |

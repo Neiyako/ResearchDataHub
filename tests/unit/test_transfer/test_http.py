@@ -104,6 +104,32 @@ def test_head_not_allowed_falls_back_to_ranged_get(server: TransferTestServer) -
     adapter.close()
 
 
+def test_declared_known_size_can_skip_expensive_head(
+    server: TransferTestServer, tmp_path: Path
+) -> None:
+    """NCSS 类资产在发现阶段已有真实大小时，传输层不得重复发昂贵 HEAD。"""
+    body = b"n" * 4096
+    resource = server.add("/ncss.nc", Resource(body=body, etag='"ncss"'))
+    adapter = make_http_adapter()
+    asset = make_http_asset(
+        server.url("/ncss.nc"),
+        size_bytes=len(body),
+        file_name="ncss.nc",
+        metadata_extensions={"transfer.head_probe": "skip", "rda.size_source": "ncss_head"},
+    )
+
+    metadata = adapter.get_remote_metadata(asset)
+    assert metadata.size_bytes == len(body)
+    assert metadata.accepts_ranges is False
+    assert resource.head_requests == 0
+
+    result = adapter.transfer(asset, tmp_path / "ncss.nc", task=make_task_for(asset))
+    assert result.status is TransferStatus.SUCCEEDED
+    assert (tmp_path / "ncss.nc").read_bytes() == body
+    assert resource.head_requests == 0
+    adapter.close()
+
+
 def test_supports_only_https_route_and_rejects_s3(
     server: TransferTestServer,
 ) -> None:

@@ -50,7 +50,7 @@ __all__ = ["HttpTransportAdapter"]
 
 _HEAD_NOT_ALLOWED = frozenset({405, 501})
 _RETRYABLE_STATUS = frozenset({408, 425, 429, 500, 501, 502, 503, 504, 507, 509})
-_DEFAULT_MAX_CONNECTIONS = 8
+_HEAD_PROBE_EXTENSION = "transfer.head_probe"
 
 
 def _parse_http_date(value: str | None) -> datetime | None:
@@ -176,7 +176,12 @@ class HttpTransportAdapter(TransportAdapterBase):
             connect=effective.connect_timeout_seconds,
             read=effective.read_timeout_seconds,
             write=effective.read_timeout_seconds,
-            pool=effective.connect_timeout_seconds,
+            pool=effective.pool_timeout_seconds,
+        )
+        keepalive = (
+            effective.max_keepalive_connections
+            if effective.max_keepalive_connections is not None
+            else effective.max_connections
         )
         self._client = httpx.Client(
             timeout=timeout,
@@ -187,8 +192,8 @@ class HttpTransportAdapter(TransportAdapterBase):
             # loopback socket 行为可断言（代理会把「连接被拒绝」包装成 502）。
             trust_env=trust_env,
             limits=httpx.Limits(
-                max_connections=_DEFAULT_MAX_CONNECTIONS,
-                max_keepalive_connections=_DEFAULT_MAX_CONNECTIONS,
+                max_connections=effective.max_connections,
+                max_keepalive_connections=keepalive,
             ),
             headers={
                 "User-Agent": "researchdatahub/0.1 (transfer)",
@@ -222,9 +227,30 @@ class HttpTransportAdapter(TransportAdapterBase):
         return parts.scheme in {"http", "https"} and bool(parts.hostname)
 
     def get_remote_metadata(self, asset: SourceAsset) -> RemoteMetadata:
-        """``HEAD`` 探测远端声明；服务端不支持 HEAD 时用 ``Range: bytes=0-0`` 兜底。"""
+        """``HEAD`` 探测远端声明；显式标记的已知大小资产可跳过昂贵探测。
+
+        生成型端点（例如 NCAR THREDDS NCSS）的 HEAD 与 GET 成本相近。发现阶段
+        已用真实 HEAD 得到响应大小并写入 ``asset.size_bytes`` 时，资产可声明
+        ``transfer.head_probe=skip``；传输仍会核对 GET 的 Content-Length 与实际字节数。
+        """
         url = self._url(asset)
         self._require_open()
+        if asset.metadata.extensions.get(_HEAD_PROBE_EXTENSION) == "skip":
+            if asset.size_bytes <= 0:
+                raise self._protocol_error(
+                    "transfer.head_probe=skip requires a positive declared asset size", url=url
+                )
+            return RemoteMetadata(
+                origin_uri=asset.origin_uri,
+                url=url,
+                transport_id=self.transport_id,
+                http_status=None,
+                size_bytes=asset.size_bytes,
+                etag=asset.remote_etag,
+                last_modified=asset.remote_last_modified,
+                content_type=asset.content_type,
+                accepts_ranges=False,
+            )
         response = self._send_head(url)
         if response.status_code in _HEAD_NOT_ALLOWED:
             response.close()
