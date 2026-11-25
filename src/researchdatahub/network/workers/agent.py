@@ -305,6 +305,18 @@ class RemoteTaskManager:
                 "target_relative_path escapes the worker storage root",
                 detail={"path": relative_path},
             )
+        current = self.storage_root
+        for part in Path(relative_path).parts:
+            if part in ("", "."):
+                continue
+            current /= part
+            if current.is_symlink():
+                raise AgentError(
+                    400,
+                    "path_symlink",
+                    "target_relative_path must not traverse symbolic links",
+                    detail={"path": relative_path},
+                )
         return candidate
 
     # -- 执行 --------------------------------------------------------------- #
