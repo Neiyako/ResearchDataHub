@@ -396,6 +396,35 @@ def test_path_escape_is_rejected_by_agent(
     assert response.json()["error"] in {"path_escape", "invalid_task"}
 
 
+def test_symlink_target_is_rejected_by_agent(
+    client: RemoteWorkerClient, http_server: TransferTestServer, agent: AgentServer, tmp_path: Path
+) -> None:
+    data = file_bytes(1024)
+    serve(http_server, "/ncar/symlink.nc", data)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    link = tmp_path / "agent-root" / "escape"
+    link.symlink_to(outside, target_is_directory=True)
+    sneaky = httpx.Client(
+        base_url=agent.base_url,
+        headers={"Authorization": f"Bearer {TOKEN}"},
+        trust_env=False,
+        timeout=5.0,
+    )
+    try:
+        body = task_request(
+            task_id="task-symlink", uri=http_server.url("/ncar/symlink.nc"), data=data
+        )
+        payload = json.loads(body.model_dump_json())
+        payload["target_relative_path"] = "escape/f.nc"
+        response = sneaky.post("/v1/tasks", json=payload)
+    finally:
+        sneaky.close()
+    assert response.status_code == 400
+    assert response.json()["error"] in {"path_escape", "path_symlink"}
+    assert not (outside / "f.nc").exists()
+
+
 # --------------------------------------------------------------------------- #
 # 文件回传（Range）
 # --------------------------------------------------------------------------- #
