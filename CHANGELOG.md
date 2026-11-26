@@ -3,7 +3,7 @@
 本项目遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/) 结构，
 版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
 
-## [Unreleased] — 2026-11-18
+## [1.2.1] — 2026-11-27
 
 ### Added
 
@@ -44,6 +44,8 @@
   科学能力或速度。
 - Route Intelligence 已提供 policy/materialize 接口，但默认 `download()` 仍要求组合根注入
   现有 scheduler/transport executor，不能绕过执行层直接调用平台 SDK。
+
+## [Unreleased]
 
 ## [1.1.0] — 2026-11-06
 

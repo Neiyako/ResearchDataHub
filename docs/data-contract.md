@@ -205,7 +205,7 @@ naive（无时区）时间直接拒绝。实测：`TemporalExtent(start=datetime
 | `MODELS_VERSION` | `"1.0"` | [`models.py:66`](../src/researchdatahub/core/models.py#L66) | 整套数据契约的版本，`rdh version` 期望打印它 |
 | `SCHEMA_VERSION` | `"1.0"` | [`models.py:69`](../src/researchdatahub/core/models.py#L69) | 单个模型的默认 `schema_version` 字段值 |
 | 每个模型的 `schema_version` | `Literal["1.0"] = "1.0"` | [`models.py:196`](../src/researchdatahub/core/models.py#L196) | 所有继承 `_Contract` 的模型都带这个字段 |
-| 包版本 `__version__` | `"0.1.0"` | [`src/researchdatahub/__init__.py`](../src/researchdatahub/__init__.py) | 软件版本，与契约版本**独立演进** |
+| 包版本 `__version__` | `"1.2.1"` | [`src/researchdatahub/__init__.py`](../src/researchdatahub/__init__.py) | 软件版本，与契约版本**独立演进** |
 
 校验逻辑在 `_check_schema_version`（[`models.py:102`](../src/researchdatahub/core/models.py#L102)）：
 值不等于 `MODELS_VERSION` 就直接抛错，错误信息里点名“Run the migration described in docs/data-contract.md”。
