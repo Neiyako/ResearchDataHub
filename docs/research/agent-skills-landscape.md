@@ -182,7 +182,7 @@ startup_timeout_sec = 120
 
 [mcp_servers.node_repl.env]
 NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS = "1000"
-CODEX_HOME = "/Users/apple/.codex"
+CODEX_HOME = "<user-home>/.codex"
 ```
 
 由此确认（**本机实测**）：
@@ -198,10 +198,10 @@ args = []
 enabled = true
 
 [mcp_servers.rdh-mcp.env]
-RDH_ROOT = "/Users/apple/.rdh"
+RDH_ROOT = "<user-home>/.rdh"
 ```
 
-> `rdh-mcp` 必须在 `PATH` 上（`pip install -e .` 后由 `[project.scripts]` 生成）。若不在 PATH，用绝对路径，例如 `command = "/Users/apple/Desktop/ResearchDataHub/.venv/bin/rdh-mcp"`。
+> `rdh-mcp` 必须在 `PATH` 上（`pip install -e .` 后由 `[project.scripts]` 生成）。若不在 PATH，用绝对路径，例如 `command = "<repository-root>/.venv/bin/rdh-mcp"`。
 > 本机实测提醒：`args = []` 是合法的空数组；若把命令参数写在 `args` 里，务必保证 `command` 本身是**可执行文件路径**，而不是带空格的整条命令。
 
 **CLI 等价写法**（**本机实测**：`codex mcp add --help`）：

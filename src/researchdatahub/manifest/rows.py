@@ -20,7 +20,7 @@ from collections.abc import Mapping
 from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Final
+from typing import Any, Final, cast
 
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
@@ -57,7 +57,7 @@ __all__ = [
     "validated",
 ]
 
-_JSON_ADAPTER: Final[TypeAdapter[JsonValue]] = TypeAdapter(JsonValue)  # type: ignore[arg-type]
+_JSON_ADAPTER: Final[Any] = TypeAdapter(cast(Any, JsonValue))
 
 TASK_SELECT: Final[str] = """
 SELECT
@@ -157,7 +157,7 @@ def to_json_value(value: object) -> JsonValue:
     """把 Python 值规整为 :data:`JsonValue`（受控 JSON 类型），非法值抛 ManifestError。"""
     try:
         encoded = json.dumps(value, default=_json_default, ensure_ascii=False, sort_keys=True)
-        return _JSON_ADAPTER.validate_json(encoded)
+        return cast(JsonValue, _JSON_ADAPTER.validate_json(encoded))
     except (TypeError, ValueError, ValidationError) as exc:
         raise ManifestError(
             f"value is not JSON-serializable: {exc}",
@@ -180,7 +180,7 @@ def from_json_text(value: object, *, column: str) -> JsonValue:
             detail={"column": column},
         )
     try:
-        return _JSON_ADAPTER.validate_json(value)
+        return cast(JsonValue, _JSON_ADAPTER.validate_json(value))
     except ValidationError as exc:
         raise ManifestError(
             f"column {column!r} contains invalid JSON: {exc}",

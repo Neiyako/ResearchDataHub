@@ -288,7 +288,7 @@ M6 的第一优先是"真实 ERA5 小规模端到端"。本报告只覆盖其中
 ## 7. 复现
 
 ```bash
-cd ~/Desktop/ResearchDataHub
+cd <repository-root>
 # 0) 前置：CDS 令牌（~/.cdsapirc 或 CDSAPI_KEY）；NCAR GDEX 公开无需凭证
 # 1) 纯 NCAR（约 2 分钟；下载 1.1 GB 到临时目录）
 PYTHONPATH=src .venv/bin/python scripts/m6_efficiency_bench.py --mode ncar \

@@ -46,9 +46,6 @@ configs/local.yaml
 .DS_Store
 Thumbs.db
 
-# macOS
-.DS_Store
-
 # ResearchDataHub 本地配置与运行产物（追加）
 configs/defaults.local.yaml
 configs/*.yaml.tmp

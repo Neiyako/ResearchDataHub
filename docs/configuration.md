@@ -74,7 +74,7 @@ root: "env:RDH_HOME"           # 环境变量引用；未设置时校验失败�
 root: "${RDH_HOME}/storage"    # 内嵌插值
 ```
 
-绝对路径（如外置 SSD `/Volumes/SSD/rdh`）是允许的：本地大容量存储是合法需求。
+绝对路径（如外置 SSD `<external-storage>/rdh`）是允许的：本地大容量存储是合法需求。
 但**提交进仓库的配置不得写死某台机器的个人路径**。
 
 ### 1.2 `defaults.concurrency`

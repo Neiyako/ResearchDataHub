@@ -107,7 +107,8 @@ class DependencyChecker:
             status = RequirementStatus.UNKNOWN
             guidance = (
                 f"无法判断 {requirement.module} 是否可导入（父包可能已损坏）。"
-                f"请执行：.venv/bin/pip install --force-reinstall {requirement.package}"
+                "请在已激活的虚拟环境中执行："
+                f"python -m pip install --force-reinstall {requirement.package}"
             )
         elif present:
             status = RequirementStatus.PRESENT
@@ -117,14 +118,14 @@ class DependencyChecker:
             guidance = (
                 f"缺少 Python 包 {requirement.package}（导入名 {requirement.module}），"
                 f"它是必需的：{requirement.purpose}。修复："
-                f".venv/bin/pip install '{requirement.package}'，或安装项目全部依赖 "
-                ".venv/bin/pip install -e '.[cds,sci]'"
+                f"python -m pip install '{requirement.package}'，或安装项目全部依赖 "
+                "python -m pip install -e '.[cds,sci]'"
             )
         else:
             status = RequirementStatus.OPTIONAL
             guidance = (
                 f"{requirement.package} 未安装（可选）：{requirement.purpose}。"
-                f"需要该功能时执行 .venv/bin/pip install '{requirement.package}'"
+                f"需要该功能时执行 python -m pip install '{requirement.package}'"
             )
         return RequirementResult(
             name=requirement.module,

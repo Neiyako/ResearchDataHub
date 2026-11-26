@@ -12,7 +12,7 @@
 #        - "~/.rdh"           波浪号展开（**本文件采用的默认值**，开箱即用）
 #        - "env:RDH_HOME"     引用环境变量 env:VAR（未设置时 rdh config validate 会报错点名该变量）
 #        - "${RDH_HOME}/s"    内嵌插值，可出现在任意位置
-#      注意：校验器**允许**绝对路径（如外置 SSD "/Volumes/SSD/rdh"），因为本地大容量存储
+#      注意：校验器**允许**绝对路径（如外置 SSD "<external-storage>/rdh"），因为本地大容量存储
 #      是合法需求；但提交进仓库的配置不得写死某台机器的个人路径，本文件因此使用 "~/.rdh"。
 #      子目录（raw_dir 等）必须相对 storage.root，不得以 "/"、"~" 或 "env:" 开头。
 #   3. 本文件不含任何凭证；凭证只在 configs/sources.yaml 里以 env:VAR 形式出现。

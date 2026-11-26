@@ -29,6 +29,7 @@ import hashlib
 import json
 import platform
 import sys
+import tempfile
 import threading
 import time
 from collections.abc import Mapping, Sequence
@@ -615,7 +616,12 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="CDS 集合名（默认 reanalysis-era5-single-levels；可换 era5-land 做连通对照）",
     )
     parser.add_argument("--out", type=Path, default=Path("benchmarks/m6"))
-    parser.add_argument("--workdir", type=Path, default=Path("/tmp/rdh-m6-bench"))
+    parser.add_argument(
+        "--workdir",
+        type=Path,
+        default=Path(tempfile.gettempdir()) / "rdh-m6-bench",
+        help="临时下载目录，默认使用当前系统的临时目录",
+    )
     parser.add_argument("--year", type=int, default=2024)
     parser.add_argument("--month", type=int, default=1)
     parser.add_argument("--cds-days", type=int, default=3, help="从 1 号起的天数")
