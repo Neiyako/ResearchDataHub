@@ -12,4 +12,4 @@ __all__ = ["MODELS_VERSION", "RouteIntelligence", "__version__"]
 try:
     __version__ = version("researchdatahub")
 except PackageNotFoundError:  # 未安装（例如直接 PYTHONPATH=src 运行）
-    __version__ = "1.1.0"
+    __version__ = "1.2.1"

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "researchdatahub"
-version = "1.1.0"
+version = "1.2.1"
 description = "Research Data Acquisition and Synchronization Hub — 面向气候与地球科学的多源科研数据采集基础设施"
 readme = "README.md"
 requires-python = ">=3.12"
