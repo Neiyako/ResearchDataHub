@@ -47,6 +47,7 @@ class TransferErrorCode(StrEnum):
 
     # 内容一致性
     SIZE_MISMATCH = "size_mismatch"
+    RESPONSE_TOO_LARGE = "response_too_large"
     REMOTE_SIZE_UNKNOWN = "remote_size_unknown"
     RESUME_IDENTITY_UNKNOWN = "resume_identity_unknown"
 

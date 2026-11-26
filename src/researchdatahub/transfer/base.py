@@ -1119,6 +1119,7 @@ class TransportAdapterBase(ABC):
             ) from exc
         with handle:
             written = start_offset
+            response_bytes = 0
             if start_offset > 0:
                 position = handle.tell()
                 if position != start_offset:
@@ -1167,6 +1168,24 @@ class TransportAdapterBase(ABC):
                     )
                 if not chunk:
                     continue
+                response_bytes += len(chunk)
+                if response_bytes > self._config.max_response_bytes:
+                    raise _Abort(
+                        _Failure(
+                            error_code=str(TransferErrorCode.RESPONSE_TOO_LARGE),
+                            message=(
+                                "single response exceeded configured limit "
+                                f"{self._config.max_response_bytes} bytes"
+                            ),
+                            retryable=False,
+                            keep_part=False,
+                            detail={
+                                "response_bytes": response_bytes,
+                                "max_response_bytes": self._config.max_response_bytes,
+                            },
+                        ),
+                        state,
+                    )
                 try:
                     handle.write(chunk)
                 except OSError as exc:
