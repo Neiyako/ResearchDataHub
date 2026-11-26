@@ -51,14 +51,14 @@ RDH 可以通过 MCP 接入 Codex、Claude Code 等 AI 编程助手。安装后�
 
 ### 安装
 
-需要 Python 3.12 或更高版本。
+需要 Python 3.12 或更高版本。下面的 Python 命令适用于 macOS、Linux 和 Windows PowerShell。
 
 ```bash
 git clone https://github.com/Neiyako/ResearchDataHub.git
 cd ResearchDataHub
-python3 -m venv .venv
-.venv/bin/pip install -e ".[mcp,sci]"
-.venv/bin/rdh version
+python -m venv .venv
+python -m pip install -e ".[mcp,sci]"
+rdh version
 ```
 
 这里的两个可选组件用途如下：
@@ -69,7 +69,7 @@ python3 -m venv .venv
 需要使用 Copernicus CDS 时，再安装：
 
 ```bash
-.venv/bin/pip install -e ".[cds]"
+python -m pip install -e ".[cds]"
 ```
 
 ### 接入 Codex 或 Claude Code
@@ -284,6 +284,7 @@ RDH 负责数据发现、获取、恢复、验证、记录和交付。
 - [故障恢复](docs/recovery.md)
 - [数据源说明](docs/providers/)
 - [MCP 接入说明](docs/mcp.md)
+- [平台支持](docs/platform-support.md)
 - [当前状态审计](docs/architecture/RDH_CURRENT_STATE_AUDIT.md)
 - [最终升级报告](docs/reports/RDH_FINAL_UPGRADE_REPORT.md)
 

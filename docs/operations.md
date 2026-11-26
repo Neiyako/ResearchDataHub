@@ -17,7 +17,7 @@ rdh db status                      # 确认 journal_mode=wal、foreign_keys=on
 ```
 
 **目录规划**：`storage.root` 指向**外置 SSD** 时请写绝对路径（如
-`/Volumes/SSD/rdh`），并确认 `staging` 与 `raw` 在**同一个卷**上能得到原子 rename；
+`<external-storage>/rdh`），并确认 `staging` 与 `raw` 在**同一个卷**上能得到原子 rename；
 若不在同一卷，提交会走 copy+fsync+rename 路径（正确但更慢，大文件需预留双倍空间）。
 
 ## 2. 日常流程

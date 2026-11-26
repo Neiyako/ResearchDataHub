@@ -146,7 +146,7 @@ M6 的真实下载效率基准**不进 pytest**：它需要数分钟到数十分
 
 ## 5. 真实命令（均已实测）
 
-以下命令在仓库根 `/Users/apple/Desktop/ResearchDataHub` 执行。
+以下命令在仓库根 `<repository-root>` 执行。
 
 ### 5.1 跑测试
 

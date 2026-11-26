@@ -2,7 +2,7 @@
 
 > 本文件记录 M0 的**真实执行命令、退出码与输出摘录**。
 > 结论口径只用 `PASS` / `CONDITIONAL_PASS` / `FAIL` / `INSUFFICIENT_EVIDENCE` / `NOT_RUN`。
-> 生成时间：2026-11-04。执行环境：macOS 27.0.1 arm64（Apple Silicon M2），Python 3.13.13，仓库根 `/Users/apple/Desktop/ResearchDataHub`。
+> 生成时间：2026-11-04。执行环境：macOS 27.0.1 arm64（Apple Silicon M2），Python 3.13.13，仓库根 `<repository-root>`。
 
 ---
 
@@ -79,7 +79,7 @@ $ .venv/bin/python -c "import importlib.metadata as m; print(m.version('research
 
 ```text
 $ rm -rf /tmp/rdh-final && python3 -m venv /tmp/rdh-final
-$ /tmp/rdh-final/bin/pip install -e "/Users/apple/Desktop/ResearchDataHub[dev]"
+$ /tmp/rdh-final/bin/pip install -e "<repository-root>[dev]"
 install exit=0
 
 $ /tmp/rdh-final/bin/rdh version ; echo "exit=$?"
@@ -264,7 +264,7 @@ PyYAML 无官方 stubs 这一项，代码中**零** `type: ignore`。
    已改写 `README.md` 与 `development-plan.md` §7 的错误结论（错的诊断比没有诊断更糟）。
 5. **修正 doc-writer 发现的 `defaults.yaml` 注释与代码不符** —— 注释声称"禁止写死绝对路径"，
    但校验器实际允许绝对路径。**不改代码而改注释**：主人有外置 SSD，
-   `/Volumes/SSD/rdh` 是合法需求，禁止绝对路径会挡住真实用法；正确规则是
+   `<external-storage>/rdh` 是合法需求，禁止绝对路径会挡住真实用法；正确规则是
    "默认用可移植路径，但不禁止绝对路径"。
 
 ---
