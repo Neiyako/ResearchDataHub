@@ -311,6 +311,12 @@ class TransferConfig(_ConfigModel):
     chunk_size_bytes: int = Field(
         default=1_048_576, ge=65_536, le=33_554_432, description="流式写入分块大小"
     )
+    max_response_bytes: int = Field(
+        default=400 * 1024 * 1024,
+        ge=1,
+        le=400 * 1024 * 1024,
+        description="单次实际响应体上限，默认 400 MiB，不能通过配置超过硬上限",
+    )
     max_redirects: int = Field(default=5, ge=0, le=20)
     verify_tls: bool = True
     resume_enabled: bool = Field(default=True, description="是否允许在可自证一致性时断点续传")
