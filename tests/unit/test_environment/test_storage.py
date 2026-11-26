@@ -49,7 +49,7 @@ def test_path_is_a_file_not_directory(tmp_path: Path) -> None:
     assert "不是目录" in result.guidance
 
 
-@pytest.mark.skipif(os.geteuid() == 0, reason="root 无视目录权限")
+@pytest.mark.skipif(getattr(os, "geteuid", lambda: -1)() == 0, reason="root 无视目录权限")
 def test_readonly_directory_is_missing(tmp_path: Path) -> None:
     readonly = tmp_path / "readonly"
     readonly.mkdir()

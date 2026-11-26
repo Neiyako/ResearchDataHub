@@ -97,7 +97,9 @@ def test_sha256_match_passes(tmp_path: Path) -> None:
     assert report.observed["checksum"]["local_sha256_recorded"] is True
 
 
-@pytest.mark.skipif(os.geteuid() == 0, reason="root ignores file permission bits")
+@pytest.mark.skipif(
+    getattr(os, "geteuid", lambda: -1)() == 0, reason="root ignores file permission bits"
+)
 def test_unreadable_file_fails_readable_and_skips_checksum(tmp_path: Path) -> None:
     path = write_bytes(tmp_path / "unreadable.bin", b"hidden-bytes")
     record, task = make_context(path, content_type=None)
